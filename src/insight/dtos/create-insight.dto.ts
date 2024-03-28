@@ -1,6 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsArray, IsBoolean, IsString } from "class-validator";
+import { IsArray, IsBoolean, IsOptional, IsString } from "class-validator";
 
 import { RepoInfo } from "../../repo/dtos/repo-info.dto";
 
@@ -13,13 +13,14 @@ export class CreateInsightDto {
   @IsString()
   name: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "Insight Page Visibility",
     type: Boolean,
-    example: false,
+    example: true,
   })
+  @IsOptional()
   @IsBoolean()
-  is_public: boolean;
+  is_public?: boolean = true;
 
   @ApiProperty({
     description: "An array of repository information objects",

@@ -1,6 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsArray, IsBoolean, IsString } from "class-validator";
+import { IsArray, IsBoolean, IsOptional, IsString } from "class-validator";
 
 export class Contributor {
   id: number;
@@ -16,13 +16,14 @@ export class CreateUserListDto {
   @IsString()
   name: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "List Visibility",
     type: Boolean,
-    example: false,
+    example: true,
   })
   @IsBoolean()
-  is_public: boolean;
+  @IsOptional()
+  is_public?: boolean = true;
 
   @ApiProperty({
     description: "An array of contributor objects",
