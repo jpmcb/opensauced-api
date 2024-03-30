@@ -90,6 +90,7 @@ import { DbIssuesGitHubEvents } from "./timescale/entities/issues_github_event.e
 import { DbPushGitHubEvents } from "./timescale/entities/push_github_events.entity";
 import { DbWorkspaceUserLists } from "./workspace/entities/workspace-user-list.entity";
 import { UrlModule } from "./url/url.module";
+import { TimescaleConsumerModule } from "./timescale-consumer/consumer.module";
 
 @Module({
   imports: [
@@ -272,6 +273,7 @@ import { UrlModule } from "./url/url.module";
     WorkspaceModule,
     HistogramModule,
     UrlModule,
+    TimescaleConsumerModule,
   ],
   providers: [],
 })
