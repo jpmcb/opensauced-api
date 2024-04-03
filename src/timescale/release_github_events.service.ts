@@ -2,9 +2,14 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { GetPrevDateISOString } from "../common/util/datetimes";
-import { ReleaseHistogramDto } from "../histogram/dtos/releases.dto";
+import { ReleaseHistogramDto, ReleasesDto } from "../histogram/dtos/releases.dto";
 import { OrderDirectionEnum } from "../common/constants/order-direction.constant";
-import { DbReleaseGitHubEventsHistogram } from "./entities/release_github_events_histogram.entity";
+import { PageMetaDto } from "../common/dtos/page-meta.dto";
+import { PageDto } from "../common/dtos/page.dto";
+import {
+  DbReleaseGitHubEvent,
+  DbReleaseGitHubEventsHistogram,
+} from "./entities/release_github_events_histogram.entity";
 
 /*
  * release events, named "ReleaseEvent" in the GitHub API, are when
@@ -17,13 +22,83 @@ import { DbReleaseGitHubEventsHistogram } from "./entities/release_github_events
 export class ReleaseGithubEventsService {
   constructor(
     @InjectRepository(DbReleaseGitHubEventsHistogram, "TimescaleConnection")
-    private releaseGitHubEventsHistogramRepository: Repository<DbReleaseGitHubEventsHistogram>
+    private releaseGitHubEventsRepository: Repository<DbReleaseGitHubEventsHistogram>
   ) {}
 
   baseQueryBuilder() {
-    const builder = this.releaseGitHubEventsHistogramRepository.manager.createQueryBuilder();
+    const builder = this.releaseGitHubEventsRepository.manager.createQueryBuilder();
 
     return builder;
+  }
+
+  async getReleases(options: ReleasesDto): Promise<PageDto<DbReleaseGitHubEvent>> {
+    if (!options.contributor && !options.repos && !options.repoIds) {
+      throw new BadRequestException("must provide contributor, repo, or repoIds");
+    }
+
+    const range = options.range ?? 30;
+    const order = options.orderDirection ?? OrderDirectionEnum.DESC;
+    const startDate = GetPrevDateISOString(options.prev_days_start_date ?? 0);
+
+    const queryBuilder = this.baseQueryBuilder();
+
+    queryBuilder
+      .select("release_name", "title")
+      .addSelect("event_time", "release_date_time")
+      .addSelect("release_tag", "tag")
+      .addSelect("release_target_commit", "target_ref")
+      .addSelect("release_is_draft", "is_draft")
+      .addSelect("release_is_pre_release", "is_pre_release")
+      .from("release_github_events", "release_github_events")
+      .where(`'${startDate}':: TIMESTAMP >= "release_github_events"."event_time"`)
+      .andWhere(`'${startDate}':: TIMESTAMP - INTERVAL '${range} days' <= "release_github_events"."event_time"`)
+      .orderBy("event_time", order);
+
+    /* filter on the provided releaser username */
+    if (options.contributor) {
+      queryBuilder.andWhere(`LOWER("release_github_events"."actor_login") = LOWER(:actor)`, {
+        actor: options.contributor,
+      });
+    }
+
+    /* filter on the provided repo names */
+    if (options.repos) {
+      queryBuilder.andWhere(`LOWER("release_github_events"."repo_name") IN (:...repoNames)`).setParameters({
+        repoNames: options.repos.toLowerCase().split(","),
+      });
+    }
+
+    /* filter on the provided repo ids */
+    if (options.repoIds) {
+      queryBuilder.andWhere(`"release_github_events"."repo_id" IN (:...repoIds)`).setParameters({
+        repoIds: options.repoIds.split(","),
+      });
+    }
+
+    const cteCounter = this.releaseGitHubEventsRepository.manager
+      .createQueryBuilder()
+      .addCommonTableExpression(queryBuilder, "CTE")
+      .setParameters(queryBuilder.getParameters())
+      .select(`COUNT(*) as count`)
+      .from("CTE", "CTE");
+
+    const cteCounterResult = await cteCounter.getRawOne<{ count: number }>();
+    const itemCount = parseInt(`${cteCounterResult?.count ?? "0"}`, 10);
+
+    queryBuilder.offset(options.skip).limit(options.limit);
+
+    const entities = await queryBuilder.getRawMany<DbReleaseGitHubEvent>();
+
+    const pageMetaDto = new PageMetaDto({
+      itemCount,
+      pageOptionsDto: {
+        page: options.page,
+        limit: options.limit,
+        skip: options.skip,
+      },
+    });
+
+    return new PageDto(entities, pageMetaDto);
   }
 
   async genReleaseHistogram(options: ReleaseHistogramDto): Promise<DbReleaseGitHubEventsHistogram[]> {

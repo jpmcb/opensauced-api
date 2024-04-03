@@ -1,5 +1,8 @@
 import { Controller, Get, Header, Param, ParseIntPipe, Query } from "@nestjs/common";
 import { ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
+import { DbReleaseGitHubEvent } from "../timescale/entities/release_github_events_histogram.entity";
+import { ReleaseGithubEventsService } from "../timescale/release_github_events.service";
+import { ReleasesDto } from "../histogram/dtos/releases.dto";
 import { PageDto } from "../common/dtos/page.dto";
 import { ApiPaginatedResponse } from "../common/decorators/api-paginated-response.decorator";
 import { PageOptionsDto } from "../common/dtos/page-options.dto";
@@ -13,7 +16,11 @@ import { DbRepoContributor } from "./entities/repo_contributors.entity";
 @Controller("repos")
 @ApiTags("Repository service")
 export class RepoController {
-  constructor(private readonly repoService: RepoService, private readonly repoDevstatsService: RepoDevstatsService) {}
+  constructor(
+    private readonly repoService: RepoService,
+    private readonly repoDevstatsService: RepoDevstatsService,
+    private readonly releaseGitHubEventsService: ReleaseGithubEventsService
+  ) {}
 
   @Get("/:id")
   @ApiOperation({
@@ -55,6 +62,29 @@ export class RepoController {
     @Query() pageOptionsDto: PageOptionsDto
   ): Promise<PageDto<DbRepoContributor>> {
     return this.repoDevstatsService.findRepoContributorStats(owner, repo, pageOptionsDto);
+  }
+
+  @Get("/:owner/:repo/releases")
+  @ApiOperation({
+    operationId: "findReleasesByOwnerAndRepo",
+    summary: "Finds a repo by :owner and :repo and gets the releases",
+  })
+  @ApiPaginatedResponse(DbReleaseGitHubEvent)
+  @ApiOkResponse({ type: DbReleaseGitHubEvent })
+  @ApiNotFoundResponse({ description: "Repository releases not found" })
+  @Header("Cache-Control", "public, max-age=600")
+  async findReleasesByOwnerAndRepo(
+    @Param("owner") owner: string,
+    @Param("repo") repo: string,
+    @Query() pageOptionsDto: PageOptionsDto
+  ): Promise<PageDto<DbReleaseGitHubEvent>> {
+    const options: ReleasesDto = {
+      repos: `${owner}/${repo}`,
+      ...pageOptionsDto,
+      skip: ((pageOptionsDto.page ?? 1) - 1) * (pageOptionsDto.limit ?? 10),
+    };
+
+    return this.releaseGitHubEventsService.getReleases(options);
   }
 
   @Get("/list")
