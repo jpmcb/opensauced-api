@@ -68,6 +68,17 @@ export class DbReleaseGitHubEvent {
     insert: false,
   })
   public is_pre_release: boolean;
+
+  @ApiModelProperty({
+    description: "Contributor who cut release",
+    example: "bdougie",
+  })
+  @Column({
+    type: "string",
+    select: false,
+    insert: false,
+  })
+  public releaser_login: string;
 }
 
 @Entity({ name: "release_github_events" })

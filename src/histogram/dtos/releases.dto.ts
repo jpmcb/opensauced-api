@@ -27,6 +27,15 @@ export class ReleasesDto extends PageOptionsDto {
   @IsOptional()
   readonly contributor?: string;
 
+  @ApiPropertyOptional({
+    description: "Filter out releases based on a given actor",
+    type: "string",
+    example: "github-actions",
+  })
+  @IsString()
+  @IsOptional()
+  readonly not_contributor?: string;
+
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()

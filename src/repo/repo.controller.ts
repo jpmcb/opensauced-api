@@ -12,6 +12,7 @@ import { RepoService } from "./repo.service";
 import { RepoPageOptionsDto } from "./dtos/repo-page-options.dto";
 import { RepoSearchOptionsDto } from "./dtos/repo-search-options.dto";
 import { DbRepoContributor } from "./entities/repo_contributors.entity";
+import { RepoReleaseDto } from "./dtos/repo-release.dto";
 
 @Controller("repos")
 @ApiTags("Repository service")
@@ -76,7 +77,7 @@ export class RepoController {
   async findReleasesByOwnerAndRepo(
     @Param("owner") owner: string,
     @Param("repo") repo: string,
-    @Query() pageOptionsDto: PageOptionsDto
+    @Query() pageOptionsDto: RepoReleaseDto
   ): Promise<PageDto<DbReleaseGitHubEvent>> {
     const options: ReleasesDto = {
       repos: `${owner}/${repo}`,

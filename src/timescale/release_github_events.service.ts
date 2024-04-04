@@ -49,6 +49,7 @@ export class ReleaseGithubEventsService {
       .addSelect("release_target_commit", "target_ref")
       .addSelect("release_is_draft", "is_draft")
       .addSelect("release_is_pre_release", "is_pre_release")
+      .addSelect("actor_login", "releaser_login")
       .from("release_github_events", "release_github_events")
       .where(`'${startDate}':: TIMESTAMP >= "release_github_events"."event_time"`)
       .andWhere(`'${startDate}':: TIMESTAMP - INTERVAL '${range} days' <= "release_github_events"."event_time"`)
@@ -58,6 +59,13 @@ export class ReleaseGithubEventsService {
     if (options.contributor) {
       queryBuilder.andWhere(`LOWER("release_github_events"."actor_login") = LOWER(:actor)`, {
         actor: options.contributor,
+      });
+    }
+
+    /* filter on the provided releaser username */
+    if (options.not_contributor) {
+      queryBuilder.andWhere(`LOWER("release_github_events"."actor_login") != LOWER(:actor)`, {
+        actor: options.not_contributor,
       });
     }
 
