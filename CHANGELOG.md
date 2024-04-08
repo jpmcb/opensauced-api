@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.19.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.19.0-beta.1...v2.19.0-beta.2) (2024-04-08)
+
+
+### 🍕 Features
+
+* Implements fast fuzzy finding of repos via v2/repos/search/fuzzy ([#717](https://github.com/open-sauced/api.opensauced.pizza/issues/717)) ([3d96754](https://github.com/open-sauced/api.opensauced.pizza/commit/3d967542c395f198a0baaadb4235d5170fe421b4))
+
 ## [2.19.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.18.1-beta.1...v2.19.0-beta.1) (2024-04-05)
 
 
