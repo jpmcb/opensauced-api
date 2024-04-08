@@ -19,7 +19,7 @@ import { PullRequestGithubEventsService } from "../../timescale/pull_request_git
 import { DbPullRequestGitHubEvents } from "../../timescale/entities/pull_request_github_event.entity";
 import { RepoService } from "../../repo/repo.service";
 import { UserListService } from "../../user-lists/user-list.service";
-import { DbRepo } from "../../repo/entities/repo.entity";
+import { DbRepoWithStats } from "../../repo/entities/repo.entity";
 import { RepoFilterService } from "../../common/filters/repo-filter.service";
 import { DbUserListContributor } from "../../user-lists/entities/user-list-contributor.entity";
 import { PagerService } from "../../common/services/pager.service";
@@ -75,7 +75,7 @@ describe("UserService", () => {
           useValue: createMockRepository(),
         },
         {
-          provide: getRepositoryToken(DbRepo, "ApiConnection"),
+          provide: getRepositoryToken(DbRepoWithStats, "ApiConnection"),
           useValue: createMockRepository(),
         },
         {

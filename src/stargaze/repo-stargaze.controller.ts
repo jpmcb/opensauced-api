@@ -14,7 +14,7 @@ import { SupabaseGuard } from "../auth/supabase.guard";
 import { UserId } from "../auth/supabase.user.decorator";
 import { DbRepoToUserStargazers } from "../repo/entities/repo.to.user.stargazers.entity";
 import { ApiPaginatedResponse } from "../common/decorators/api-paginated-response.decorator";
-import { DbRepo } from "../repo/entities/repo.entity";
+import { DbRepoWithStats } from "../repo/entities/repo.entity";
 import { RepoPageOptionsDto } from "../repo/dtos/repo-page-options.dto";
 import { PageDto } from "../common/dtos/page.dto";
 import { StargazeService } from "./stargaze.service";
@@ -31,12 +31,12 @@ export class RepoStargazeController {
     operationId: "findAllUserStargazed",
     summary: "Finds all repos followed by authenticated user and paginates them",
   })
-  @ApiPaginatedResponse(DbRepo)
-  @ApiOkResponse({ type: DbRepo })
+  @ApiPaginatedResponse(DbRepoWithStats)
+  @ApiOkResponse({ type: DbRepoWithStats })
   async findAllUserStargazed(
     @Query() pageOptionsDto: RepoPageOptionsDto,
     @UserId() userId: number
-  ): Promise<PageDto<DbRepo>> {
+  ): Promise<PageDto<DbRepoWithStats>> {
     return this.repoService.findAll(pageOptionsDto, userId, ["Stargazers"]);
   }
 

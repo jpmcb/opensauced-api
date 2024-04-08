@@ -6,7 +6,7 @@ import { PageMetaDto } from "../common/dtos/page-meta.dto";
 import { PageDto } from "../common/dtos/page.dto";
 import { PageOptionsDto } from "../common/dtos/page-options.dto";
 import { RepoService } from "../repo/repo.service";
-import { DbRepo } from "../repo/entities/repo.entity";
+import { DbRepoWithStats } from "../repo/entities/repo.entity";
 import { RepoSearchOptionsDto } from "../repo/dtos/repo-search-options.dto";
 import { PullRequestGithubEventsService } from "../timescale/pull_request_github_events.service";
 import { DbPullRequestGitHubEvents } from "../timescale/entities/pull_request_github_event.entity";
@@ -127,7 +127,7 @@ export class WorkspaceReposService {
     pageOptionsDto: RepoSearchOptionsDto,
     id: string,
     userId: number | undefined
-  ): Promise<PageDto<DbRepo>> {
+  ): Promise<PageDto<DbRepoWithStats>> {
     const workspace = await this.workspaceService.findOneById(id);
 
     /*

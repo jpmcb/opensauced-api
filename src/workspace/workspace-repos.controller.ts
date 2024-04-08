@@ -18,7 +18,7 @@ import { OptionalUserId, UserId } from "../auth/supabase.user.decorator";
 import { SupabaseGuard } from "../auth/supabase.guard";
 
 import { ApiPaginatedResponse } from "../common/decorators/api-paginated-response.decorator";
-import { DbRepo } from "../repo/entities/repo.entity";
+import { DbRepoWithStats } from "../repo/entities/repo.entity";
 import { RepoSearchOptionsDto } from "../repo/dtos/repo-search-options.dto";
 import { DbPullRequestGitHubEvents } from "../timescale/entities/pull_request_github_event.entity";
 import { WorkspaceReposService } from "./workspace-repos.service";
@@ -76,14 +76,14 @@ export class WorkspaceRepoController {
   })
   @ApiBearerAuth()
   @UseGuards(PassthroughSupabaseGuard)
-  @ApiPaginatedResponse(DbRepo)
-  @ApiOkResponse({ type: DbRepo })
+  @ApiPaginatedResponse(DbRepoWithStats)
+  @ApiOkResponse({ type: DbRepoWithStats })
   @ApiParam({ name: "id", type: "string" })
   async findAllWorkspaceReposWithFilters(
     @Param("id") id: string,
     @OptionalUserId() userId: number | undefined,
     @Query() pageOptionsDto: RepoSearchOptionsDto
-  ): Promise<PageDto<DbRepo>> {
+  ): Promise<PageDto<DbRepoWithStats>> {
     return this.workspaceRepoService.findAllReposByFilterInWorkspace(pageOptionsDto, id, userId);
   }
 

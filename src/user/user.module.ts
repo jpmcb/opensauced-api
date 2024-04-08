@@ -7,7 +7,7 @@ import { TimescaleModule } from "../timescale/timescale.module";
 import { PullRequestModule } from "../pull-requests/pull-request.module";
 import { RepoModule } from "../repo/repo.module";
 
-import { DbRepo } from "../repo/entities/repo.entity";
+import { DbRepoWithStats } from "../repo/entities/repo.entity";
 import { RepoService } from "../repo/repo.service";
 import { RepoFilterService } from "../common/filters/repo-filter.service";
 import { EndorsementService } from "../endorsement/endorsement.service";
@@ -56,7 +56,7 @@ import { UserPersonalWorkspaceController } from "./user-personal-workspace.contr
         DbUserTopRepo,
         DbUserNotification,
         DbUserCollaboration,
-        DbRepo,
+        DbRepoWithStats,
         DbEndorsement,
         DbUserOrganization,
         DbInsight,

@@ -5,7 +5,7 @@ import { PageOptionsDto } from "../common/dtos/page-options.dto";
 import { PageDto } from "../common/dtos/page.dto";
 import { ApiPaginatedResponse } from "../common/decorators/api-paginated-response.decorator";
 import { RepoService } from "../repo/repo.service";
-import { DbRepo } from "../repo/entities/repo.entity";
+import { DbRepoWithStats } from "../repo/entities/repo.entity";
 import { DbPullRequestGitHubEvents } from "../timescale/entities/pull_request_github_event.entity";
 import { PullRequestGithubEventsService } from "../timescale/pull_request_github_events.service";
 import { DbUserHighlight } from "./entities/user-highlight.entity";
@@ -80,14 +80,14 @@ export class UserController {
     operationId: "findAllTopReposByUsername",
     summary: "Listing all Top Repos for a user and paginate them",
   })
-  @ApiPaginatedResponse(DbRepo)
-  @ApiOkResponse({ type: DbRepo })
+  @ApiPaginatedResponse(DbRepoWithStats)
+  @ApiOkResponse({ type: DbRepoWithStats })
   @ApiNotFoundResponse({ description: "Top repos not found" })
   @Header("Cache-Control", "public, max-age=600")
   async findAllTopReposByUsername(
     @Param("username") username: string,
     @Query() pageOptionsDto: PageOptionsDto
-  ): Promise<PageDto<DbRepo>> {
+  ): Promise<PageDto<DbRepoWithStats>> {
     const user = await this.userService.findOneByUsername(username);
 
     return this.repoService.findAll(pageOptionsDto, user.id, ["TopRepos"]);

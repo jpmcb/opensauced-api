@@ -7,10 +7,10 @@ import { PageDto } from "../common/dtos/page.dto";
 import { ApiPaginatedResponse } from "../common/decorators/api-paginated-response.decorator";
 import { PageOptionsDto } from "../common/dtos/page-options.dto";
 import { RepoDevstatsService } from "../timescale/repo-devstats.service";
-import { DbRepo } from "./entities/repo.entity";
+import { DbRepo, DbRepoWithStats } from "./entities/repo.entity";
 import { RepoService } from "./repo.service";
 import { RepoPageOptionsDto } from "./dtos/repo-page-options.dto";
-import { RepoRangeOptionsDto, RepoSearchOptionsDto } from "./dtos/repo-search-options.dto";
+import { RepoFuzzySearchOptionsDto, RepoRangeOptionsDto, RepoSearchOptionsDto } from "./dtos/repo-search-options.dto";
 import { DbRepoContributor } from "./entities/repo_contributors.entity";
 import { RepoReleaseDto } from "./dtos/repo-release.dto";
 import { DbLotteryFactor } from "./entities/lotto.entity";
@@ -29,11 +29,11 @@ export class RepoController {
     operationId: "findOneById",
     summary: "Finds a repo by :id",
   })
-  @ApiOkResponse({ type: DbRepo })
+  @ApiOkResponse({ type: DbRepoWithStats })
   @ApiNotFoundResponse({ description: "Repository not found" })
   @ApiParam({ name: "id", type: "integer" })
   @Header("Cache-Control", "public, max-age=600")
-  async findOneById(@Param("id", ParseIntPipe) id: number): Promise<DbRepo> {
+  async findOneById(@Param("id", ParseIntPipe) id: number): Promise<DbRepoWithStats> {
     return this.repoService.findOneById(id);
   }
 
@@ -42,10 +42,10 @@ export class RepoController {
     operationId: "findOneByOwnerAndRepo",
     summary: "Finds a repo by :owner and :repo",
   })
-  @ApiOkResponse({ type: DbRepo })
+  @ApiOkResponse({ type: DbRepoWithStats })
   @ApiNotFoundResponse({ description: "Repository not found" })
   @Header("Cache-Control", "public, max-age=600")
-  async findOneByOwnerAndRepo(@Param("owner") owner: string, @Param("repo") repo: string): Promise<DbRepo> {
+  async findOneByOwnerAndRepo(@Param("owner") owner: string, @Param("repo") repo: string): Promise<DbRepoWithStats> {
     return this.repoService.tryFindRepoOrMakeStub({ repoOwner: owner, repoName: repo });
   }
 
@@ -106,10 +106,10 @@ export class RepoController {
     operationId: "findAll",
     summary: "Finds all repos and paginates them",
   })
-  @ApiPaginatedResponse(DbRepo)
-  @ApiOkResponse({ type: DbRepo })
+  @ApiPaginatedResponse(DbRepoWithStats)
+  @ApiOkResponse({ type: DbRepoWithStats })
   @Header("Cache-Control", "public, max-age=600")
-  async findAll(@Query() pageOptionsDto: RepoPageOptionsDto): Promise<PageDto<DbRepo>> {
+  async findAll(@Query() pageOptionsDto: RepoPageOptionsDto): Promise<PageDto<DbRepoWithStats>> {
     return this.repoService.findAll(pageOptionsDto);
   }
 
@@ -118,10 +118,22 @@ export class RepoController {
     operationId: "findAllReposWithFilters",
     summary: "Finds all repos using filters and paginates them",
   })
+  @ApiPaginatedResponse(DbRepoWithStats)
+  @ApiOkResponse({ type: DbRepoWithStats })
+  @Header("Cache-Control", "public, max-age=600")
+  async findAllReposWithFilters(@Query() pageOptionsDto: RepoSearchOptionsDto): Promise<PageDto<DbRepoWithStats>> {
+    return this.repoService.findAllWithFilters(pageOptionsDto);
+  }
+
+  @Get("/search/fuzzy")
+  @ApiOperation({
+    operationId: "findAllReposWithFuzzyFilters",
+    summary: "A paginated fuzzy fast finder for repos using repo names and topics - note: does NOT include repo stats",
+  })
   @ApiPaginatedResponse(DbRepo)
   @ApiOkResponse({ type: DbRepo })
   @Header("Cache-Control", "public, max-age=600")
-  async findAllReposWithFilters(@Query() pageOptionsDto: RepoSearchOptionsDto): Promise<PageDto<DbRepo>> {
-    return this.repoService.findAllWithFilters(pageOptionsDto);
+  async findAllReposWithFuzzyFilters(@Query() pageOptionsDto: RepoFuzzySearchOptionsDto): Promise<PageDto<DbRepo>> {
+    return this.repoService.fastFuzzyFind(pageOptionsDto);
   }
 }

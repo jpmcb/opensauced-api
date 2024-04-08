@@ -5,7 +5,7 @@ import { UserModule } from "../user/user.module";
 import { TimescaleModule } from "../timescale/timescale.module";
 import { RepoFilterModule } from "../common/filters/repo-filter.module";
 import { DbReleaseGitHubEvent } from "../timescale/entities/release_github_events_histogram.entity";
-import { DbRepo } from "./entities/repo.entity";
+import { DbRepo, DbRepoWithStats } from "./entities/repo.entity";
 import { RepoService } from "./repo.service";
 import { RepoController } from "./repo.controller";
 
@@ -13,7 +13,7 @@ import { RepoController } from "./repo.controller";
   imports: [
     forwardRef(() => TimescaleModule),
     forwardRef(() => UserModule),
-    TypeOrmModule.forFeature([DbRepo], "ApiConnection"),
+    TypeOrmModule.forFeature([DbRepo, DbRepoWithStats], "ApiConnection"),
     TypeOrmModule.forFeature([DbReleaseGitHubEvent], "TimescaleConnection"),
     RepoFilterModule,
   ],

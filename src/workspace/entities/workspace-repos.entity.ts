@@ -16,7 +16,7 @@ import {
   ApiModelPropertyOptional,
 } from "@nestjs/swagger/dist/decorators/api-model-property.decorator";
 import { ApiHideProperty } from "@nestjs/swagger";
-import { DbRepo } from "../../repo/entities/repo.entity";
+import { DbRepoWithStats } from "../../repo/entities/repo.entity";
 import { DbWorkspace } from "./workspace.entity";
 
 @Entity({ name: "workspace_repos" })
@@ -75,12 +75,12 @@ export class DbWorkspaceRepo extends BaseEntity {
   public deleted_at?: Date;
 
   @ApiHideProperty()
-  @ManyToOne(() => DbRepo, (repo) => repo.workspaces, { onDelete: "CASCADE" })
+  @ManyToOne(() => DbRepoWithStats, (repo) => repo.workspaces, { onDelete: "CASCADE" })
   @JoinColumn({
     name: "repo_id",
     referencedColumnName: "id",
   })
-  public repo: DbRepo;
+  public repo: DbRepoWithStats;
 
   @ApiHideProperty()
   @ManyToOne(() => DbWorkspace, (workspace) => workspace.members)

@@ -22,7 +22,7 @@ import {
 } from "./config";
 import { RepoModule } from "./repo/repo.module";
 import { HealthModule } from "./health/health.module";
-import { DbRepo } from "./repo/entities/repo.entity";
+import { DbRepoWithStats } from "./repo/entities/repo.entity";
 import { DbUser } from "./user/user.entity";
 import { DbRepoToUserVotes } from "./repo/entities/repo.to.user.votes.entity";
 import { DbRepoToUserStars } from "./repo/entities/repo.to.user.stars.entity";
@@ -128,7 +128,7 @@ import { UrlModule } from "./url/url.module";
             DbUserHighlightReaction,
             DbUserNotification,
             DbUserCollaboration,
-            DbRepo,
+            DbRepoWithStats,
             DbRepoToUserVotes,
             DbRepoToUserStars,
             DbRepoToUserSubmissions,

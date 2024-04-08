@@ -1,6 +1,6 @@
 import { Module, forwardRef } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { DbRepo } from "../repo/entities/repo.entity";
+import { DbRepoWithStats } from "../repo/entities/repo.entity";
 import { DbUserList } from "../user-lists/entities/user-list.entity";
 import { DbUserListContributor } from "../user-lists/entities/user-list-contributor.entity";
 import { DbUserHighlight } from "../user/entities/user-highlight.entity";
@@ -71,7 +71,10 @@ import { DbPullRequestReviewCommentGitHubEventsHistogram } from "./entities/pull
       ],
       "TimescaleConnection"
     ),
-    TypeOrmModule.forFeature([DbRepo, DbUser, DbUserList, DbUserListContributor, DbUserHighlight], "ApiConnection"),
+    TypeOrmModule.forFeature(
+      [DbRepoWithStats, DbUser, DbUserList, DbUserListContributor, DbUserHighlight],
+      "ApiConnection"
+    ),
   ],
   providers: [
     CommitCommentGithubEventsService,

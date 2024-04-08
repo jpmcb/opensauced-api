@@ -60,3 +60,17 @@ export class RepoRangeOptionsDto {
   @IsOptional()
   readonly prev_days_start_date?: number = 0;
 }
+
+export class RepoFuzzySearchOptionsDto extends RepoPageOptionsDto {
+  @ApiProperty()
+  @IsString()
+  readonly fuzzy_repo_name: string;
+
+  @ApiPropertyOptional({
+    type: "string",
+    default: "",
+  })
+  @IsString()
+  @IsOptional()
+  readonly topic?: string;
+}
