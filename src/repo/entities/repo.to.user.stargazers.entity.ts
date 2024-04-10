@@ -14,7 +14,7 @@ import {
   ApiModelPropertyOptional,
 } from "@nestjs/swagger/dist/decorators/api-model-property.decorator";
 import { DbUser } from "../../user/user.entity";
-import { DbRepo } from "./repo.entity";
+import { DbRepoWithStats } from "./repo.entity";
 
 @Entity({ name: "users_to_repos_stargazers" })
 export class DbRepoToUserStargazers {
@@ -78,10 +78,10 @@ export class DbRepoToUserStargazers {
   public user!: DbUser;
 
   @ApiHideProperty()
-  @ManyToOne(() => DbRepo, (repo) => repo.repoToUserStargazers)
+  @ManyToOne(() => DbRepoWithStats, (repo) => repo.repoToUserStargazers)
   @JoinColumn({
     name: "repo_id",
     referencedColumnName: "id",
   })
-  public repo!: DbRepo;
+  public repo!: DbRepoWithStats;
 }

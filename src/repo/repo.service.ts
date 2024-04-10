@@ -17,14 +17,16 @@ import { UserService } from "../user/services/user.service";
 import { ForkGithubEventsService } from "../timescale/fork_github_events.service";
 import { PushGithubEventsService } from "../timescale/push_github_events.service";
 import { RepoOrderFieldsEnum, RepoPageOptionsDto } from "./dtos/repo-page-options.dto";
-import { DbRepo } from "./entities/repo.entity";
-import { RepoSearchOptionsDto } from "./dtos/repo-search-options.dto";
+import { DbRepo, DbRepoWithStats } from "./entities/repo.entity";
+import { RepoFuzzySearchOptionsDto, RepoRangeOptionsDto, RepoSearchOptionsDto } from "./dtos/repo-search-options.dto";
+import { DbLotteryFactor } from "./entities/lotto.entity";
+import { calculateLottoFactor } from "./common/lotto";
 
 @Injectable()
 export class RepoService {
   constructor(
-    @InjectRepository(DbRepo, "ApiConnection")
-    private repoRepository: Repository<DbRepo>,
+    @InjectRepository(DbRepoWithStats, "ApiConnection")
+    private repoRepository: Repository<DbRepoWithStats>,
     private filterService: RepoFilterService,
     @Inject(forwardRef(() => PullRequestGithubEventsService))
     private pullRequestGithubEventsService: PullRequestGithubEventsService,
@@ -69,7 +71,7 @@ export class RepoService {
     return this.repoRepository.createQueryBuilder("repos");
   }
 
-  async findOneById(id: number): Promise<DbRepo> {
+  async findOneById(id: number): Promise<DbRepoWithStats> {
     const queryBuilder = this.baseQueryBuilder();
 
     queryBuilder.where("repo.id = :id", { id });
@@ -83,7 +85,7 @@ export class RepoService {
     return item;
   }
 
-  async findOneByOwnerAndRepo(owner: string, repo: string): Promise<DbRepo> {
+  async findOneByOwnerAndRepo(owner: string, repo: string): Promise<DbRepoWithStats> {
     const queryBuilder = this.baseQueryBuilder();
 
     queryBuilder.where("LOWER(repo.full_name) = :name", { name: `${owner}/${repo}`.toLowerCase() });
@@ -101,7 +103,7 @@ export class RepoService {
     pageOptionsDto: RepoPageOptionsDto,
     userId?: number,
     userRelations?: string[]
-  ): Promise<PageDto<DbRepo>> {
+  ): Promise<PageDto<DbRepoWithStats>> {
     const queryBuilder = this.baseQueryBuilder();
     const orderField = pageOptionsDto.orderBy ?? RepoOrderFieldsEnum.stars;
 
@@ -134,7 +136,7 @@ export class RepoService {
   private async findAllWithFiltersScaffolding(
     pageOptionsDto: RepoSearchOptionsDto,
     workspaceId: string | undefined
-  ): Promise<PageDto<DbRepo>> {
+  ): Promise<PageDto<DbRepoWithStats>> {
     const orderField = pageOptionsDto.orderBy ?? "stars";
     const startDate = GetPrevDateISOString(pageOptionsDto.prev_days_start_date);
     const prevDaysStartDate = pageOptionsDto.prev_days_start_date!;
@@ -212,7 +214,7 @@ export class RepoService {
         health: activityRatio,
         last_pushed_at: pushDates.push_date,
         last_main_pushed_at: pushDates.main_push_date,
-      } as DbRepo;
+      } as DbRepoWithStats;
     });
 
     const updatedEntities = await Promise.all(promises);
@@ -220,20 +222,61 @@ export class RepoService {
     return new PageDto(updatedEntities, pageMetaDto);
   }
 
-  async findAllWithFilters(pageOptionsDto: RepoSearchOptionsDto): Promise<PageDto<DbRepo>> {
+  async fastFuzzyFind(pageOptionsDto: RepoFuzzySearchOptionsDto): Promise<PageDto<DbRepo>> {
+    const orderField = pageOptionsDto.orderBy ?? "stars";
+    const startDate = GetPrevDateISOString(pageOptionsDto.prev_days_start_date);
+    const range = pageOptionsDto.range!;
+
+    const queryBuilder = this.baseFilterQueryBuilder()
+      .withDeleted()
+      .addSelect("repos.deleted_at")
+      .where(`full_name ILIKE '%${pageOptionsDto.fuzzy_repo_name}%'`)
+      .andWhere(`'${startDate}'::TIMESTAMP >= "repos"."updated_at"`, { range })
+      .andWhere(`'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "repos"."updated_at"`, { range })
+      .orderBy(`"repos"."${orderField}"`, OrderDirectionEnum.DESC)
+      .offset(pageOptionsDto.skip)
+      .limit(pageOptionsDto.limit);
+
+    if (pageOptionsDto.topic) {
+      queryBuilder.andWhere(`'${pageOptionsDto.topic}' = ANY(topics)`);
+    }
+
+    const itemCount = await queryBuilder.getCount();
+    const entities = await queryBuilder.getMany();
+
+    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+
+    return new PageDto(entities, pageMetaDto);
+  }
+
+  async findLottoFactor(pageOptionsDto: RepoRangeOptionsDto): Promise<DbLotteryFactor> {
+    if (pageOptionsDto.repos.length === 0) {
+      return new DbLotteryFactor();
+    }
+
+    const contribCounts = await this.pullRequestGithubEventsService.findAllPrAuthorCounts({
+      range: pageOptionsDto.range ?? 30,
+      prevDaysStartDate: pageOptionsDto.prev_days_start_date ?? 0,
+      repoNames: pageOptionsDto.repos.split(","),
+    });
+
+    return calculateLottoFactor(contribCounts);
+  }
+
+  async findAllWithFilters(pageOptionsDto: RepoSearchOptionsDto): Promise<PageDto<DbRepoWithStats>> {
     return this.findAllWithFiltersScaffolding(pageOptionsDto, undefined);
   }
 
   async findAllWithFiltersInWorkspace(
     pageOptionsDto: RepoSearchOptionsDto,
     workspaceId: string
-  ): Promise<PageDto<DbRepo>> {
+  ): Promise<PageDto<DbRepoWithStats>> {
     return this.findAllWithFiltersScaffolding(pageOptionsDto, workspaceId);
   }
 
-  async findRecommendations(interests: string[]): Promise<Record<string, DbRepo[]>> {
+  async findRecommendations(interests: string[]): Promise<Record<string, DbRepoWithStats[]>> {
     const queryBuilder = this.repoRepository.createQueryBuilder("repo");
-    const userInterests: Record<string, DbRepo[]> = {};
+    const userInterests: Record<string, DbRepoWithStats[]> = {};
 
     const promises = interests.map(async (interest) => {
       queryBuilder
@@ -260,7 +303,7 @@ export class RepoService {
 
     queryBuilder
       .leftJoin(
-        (qb: SelectQueryBuilder<DbRepo>) =>
+        (qb: SelectQueryBuilder<DbRepoWithStats>) =>
           qb
             .select("users.id", "id")
             .addSelect("users.login", "login")
@@ -294,7 +337,7 @@ export class RepoService {
     repoId?: number;
     repoOwner?: string;
     repoName?: string;
-  }): Promise<DbRepo> {
+  }): Promise<DbRepoWithStats> {
     if (!repoId && (!repoOwner || !repoName)) {
       throw new BadRequestException("must provide repo ID or repo owner/name");
     }
@@ -325,7 +368,7 @@ export class RepoService {
     return repo;
   }
 
-  private async createStubRepo(owner: string, repo: string): Promise<DbRepo> {
+  private async createStubRepo(owner: string, repo: string): Promise<DbRepoWithStats> {
     const ghAuthToken: string = this.configService.get("github.authToken")!;
 
     // using octokit and GitHub's API, go fetch the user

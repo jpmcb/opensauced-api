@@ -167,9 +167,11 @@ export class UserListService {
         user_id: userId,
         username,
       },
+      withDeleted: true,
     });
 
     if (existingContributor) {
+      await this.userListContributorRepository.restore(existingContributor.id);
       return existingContributor;
     }
 
@@ -245,6 +247,17 @@ export class UserListService {
     const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
 
     return new PageDto(entities, pageMetaDto);
+  }
+
+  async findAllContributorsByListId(listId: string): Promise<DbUserListContributor[]> {
+    const queryBuilder = this.userListContributorRepository.createQueryBuilder("user_list_contributors");
+
+    queryBuilder
+      .leftJoin("users", "users", "user_list_contributors.user_id=users.id")
+      .addSelect("users.login", "user_list_contributors_login")
+      .where("user_list_contributors.list_id = :listId", { listId });
+
+    return queryBuilder.getMany();
   }
 
   async findContributorsByListId(

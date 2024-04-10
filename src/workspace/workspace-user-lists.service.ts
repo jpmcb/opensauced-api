@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { Repository, SelectQueryBuilder } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 
@@ -314,6 +314,40 @@ export class WorkspaceUserListsService {
     await this.userListService.updateUserList(userList.id, {
       name: dto.name,
     });
+
+    try {
+      // 1. Add all contributors from DTO
+      await Promise.allSettled(
+        dto.contributors.map(async (contributor) =>
+          this.userListService.addUserListContributor(userListId, contributor.id, contributor.login)
+        )
+      );
+
+      // get current contributors for the list (including old/new ones)
+      const currentContributors = await this.userListService.findAllContributorsByListId(userListId);
+
+      // 2. Create a set of all unique identifiers from the provided list
+      const providedIdentifiers = new Set(
+        dto.contributors.flatMap((contributor) => [contributor.id, contributor.login].filter(Boolean))
+      );
+
+      // 3. Determine the list of contributors to remove using set operations
+      const contributorsToRemove = currentContributors.filter(
+        (contributor) =>
+          !providedIdentifiers.has(contributor.user_id) && !providedIdentifiers.has(contributor.login ?? "")
+      );
+
+      // 4. Remove the contributors that are no longer needed
+      await Promise.allSettled(
+        contributorsToRemove.map(async (contributor) =>
+          this.userListService.deleteUserListContributor(userListId, contributor.id)
+        )
+      );
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        throw new BadRequestException(`Unable to PATCH contributors: ${e.message}`);
+      }
+    }
 
     return this.findOneUserListByWorkspaceIdListIdUnguarded(id, userListId);
   }

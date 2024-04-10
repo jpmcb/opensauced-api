@@ -17,7 +17,7 @@ import {
 import { DbWorkspace } from "../workspace/entities/workspace.entity";
 import { DbInsightMember } from "../insight/entities/insight-member.entity";
 import { DbWorkspaceMember } from "../workspace/entities/workspace-member.entity";
-import { DbRepo } from "../repo/entities/repo.entity";
+import { DbRepoWithStats } from "../repo/entities/repo.entity";
 import { DbRepoToUserVotes } from "../repo/entities/repo.to.user.votes.entity";
 import { DbRepoToUserStars } from "../repo/entities/repo.to.user.stars.entity";
 import { DbRepoToUserSubmissions } from "../repo/entities/repo.to.user.submissions.entity";
@@ -600,12 +600,12 @@ export class DbUser extends BaseEntity {
   public workspaces: DbWorkspaceMember[];
 
   @ApiHideProperty()
-  @OneToMany(() => DbRepo, (repo) => repo.user)
-  public repos: DbRepo[];
+  @OneToMany(() => DbRepoWithStats, (repo) => repo.user)
+  public repos: DbRepoWithStats[];
 
   @ApiHideProperty()
-  @OneToMany(() => DbRepo, (repo) => repo.org_user)
-  public repo_orgs: DbRepo[];
+  @OneToMany(() => DbRepoWithStats, (repo) => repo.org_user)
+  public repo_orgs: DbRepoWithStats[];
 
   @ApiHideProperty()
   @OneToMany(() => DbUserHighlight, (highlights) => highlights.user, { cascade: true })

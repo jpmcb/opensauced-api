@@ -21,6 +21,7 @@ import { DbPullRequestGitHubEvents } from "./entities/pull_request_github_event.
 import { DbPullRequestGitHubEventsHistogram } from "./entities/pull_request_github_events_histogram.entity";
 import { DbRossContributorsHistogram, DbRossIndexHistogram } from "./entities/ross_index_histogram.entity";
 import { sanitizeRepos } from "./common/repos";
+import { DbContributorCounts } from "./entities/contributor_counts.entity";
 
 /*
  * pull request events, named "PullRequestEvent" in the GitHub API, are when
@@ -212,6 +213,33 @@ export class PullRequestGithubEventsService {
     const itemCount = parseInt(`${counterResult?.count ?? "0"}`, 10);
 
     return itemCount;
+  }
+
+  async findAllPrAuthorCounts({
+    range,
+    prevDaysStartDate,
+    repoNames,
+  }: {
+    range: number;
+    prevDaysStartDate: number;
+    repoNames: string[];
+  }): Promise<DbContributorCounts[]> {
+    const startDate = GetPrevDateISOString(prevDaysStartDate);
+
+    const queryBuilder = this.pullRequestGithubEventsRepository
+      .createQueryBuilder("pull_request_github_events")
+      .select("pr_author_login", "contributor")
+      .addSelect("count(*)", "count")
+      .where(`'${startDate}'::TIMESTAMP >= "pull_request_github_events"."event_time"`)
+      .andWhere(`'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "pull_request_github_events"."event_time"`)
+      .andWhere(`"pull_request_github_events"."pr_action" = 'opened'`)
+      .andWhere(`LOWER("pull_request_github_events"."repo_name") IN (:...repoNames)`, {
+        repoNames,
+      })
+      .groupBy("pr_author_login")
+      .orderBy("count", "DESC");
+
+    return queryBuilder.getRawMany<DbContributorCounts>();
   }
 
   async isMaintainer(merger: string): Promise<boolean> {

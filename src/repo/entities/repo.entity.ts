@@ -467,8 +467,13 @@ export class DbRepo extends BaseEntity {
   @ApiHideProperty()
   @OneToMany(() => DbUserTopRepo, (repoToUserTopRepos) => repoToUserTopRepos.repo)
   public repoToUserTopRepos: DbUserTopRepo[];
+}
 
-  // virtual columns
+/*
+ * virtual columns calculated by the API / events data
+ */
+@Entity({ name: "repos" })
+export class DbRepoWithStats extends DbRepo {
   @ApiModelProperty({
     description: "Repository number of open PRs",
     example: 5,
