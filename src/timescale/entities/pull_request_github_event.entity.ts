@@ -195,4 +195,11 @@ export class DbPullRequestGitHubEvents extends BaseEntity {
   })
   @Column({ type: "bigint" })
   public pr_commits?: number;
+
+  @ApiModelProperty({
+    description: "AI summary for the PR",
+    type: "text",
+  })
+  @Column({ type: "text" })
+  public ai_summary?: string;
 }
