@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.20.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.19.0...v2.20.0-beta.1) (2024-04-10)
+
+
+### 🍕 Features
+
+* Star Search API endpoint ([#719](https://github.com/open-sauced/api.opensauced.pizza/issues/719)) ([12d8100](https://github.com/open-sauced/api.opensauced.pizza/commit/12d8100e3a9e7cd96d3e5b8e2fa1abc4ad54c19c))
+
 ## [2.19.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.18.0...v2.19.0) (2024-04-10)
 
 
