@@ -5,6 +5,20 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.19.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.18.0...v2.19.0) (2024-04-10)
+
+
+### 🐛 Bug Fixes
+
+* Makes contrib insight patch work for list of contributors ([#714](https://github.com/open-sauced/api.opensauced.pizza/issues/714)) ([2b1872f](https://github.com/open-sauced/api.opensauced.pizza/commit/2b1872f14f9595904d323df40a53adab599dd940))
+
+
+### 🍕 Features
+
+* Add short circut for empty repos ([fd1da1c](https://github.com/open-sauced/api.opensauced.pizza/commit/fd1da1cb3ed68a2439d388731593651b5d799fb6))
+* Implements fast fuzzy finding of repos via v2/repos/search/fuzzy ([#717](https://github.com/open-sauced/api.opensauced.pizza/issues/717)) ([3d96754](https://github.com/open-sauced/api.opensauced.pizza/commit/3d967542c395f198a0baaadb4235d5170fe421b4))
+* Implements the lottery factor ([0f902c1](https://github.com/open-sauced/api.opensauced.pizza/commit/0f902c11a80c9944b65ec8de15b30a4b6b27d826))
+
 ## [2.19.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.19.0-beta.1...v2.19.0-beta.2) (2024-04-08)
 
 
