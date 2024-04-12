@@ -24,7 +24,7 @@ export class WorkspaceRepoPullRequestPageOptionsDto extends PageOptionsDto {
   })
   @IsString()
   @IsOptional()
-  readonly filterOutRepoIds?: string;
+  readonly repoIds?: string;
 
   @ApiPropertyOptional({
     enum: PullRequestStatusEnum,

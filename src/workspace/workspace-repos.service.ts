@@ -102,9 +102,9 @@ export class WorkspaceReposService {
       .where("workspace_repos.deleted_at IS NULL")
       .andWhere("workspace_repos.workspace_id = :id", { id });
 
-    if (pageOptionsDto.filterOutRepoIds) {
-      queryBuilder.andWhere("workspace_repos_repo.id NOT IN (:...repoIds)", {
-        repoIds: pageOptionsDto.filterOutRepoIds.split(","),
+    if (pageOptionsDto.repoIds) {
+      queryBuilder.andWhere("workspace_repos_repo.id IN (:...repoIds)", {
+        repoIds: pageOptionsDto.repoIds.split(","),
       });
     }
 
