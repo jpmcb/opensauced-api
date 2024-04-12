@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.20.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.1...v2.20.0-beta.2) (2024-04-12)
+
+
+### 🐛 Bug Fixes
+
+* now the /v2/workspaces/{id}/repos/prs can filter on repos instead of filter out ([#723](https://github.com/open-sauced/api.opensauced.pizza/issues/723)) ([6fee68c](https://github.com/open-sauced/api.opensauced.pizza/commit/6fee68c747b2ca450cb8a6755f586935b0032580))
+
 ## [2.20.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.19.0...v2.20.0-beta.1) (2024-04-10)
 
 
