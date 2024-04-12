@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
@@ -76,10 +75,6 @@ export class UserInsightsController {
   @ApiBadRequestResponse({ description: "Invalid request" })
   @ApiBody({ type: CreateInsightDto })
   async addInsightForUser(@Body() createInsightDto: CreateInsightDto, @UserId() userId: number): Promise<DbInsight> {
-    if (!createInsightDto.name || !Array.isArray(createInsightDto.repos)) {
-      throw new BadRequestException();
-    }
-
     // use an empty workspace ID to force this being added to the users personal workspace
     const newInsight = await this.insightsService.addInsight(userId, "", {
       name: createInsightDto.name,
@@ -128,7 +123,7 @@ export class UserInsightsController {
 
     try {
       // current set of insight repos
-      const currentRepos = insight.repos?.filter((insightRepo) => !insightRepo.deleted_at) || [];
+      const currentRepos = insight.repos?.filter((insightRepo) => !insightRepo.deleted_at) ?? [];
 
       // remove deleted repos
       const reposToRemove = currentRepos.filter(
