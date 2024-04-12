@@ -4,7 +4,6 @@ import { InjectRepository } from "@nestjs/typeorm";
 
 import { PageOptionsDto } from "../common/dtos/page-options.dto";
 import { PageDto } from "../common/dtos/page.dto";
-import { PagerService } from "../common/services/pager.service";
 import { RepoService } from "../repo/repo.service";
 import { DbUser } from "../user/user.entity";
 import { UserService } from "../user/services/user.service";
@@ -28,7 +27,6 @@ export class WorkspaceService {
     private workspaceContributorRepository: Repository<DbWorkspaceContributor>,
     @InjectRepository(DbUser, "ApiConnection")
     private userRepository: Repository<DbUser>,
-    private pagerService: PagerService,
     private repoService: RepoService,
     private userService: UserService
   ) {}
@@ -106,7 +104,7 @@ export class WorkspaceService {
 
     const workspaceId = await workspaceIdQb.getRawOne<{ personal_workspace_id: string }>();
 
-    if (!workspaceId || !workspaceId.personal_workspace_id) {
+    if (!workspaceId?.personal_workspace_id) {
       throw new NotFoundException();
     }
 
