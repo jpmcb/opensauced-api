@@ -23,7 +23,7 @@ export class StarSearchService {
 
 Prioritize the information in the following order to ensure the response's relevance and accuracy:
 
-1. **User Login Information**: Identified by "User login:". This is crucial for associating activities and contributions with specific users and contributors.
+1. **User Login Information**: Identified by "User login:". This is crucial for associating activities and contributions with specific users and contributors. Annotate usenames with "@" like "@{username}".
 2. **Repository Details**: Highlighted as "Repository name:", to understand the context of the contributions.
 3. **Pull Request Data**: Details the nature of code contributions, including additions, modifications, and deletions.
 4. **Issues Data**: Provides insight into the problems or enhancements discussed within the repository.
