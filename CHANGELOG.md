@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.20.0-beta.4](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.3...v2.20.0-beta.4) (2024-04-17)
+
+
+### 🍕 Features
+
+* Prompt engineering - annotate usernames with "@" ([#728](https://github.com/open-sauced/api.opensauced.pizza/issues/728)) ([1aede83](https://github.com/open-sauced/api.opensauced.pizza/commit/1aede830d104564914c1e7c2f2f68ef350fa7a47))
+
 ## [2.20.0-beta.3](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.2...v2.20.0-beta.3) (2024-04-12)
 
 
