@@ -5,6 +5,18 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.20.0-beta.6](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.5...v2.20.0-beta.6) (2024-04-17)
+
+
+### 🐛 Bug Fixes
+
+* Fixes repo-name not showing up in star-stream returned results ([#733](https://github.com/open-sauced/api.opensauced.pizza/issues/733)) ([aa86d60](https://github.com/open-sauced/api.opensauced.pizza/commit/aa86d60aa934718af5ac7533969c886c064a3fad))
+
+
+### 🍕 Features
+
+* Implements waitlisting for star-search ([#732](https://github.com/open-sauced/api.opensauced.pizza/issues/732)) ([232a0a7](https://github.com/open-sauced/api.opensauced.pizza/commit/232a0a73ded4ba55a05edc78e76c741c4b845059))
+
 ## [2.20.0-beta.5](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.4...v2.20.0-beta.5) (2024-04-17)
 
 
