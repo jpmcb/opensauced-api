@@ -181,11 +181,7 @@ export class DbPullRequestGitHubEvents extends BaseEntity {
     description: "Pull request repo full name",
     example: "open-sauced/insights",
   })
-  @Column({
-    type: "text",
-    select: false,
-    insert: false,
-  })
+  @Column({ type: "text" })
   public repo_name?: string;
 
   @ApiModelProperty({
