@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.20.0-beta.5](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.4...v2.20.0-beta.5) (2024-04-17)
+
+
+### 🍕 Features
+
+* use contributor username when shortening contributor profiles ([#727](https://github.com/open-sauced/api.opensauced.pizza/issues/727)) ([e8bf280](https://github.com/open-sauced/api.opensauced.pizza/commit/e8bf2808561ad194a064d37e7572197899dde3db))
+
 ## [2.20.0-beta.4](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.3...v2.20.0-beta.4) (2024-04-17)
 
 
