@@ -5,6 +5,7 @@ import { User } from "@supabase/supabase-js";
 
 import { Octokit } from "@octokit/rest";
 import { ConfigService } from "@nestjs/config";
+import { WaitlistedUsersDto } from "../../auth/dtos/waitlisted.dto";
 import { opensaucedEmailRegex, validEmailRegex } from "../../common/util/email";
 import { PullRequestGithubEventsService } from "../../timescale/pull_request_github_events.service";
 import { DbUser } from "../user.entity";
@@ -415,6 +416,23 @@ export class UserService {
     } catch (e) {
       throw new NotFoundException("Unable to update user waitlist status");
     }
+  }
+
+  async getNumWaitlisted() {
+    const queryBuilder = this.userRepository.manager
+      .createQueryBuilder()
+      .select("COUNT(*)", "waitlisted_users")
+      .from("users", "users")
+      .where("is_waitlisted = true")
+      .andWhere("is_open_sauced_member = true");
+
+    const item = await queryBuilder.getRawOne<WaitlistedUsersDto>();
+
+    if (!item) {
+      throw new NotFoundException("could not derive number of waitlisted_users");
+    }
+
+    return item;
   }
 
   async updateRole(id: number, role: number) {

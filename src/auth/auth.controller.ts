@@ -24,6 +24,7 @@ import { SupabaseAuthDto } from "./dtos/supabase-auth-response.dto";
 import { User, UserId } from "./supabase.user.decorator";
 import { SupabaseGuard } from "./supabase.guard";
 import { UserOnboardingDto } from "./dtos/user-onboarding.dto";
+import { WaitlistedUsersDto } from "./dtos/waitlisted.dto";
 
 @Controller("auth")
 @ApiTags("Authentication service")
@@ -147,6 +148,17 @@ export class AuthController {
   @ApiNotFoundResponse({ description: "Unable to update waitlist information for the user" })
   async postWaitlist(@UserId() userId: number): Promise<void> {
     return this.userService.updateWaitlistStatus(userId);
+  }
+
+  @Get("/waitlisted")
+  @ApiOperation({
+    operationId: "getWaitlisted",
+    summary: "Gets number of waitlisted users",
+  })
+  @ApiOkResponse({ type: WaitlistedUsersDto })
+  @ApiNotFoundResponse({ description: "Unable to get waitlisted users" })
+  async getWaitlisted(): Promise<WaitlistedUsersDto> {
+    return this.userService.getNumWaitlisted();
   }
 
   @Post("/checkout/session")
