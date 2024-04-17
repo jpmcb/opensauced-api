@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.20.0-beta.7](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.6...v2.20.0-beta.7) (2024-04-17)
+
+
+### 🍕 Features
+
+* Prompt markdown formatting and username links ([#731](https://github.com/open-sauced/api.opensauced.pizza/issues/731)) ([d6b0bc3](https://github.com/open-sauced/api.opensauced.pizza/commit/d6b0bc302916fdef329b1361fe50bc33eb0d0c28))
+
 ## [2.20.0-beta.6](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.5...v2.20.0-beta.6) (2024-04-17)
 
 
