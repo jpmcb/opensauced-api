@@ -19,11 +19,11 @@ export class StarSearchService {
    * and, finally, the question from the user
    */
   private promptTemplate(context: DbPullRequestGitHubEvents[], question: string) {
-    const preamble = `Given the GitHub activities and contributions data provided below, generate an informed response to the upcoming query.
+    const preamble = `Given the GitHub activities and contributions data provided below, generate an informed response to the upcoming query in markdown format.
 
 Prioritize the information in the following order to ensure the response's relevance and accuracy:
 
-1. **User Login Information**: Identified by "User login:". This is crucial for associating activities and contributions with specific users and contributors. Annotate usenames with "@" like "@{username}".
+1. **User Login Information**: Identified by "User login:". This is crucial for associating activities and contributions with specific users and contributors. Annotate usenames with "@" markdown links to OpenSauced. Example: "[@username]{https://app.opensauced.pizza/user/{username}}".
 2. **Repository Details**: Highlighted as "Repository name:", to understand the context of the contributions.
 3. **Pull Request Data**: Details the nature of code contributions, including additions, modifications, and deletions.
 4. **Issues Data**: Provides insight into the problems or enhancements discussed within the repository.
