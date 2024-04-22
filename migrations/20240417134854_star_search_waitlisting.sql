@@ -15,5 +15,5 @@ update users set is_waitlisted = true where login in (
   'isabensusan'
   'jpmcb',
   'nickytonline',
-  'zeucapua',
+  'zeucapua'
 );
