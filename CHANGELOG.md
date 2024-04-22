@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.20.0-beta.8](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.7...v2.20.0-beta.8) (2024-04-22)
+
+
+### 🐛 Bug Fixes
+
+* Corrects small error in waitlisting SQL ([#735](https://github.com/open-sauced/api.opensauced.pizza/issues/735)) ([904a308](https://github.com/open-sauced/api.opensauced.pizza/commit/904a308f3b08e859cf841d591ebfa67f2eeede0a))
+
 ## [2.20.0-beta.7](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.6...v2.20.0-beta.7) (2024-04-17)
 
 
