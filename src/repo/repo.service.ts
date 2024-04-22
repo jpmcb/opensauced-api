@@ -85,7 +85,7 @@ export class RepoService {
     return item;
   }
 
-  async findOneByOwnerAndRepo(owner: string, repo: string): Promise<DbRepoWithStats> {
+  async findOneByOwnerAndRepo(owner: string, repo: string, range?: number): Promise<DbRepoWithStats> {
     const queryBuilder = this.baseQueryBuilder();
 
     queryBuilder.where("LOWER(repo.full_name) = :name", { name: `${owner}/${repo}`.toLowerCase() });
@@ -96,7 +96,35 @@ export class RepoService {
       throw new NotFoundException(`Repository not found: ${owner}/${repo}`);
     }
 
-    return item;
+    const prStats = await this.pullRequestGithubEventsService.findPrStatsByRepo(
+      item.full_name,
+      range || 30,
+      0
+    );
+
+    const forksHisto = await this.forkGithubEventsService.genForkHistogram({ repo: item.full_name, range: range || 30 });
+    const forksVelocity = forksHisto.reduce((acc, curr) => acc + curr.forks_count, 0) / (range || 30);
+    const activityRatio = await this.repoDevstatsService.calculateRepoActivityRatio(item.full_name, range || 30);
+    const confidence = await this.repoDevstatsService.calculateContributorConfidence(item.full_name, range || 30);
+    const pushDates = await this.pushGithubEventsService.lastPushDatesForRepo(item.full_name);
+
+    return {
+      ...item,
+      pr_active_count: prStats.active_prs,
+      open_prs_count: prStats.open_prs,
+      merged_prs_count: prStats.accepted_prs,
+      spam_prs_count: prStats.spam_prs,
+      draft_prs_count: prStats.draft_prs,
+      closed_prs_count: prStats.closed_prs,
+      pr_velocity_count: prStats.pr_velocity,
+      fork_velocity: forksVelocity,
+      activity_ratio: activityRatio,
+      contributor_confidence: confidence,
+      health: activityRatio,
+      last_pushed_at: pushDates.push_date,
+      last_main_pushed_at: pushDates.main_push_date,
+    } as DbRepoWithStats;
+    // return item;
   }
 
   async findAll(
