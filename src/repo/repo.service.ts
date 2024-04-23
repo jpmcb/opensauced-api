@@ -106,8 +106,8 @@ export class RepoService {
 
     return {
       ...item,
-      pr_active_count: prStats.active_prs,
       open_prs_count: prStats.open_prs,
+      pr_active_count: prStats.active_prs,
       merged_prs_count: prStats.accepted_prs,
       spam_prs_count: prStats.spam_prs,
       draft_prs_count: prStats.draft_prs,
