@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.20.0-beta.9](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.8...v2.20.0-beta.9) (2024-04-23)
+
+
+### 🐛 Bug Fixes
+
+* no-op to bump DO release ([#738](https://github.com/open-sauced/api.opensauced.pizza/issues/738)) ([33663cd](https://github.com/open-sauced/api.opensauced.pizza/commit/33663cd7a2caf92fe77026d1f08b0f205b5eb002))
+
 ## [2.20.0-beta.8](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.7...v2.20.0-beta.8) (2024-04-22)
 
 
