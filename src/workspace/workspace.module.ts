@@ -8,6 +8,7 @@ import { ApiServicesModule } from "../common/services/api-services.module";
 import { DbUser } from "../user/user.entity";
 import { UserListModule } from "../user-lists/user-list.module";
 import { DbUserList } from "../user-lists/entities/user-list.entity";
+import { DbUserListContributor } from "../user-lists/entities/user-list-contributor.entity";
 import { AuthModule } from "../auth/auth.module";
 import { RepoModule } from "../repo/repo.module";
 import { WorkspaceService } from "./workspace.service";
@@ -55,6 +56,7 @@ import { WorkspacePayeeService } from "./workspace-payee.service";
         DbWorkspaceContributor,
         DbWorkspaceUserLists,
         DbUserList,
+        DbUserListContributor,
       ],
       "ApiConnection"
     ),

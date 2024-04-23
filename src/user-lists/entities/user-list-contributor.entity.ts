@@ -15,6 +15,7 @@ import {
 } from "@nestjs/swagger/dist/decorators/api-model-property.decorator";
 
 import { DbUser } from "../../user/user.entity";
+import { DbUserList } from "./user-list.entity";
 
 @Entity({ name: "user_list_contributors" })
 export class DbUserListContributor {
@@ -83,4 +84,12 @@ export class DbUserListContributor {
     insert: false,
   })
   public login?: string;
+
+  @ApiHideProperty()
+  @ManyToOne(() => DbUserList, (userList) => userList.contributors)
+  @JoinColumn({
+    name: "list_id",
+    referencedColumnName: "id",
+  })
+  public list!: DbUserList;
 }

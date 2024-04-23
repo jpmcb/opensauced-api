@@ -10,6 +10,7 @@ import {
   ManyToOne,
   JoinColumn,
   OneToOne,
+  OneToMany,
 } from "typeorm";
 
 import {
@@ -20,6 +21,7 @@ import { ApiHideProperty } from "@nestjs/swagger";
 
 import { DbUser } from "../../user/user.entity";
 import { DbWorkspaceUserLists } from "../../workspace/entities/workspace-user-list.entity";
+import { DbUserListContributor } from "./user-list-contributor.entity";
 
 @Entity({ name: "user_lists" })
 export class DbUserList extends BaseEntity {
@@ -107,4 +109,8 @@ export class DbUserList extends BaseEntity {
   @ApiHideProperty()
   @OneToOne(() => DbWorkspaceUserLists, (workspaceUserLists) => workspaceUserLists.user_list, { onDelete: "CASCADE" })
   public workspaces: DbWorkspaceUserLists[];
+
+  @ApiHideProperty()
+  @OneToMany(() => DbUserListContributor, (userList) => userList.list, { onDelete: "CASCADE" })
+  public contributors?: DbUserListContributor[];
 }
