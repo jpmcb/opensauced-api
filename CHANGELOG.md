@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.20.0-beta.10](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.9...v2.20.0-beta.10) (2024-04-23)
+
+
+### 🍕 Features
+
+* add flag to workspace endpoint data to indicate upgrade limit has been exceeded ([#739](https://github.com/open-sauced/api.opensauced.pizza/issues/739)) ([91ed6d8](https://github.com/open-sauced/api.opensauced.pizza/commit/91ed6d898fa4810ce0cb7b98db851c68bb53a113))
+
 ## [2.20.0-beta.9](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.8...v2.20.0-beta.9) (2024-04-23)
 
 
