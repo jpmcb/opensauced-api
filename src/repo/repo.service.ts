@@ -85,7 +85,7 @@ export class RepoService {
     return item;
   }
 
-  async findOneByOwnerAndRepo(owner: string, repo: string, range?: number): Promise<DbRepoWithStats> {
+  async findOneByOwnerAndRepo(owner: string, repo: string, range = 30): Promise<DbRepoWithStats> {
     const queryBuilder = this.baseQueryBuilder();
 
     queryBuilder.where("LOWER(repo.full_name) = :name", { name: `${owner}/${repo}`.toLowerCase() });
@@ -96,16 +96,12 @@ export class RepoService {
       throw new NotFoundException(`Repository not found: ${owner}/${repo}`);
     }
 
-    const prStats = await this.pullRequestGithubEventsService.findPrStatsByRepo(
-      item.full_name,
-      range || 30,
-      0
-    );
+    const prStats = await this.pullRequestGithubEventsService.findPrStatsByRepo(item.full_name, range, 0);
 
-    const forksHisto = await this.forkGithubEventsService.genForkHistogram({ repo: item.full_name, range: range || 30 });
+    const forksHisto = await this.forkGithubEventsService.genForkHistogram({ repo: item.full_name, range });
     const forksVelocity = forksHisto.reduce((acc, curr) => acc + curr.forks_count, 0) / (range || 30);
-    const activityRatio = await this.repoDevstatsService.calculateRepoActivityRatio(item.full_name, range || 30);
-    const confidence = await this.repoDevstatsService.calculateContributorConfidence(item.full_name, range || 30);
+    const activityRatio = await this.repoDevstatsService.calculateRepoActivityRatio(item.full_name, range);
+    const confidence = await this.repoDevstatsService.calculateContributorConfidence(item.full_name, range);
     const pushDates = await this.pushGithubEventsService.lastPushDatesForRepo(item.full_name);
 
     return {
@@ -124,7 +120,6 @@ export class RepoService {
       last_pushed_at: pushDates.push_date,
       last_main_pushed_at: pushDates.main_push_date,
     } as DbRepoWithStats;
-    // return item;
   }
 
   async findAll(
