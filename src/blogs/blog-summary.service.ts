@@ -1,11 +1,11 @@
 import { Injectable } from "@nestjs/common";
 
-import { OpenAiService } from "../open-ai/open-ai.service";
+import { OpenAIWrappedService } from "../openai-wrapped/openai-wrapped.service";
 import { CreateBlogSummaryDto } from "./dtos/create-blog-summary.dto";
 
 @Injectable()
 export class BlogSummaryService {
-  constructor(private openAiService: OpenAiService) {}
+  constructor(private openAiService: OpenAIWrappedService) {}
 
   private generatePrompt(language: string, maxLength: number, tone: string) {
     return [

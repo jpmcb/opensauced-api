@@ -181,11 +181,7 @@ export class DbPullRequestGitHubEvents extends BaseEntity {
     description: "Pull request repo full name",
     example: "open-sauced/insights",
   })
-  @Column({
-    type: "text",
-    select: false,
-    insert: false,
-  })
+  @Column({ type: "text" })
   public repo_name?: string;
 
   @ApiModelProperty({
@@ -195,4 +191,11 @@ export class DbPullRequestGitHubEvents extends BaseEntity {
   })
   @Column({ type: "bigint" })
   public pr_commits?: number;
+
+  @ApiModelProperty({
+    description: "AI summary for the PR",
+    type: "text",
+  })
+  @Column({ type: "text" })
+  public ai_summary?: string;
 }

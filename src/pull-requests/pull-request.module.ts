@@ -2,7 +2,7 @@ import { Module, forwardRef } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
 import { RepoFilterModule } from "../common/filters/repo-filter.module";
-import { OpenAiModule } from "../open-ai/open-ai.module";
+import { OpenAIWrappedModule } from "../openai-wrapped/openai-wrapped.module";
 import { DbPullRequestGitHubEvents } from "../timescale/entities/pull_request_github_event.entity";
 import { TimescaleModule } from "../timescale/timescale.module";
 import { DbPullRequestReviewGitHubEvents } from "../timescale/entities/pull_request_review_github_event.entity";
@@ -22,7 +22,7 @@ import { PullRequestReviewsController } from "./pull-request-review.controller";
     forwardRef(() => TimescaleModule),
     TypeOrmModule.forFeature([DbPullRequestGitHubEvents, DbPullRequestReviewGitHubEvents], "TimescaleConnection"),
     RepoFilterModule,
-    OpenAiModule,
+    OpenAIWrappedModule,
   ],
   controllers: [
     PullRequestController,

@@ -54,6 +54,7 @@ export class WorkspaceUserListsService {
 
     const queryBuilder = this.baseQueryBuilder()
       .leftJoinAndSelect("workspace_user_lists.user_list", "workspace_user_lists_user_list")
+      .leftJoinAndSelect("workspace_user_lists_user_list.contributors", "workspace_user_lists_user_list_contributors")
       .where("workspace_user_lists.workspace_id = :id", { id })
       .orderBy("workspace_user_lists_user_list.updated_at", "DESC")
       .skip(pageOptionsDto.skip)

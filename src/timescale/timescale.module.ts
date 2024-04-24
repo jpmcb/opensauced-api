@@ -42,6 +42,7 @@ import { DbMemberGitHubEventsHistogram } from "./entities/member_github_events_h
 import { MemberGithubEventsService } from "./member_github_events.service";
 import { PullRequestReviewCommentGithubEventsService } from "./pull_request_review_comment_github_events.service";
 import { DbPullRequestReviewCommentGitHubEventsHistogram } from "./entities/pull_request_review_comment_github_events_histogram.entity";
+import { PullRequestGithubEventsVectorService } from "./pull_request_github-events_vector.service";
 
 @Module({
   imports: [
@@ -87,6 +88,7 @@ import { DbPullRequestReviewCommentGitHubEventsHistogram } from "./entities/pull
     IssuesGithubEventsService,
     MemberGithubEventsService,
     PullRequestGithubEventsService,
+    PullRequestGithubEventsVectorService,
     PullRequestReviewCommentGithubEventsService,
     PullRequestReviewGithubEventsService,
     PushGithubEventsService,
@@ -105,6 +107,7 @@ import { DbPullRequestReviewCommentGitHubEventsHistogram } from "./entities/pull
     IssuesGithubEventsService,
     MemberGithubEventsService,
     PullRequestGithubEventsService,
+    PullRequestGithubEventsVectorService,
     PullRequestReviewCommentGithubEventsService,
     PullRequestReviewGithubEventsService,
     PushGithubEventsService,

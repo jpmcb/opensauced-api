@@ -16,7 +16,8 @@ export class UrlShortenerService {
 
       if (
         !urlToValidate.host.endsWith("opensauced.pizza") &&
-        !urlToValidate.host.endsWith("oss-insights.netlify.app")
+        !urlToValidate.host.endsWith("oss-insights.netlify.app") &&
+        !urlToValidate.host.includes("localhost")
       ) {
         throw new BadRequestException("Invalid URL");
       }
@@ -45,12 +46,14 @@ export class UrlShortenerService {
   }
 
   async createShortLink(url: string) {
+    const urlPath = new URL(url).pathname;
+    const customKey = new RegExp("^/user/(.*)$").test(urlPath) ? urlPath.split("/").pop() : undefined;
     const response = await fetch(`${this.dubApiHost}/links?workspaceId=${this.dubWorkspaceId}`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${this.dubApiKey}`,
       },
-      body: JSON.stringify({ url, domain: this.domain }),
+      body: JSON.stringify({ url, domain: this.domain, key: customKey }),
     });
 
     if (response.ok) {

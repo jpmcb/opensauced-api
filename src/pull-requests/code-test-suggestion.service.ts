@@ -1,11 +1,11 @@
 import { Injectable } from "@nestjs/common";
 
-import { OpenAiService } from "../open-ai/open-ai.service";
+import { OpenAIWrappedService } from "../openai-wrapped/openai-wrapped.service";
 import { GenerateCodeTestSuggestionDto } from "./dtos/create-code-test-suggestion.dto";
 
 @Injectable()
 export class CodeTestSuggestionService {
-  constructor(private openAiService: OpenAiService) {}
+  constructor(private openAiService: OpenAIWrappedService) {}
 
   private generatePrompt(maxLength: number) {
     return [

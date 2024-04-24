@@ -1,10 +1,10 @@
 import { Module } from "@nestjs/common";
-import { OpenAiModule } from "../open-ai/open-ai.module";
+import { OpenAIWrappedModule } from "../openai-wrapped/openai-wrapped.module";
 import { IssueSummaryService } from "./issue-summary.service";
 import { IssueSummaryController } from "./issue-summary.controller";
 
 @Module({
-  imports: [OpenAiModule],
+  imports: [OpenAIWrappedModule],
   controllers: [IssueSummaryController],
   providers: [IssueSummaryService],
   exports: [IssueSummaryService],

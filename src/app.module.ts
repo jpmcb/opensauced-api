@@ -65,7 +65,7 @@ import { DbUserOrganization } from "./user/entities/user-organization.entity";
 import { EndorsementModule } from "./endorsement/endorsement.module";
 import { DbEndorsement } from "./endorsement/entities/endorsement.entity";
 import { ContributorModule } from "./contributor/contributor.module";
-import { OpenAiModule } from "./open-ai/open-ai.module";
+import { OpenAIWrappedModule } from "./openai-wrapped/openai-wrapped.module";
 import { IssueSummaryModule } from "./issues/issue-summary.module";
 import { BlogSummaryModule } from "./blogs/issue-summary.module";
 import { PizzaOvenModule } from "./pizza/pizza-oven.module";
@@ -90,6 +90,7 @@ import { DbIssuesGitHubEvents } from "./timescale/entities/issues_github_event.e
 import { DbPushGitHubEvents } from "./timescale/entities/push_github_events.entity";
 import { DbWorkspaceUserLists } from "./workspace/entities/workspace-user-list.entity";
 import { UrlModule } from "./url/url.module";
+import { StarSearchModule } from "./star-search/star-search.module";
 
 @Module({
   imports: [
@@ -263,7 +264,7 @@ import { UrlModule } from "./url/url.module";
     EmojiModule,
     EndorsementModule,
     ContributorModule,
-    OpenAiModule,
+    OpenAIWrappedModule,
     PizzaOvenModule,
     UserListModule,
     CouponModule,
@@ -272,6 +273,7 @@ import { UrlModule } from "./url/url.module";
     WorkspaceModule,
     HistogramModule,
     UrlModule,
+    StarSearchModule,
   ],
   providers: [],
 })

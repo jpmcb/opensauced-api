@@ -21,11 +21,17 @@ import { WorkspaceService } from "./workspace.service";
 import { DbWorkspace } from "./entities/workspace.entity";
 import { CreateWorkspaceDto } from "./dtos/create-workspace.dto";
 import { UpdateWorkspaceDto } from "./dtos/update-workspace.dto";
+import { WorkspaceInsightsService } from "./workspace-insights.service";
+import { WorkspaceUserListsService } from "./workspace-user-lists.service";
 
 @Controller("workspaces")
 @ApiTags("Workspaces service")
 export class WorkspaceController {
-  constructor(private readonly workspaceService: WorkspaceService) {}
+  constructor(
+    private readonly workspaceService: WorkspaceService,
+    private readonly workspaceInsightsService: WorkspaceInsightsService,
+    private readonly workspaceListsService: WorkspaceUserListsService
+  ) {}
 
   @Get("/")
   @ApiOperation({
@@ -59,7 +65,37 @@ export class WorkspaceController {
     @Param("id") id: string,
     @OptionalUserId() userId: number | undefined
   ): Promise<DbWorkspace> {
-    return this.workspaceService.findOneByIdGuarded(id, userId);
+    const workspace = await this.workspaceService.findOneByIdGuarded(id, userId);
+
+    let overLimit = false;
+
+    if (!workspace.payee_user_id) {
+      const repositoryInsights = await this.workspaceInsightsService.findAllInsightsByWorkspaceIdForUserId(
+        { skip: 0 },
+        id,
+        userId
+      );
+      const contributorInsights = await this.workspaceListsService.findAllUserListsByWorkspaceIdForUserId(
+        { skip: 0 },
+        id,
+        userId
+      );
+
+      const overRepoLimit = !!repositoryInsights.data.find(
+        (repoInsight) => repoInsight.repos && repoInsight.repos.length > 100
+      );
+      const overContributorLimit = !!contributorInsights.data.find(
+        (contributorInsight) => contributorInsight.contributors && contributorInsight.contributors.length > 10
+      );
+
+      if (overRepoLimit || overContributorLimit) {
+        overLimit = true;
+      }
+    }
+
+    workspace.exceeds_upgrade_limits = overLimit;
+
+    return workspace;
   }
 
   @Post("/")

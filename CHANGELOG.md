@@ -5,6 +5,81 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.20.0-beta.10](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.9...v2.20.0-beta.10) (2024-04-23)
+
+
+### 🍕 Features
+
+* add flag to workspace endpoint data to indicate upgrade limit has been exceeded ([#739](https://github.com/open-sauced/api.opensauced.pizza/issues/739)) ([91ed6d8](https://github.com/open-sauced/api.opensauced.pizza/commit/91ed6d898fa4810ce0cb7b98db851c68bb53a113))
+
+## [2.20.0-beta.9](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.8...v2.20.0-beta.9) (2024-04-23)
+
+
+### 🐛 Bug Fixes
+
+* no-op to bump DO release ([#738](https://github.com/open-sauced/api.opensauced.pizza/issues/738)) ([33663cd](https://github.com/open-sauced/api.opensauced.pizza/commit/33663cd7a2caf92fe77026d1f08b0f205b5eb002))
+
+## [2.20.0-beta.8](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.7...v2.20.0-beta.8) (2024-04-22)
+
+
+### 🐛 Bug Fixes
+
+* Corrects small error in waitlisting SQL ([#735](https://github.com/open-sauced/api.opensauced.pizza/issues/735)) ([904a308](https://github.com/open-sauced/api.opensauced.pizza/commit/904a308f3b08e859cf841d591ebfa67f2eeede0a))
+
+## [2.20.0-beta.7](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.6...v2.20.0-beta.7) (2024-04-17)
+
+
+### 🍕 Features
+
+* Prompt markdown formatting and username links ([#731](https://github.com/open-sauced/api.opensauced.pizza/issues/731)) ([d6b0bc3](https://github.com/open-sauced/api.opensauced.pizza/commit/d6b0bc302916fdef329b1361fe50bc33eb0d0c28))
+
+## [2.20.0-beta.6](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.5...v2.20.0-beta.6) (2024-04-17)
+
+
+### 🐛 Bug Fixes
+
+* Fixes repo-name not showing up in star-stream returned results ([#733](https://github.com/open-sauced/api.opensauced.pizza/issues/733)) ([aa86d60](https://github.com/open-sauced/api.opensauced.pizza/commit/aa86d60aa934718af5ac7533969c886c064a3fad))
+
+
+### 🍕 Features
+
+* Implements waitlisting for star-search ([#732](https://github.com/open-sauced/api.opensauced.pizza/issues/732)) ([232a0a7](https://github.com/open-sauced/api.opensauced.pizza/commit/232a0a73ded4ba55a05edc78e76c741c4b845059))
+
+## [2.20.0-beta.5](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.4...v2.20.0-beta.5) (2024-04-17)
+
+
+### 🍕 Features
+
+* use contributor username when shortening contributor profiles ([#727](https://github.com/open-sauced/api.opensauced.pizza/issues/727)) ([e8bf280](https://github.com/open-sauced/api.opensauced.pizza/commit/e8bf2808561ad194a064d37e7572197899dde3db))
+
+## [2.20.0-beta.4](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.3...v2.20.0-beta.4) (2024-04-17)
+
+
+### 🍕 Features
+
+* Prompt engineering - annotate usernames with "@" ([#728](https://github.com/open-sauced/api.opensauced.pizza/issues/728)) ([1aede83](https://github.com/open-sauced/api.opensauced.pizza/commit/1aede830d104564914c1e7c2f2f68ef350fa7a47))
+
+## [2.20.0-beta.3](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.2...v2.20.0-beta.3) (2024-04-12)
+
+
+### 🐛 Bug Fixes
+
+* Corrects linting warnings ([ceae21b](https://github.com/open-sauced/api.opensauced.pizza/commit/ceae21b4a35a8150038f7601cde8b16ee394a8a7))
+
+## [2.20.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0-beta.1...v2.20.0-beta.2) (2024-04-12)
+
+
+### 🐛 Bug Fixes
+
+* now the /v2/workspaces/{id}/repos/prs can filter on repos instead of filter out ([#723](https://github.com/open-sauced/api.opensauced.pizza/issues/723)) ([6fee68c](https://github.com/open-sauced/api.opensauced.pizza/commit/6fee68c747b2ca450cb8a6755f586935b0032580))
+
+## [2.20.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.19.0...v2.20.0-beta.1) (2024-04-10)
+
+
+### 🍕 Features
+
+* Star Search API endpoint ([#719](https://github.com/open-sauced/api.opensauced.pizza/issues/719)) ([12d8100](https://github.com/open-sauced/api.opensauced.pizza/commit/12d8100e3a9e7cd96d3e5b8e2fa1abc4ad54c19c))
+
 ## [2.19.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.18.0...v2.19.0) (2024-04-10)
 
 
