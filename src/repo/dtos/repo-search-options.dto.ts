@@ -33,6 +33,19 @@ export class RepoSearchOptionsDto extends RepoPageOptionsDto {
   readonly repoIds?: string;
 }
 
+export class RepoRangeOnlyOptionDto {
+  @ApiPropertyOptional({
+    description: "Range in days",
+    default: 30,
+    type: "integer",
+  })
+  @Type(() => Number)
+  @IsIn([7, 30, 90, 180, 360])
+  @IsInt()
+  @IsOptional()
+  readonly range?: number = 30;
+}
+
 export class RepoRangeOptionsDto {
   @ApiProperty()
   @IsString()
@@ -44,7 +57,7 @@ export class RepoRangeOptionsDto {
     type: "integer",
   })
   @Type(() => Number)
-  @IsIn([7, 30, 90])
+  @IsIn([7, 30, 90, 180, 360])
   @IsInt()
   @IsOptional()
   readonly range?: number = 30;

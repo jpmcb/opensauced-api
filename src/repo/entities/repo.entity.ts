@@ -475,6 +475,42 @@ export class DbRepo extends BaseEntity {
 @Entity({ name: "repos" })
 export class DbRepoWithStats extends DbRepo {
   @ApiModelProperty({
+    description: "Repository number of open Issues",
+    example: 5,
+    type: "integer",
+  })
+  @Column({
+    type: "bigint",
+    select: false,
+    insert: false,
+  })
+  public open_issues_count?: number;
+
+  @ApiModelProperty({
+    description: "Repository number of closed Issues",
+    example: 173,
+    type: "integer",
+  })
+  @Column({
+    type: "bigint",
+    select: false,
+    insert: false,
+  })
+  public closed_issues_count?: number;
+
+  @ApiModelProperty({
+    description: "Repository average open/close time for Issues",
+    example: 0,
+    type: "integer",
+  })
+  @Column({
+    type: "bigint",
+    select: false,
+    insert: false,
+  })
+  public issues_velocity_count?: number;
+
+  @ApiModelProperty({
     description: "Repository number of open PRs",
     example: 5,
     type: "integer",

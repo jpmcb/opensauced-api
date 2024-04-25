@@ -15,6 +15,7 @@ import { DbUserHighlight } from "../entities/user-highlight.entity";
 import { DbInsight } from "../../insight/entities/insight.entity";
 import { DbUserCollaboration } from "../entities/user-collaboration.entity";
 import { DbUserList } from "../../user-lists/entities/user-list.entity";
+import { IssuesGithubEventsService } from "../../timescale/issues_github_events.service";
 import { PullRequestGithubEventsService } from "../../timescale/pull_request_github_events.service";
 import { DbPullRequestGitHubEvents } from "../../timescale/entities/pull_request_github_event.entity";
 import { RepoService } from "../../repo/repo.service";
@@ -62,6 +63,7 @@ describe("UserService", () => {
         UserService,
         ConfigService,
         ForkGithubEventsService,
+        IssuesGithubEventsService,
         PullRequestGithubEventsService,
         PushGithubEventsService,
         RepoDevstatsService,

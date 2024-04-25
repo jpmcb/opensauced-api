@@ -4,6 +4,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 
 import { ConfigService } from "@nestjs/config";
 import { Octokit } from "@octokit/rest";
+import { IssuesGithubEventsService } from "../timescale/issues_github_events.service";
 import { PageMetaDto } from "../common/dtos/page-meta.dto";
 import { PageDto } from "../common/dtos/page.dto";
 import { OrderDirectionEnum } from "../common/constants/order-direction.constant";
@@ -18,7 +19,12 @@ import { ForkGithubEventsService } from "../timescale/fork_github_events.service
 import { PushGithubEventsService } from "../timescale/push_github_events.service";
 import { RepoOrderFieldsEnum, RepoPageOptionsDto } from "./dtos/repo-page-options.dto";
 import { DbRepo, DbRepoWithStats } from "./entities/repo.entity";
-import { RepoFuzzySearchOptionsDto, RepoRangeOptionsDto, RepoSearchOptionsDto } from "./dtos/repo-search-options.dto";
+import {
+  RepoFuzzySearchOptionsDto,
+  RepoRangeOnlyOptionDto,
+  RepoRangeOptionsDto,
+  RepoSearchOptionsDto,
+} from "./dtos/repo-search-options.dto";
 import { DbLotteryFactor } from "./entities/lotto.entity";
 import { calculateLottoFactor } from "./common/lotto";
 
@@ -32,6 +38,7 @@ export class RepoService {
     private pullRequestGithubEventsService: PullRequestGithubEventsService,
     private forkGithubEventsService: ForkGithubEventsService,
     private pushGithubEventsService: PushGithubEventsService,
+    private issueGithubEventsService: IssuesGithubEventsService,
     private repoDevstatsService: RepoDevstatsService,
     private configService: ConfigService,
     private userService: UserService
@@ -104,8 +111,14 @@ export class RepoService {
     const confidence = await this.repoDevstatsService.calculateContributorConfidence(item.full_name, range);
     const pushDates = await this.pushGithubEventsService.lastPushDatesForRepo(item.full_name);
 
+    // get issue stats for each repo found through filtering
+    const issuesStats = await this.issueGithubEventsService.findIssueStatsByRepo(item.full_name, range, 0);
+
     return {
       ...item,
+      opened_issues_count: issuesStats.opened_issues,
+      closed_issues_count: issuesStats.closed_issues,
+      issues_velocity_count: issuesStats.issue_velocity,
       open_prs_count: prStats.open_prs,
       pr_active_count: prStats.active_prs,
       merged_prs_count: prStats.accepted_prs,
@@ -119,7 +132,7 @@ export class RepoService {
       health: activityRatio,
       last_pushed_at: pushDates.push_date,
       last_main_pushed_at: pushDates.main_push_date,
-    } as DbRepoWithStats;
+    } as unknown as DbRepoWithStats;
   }
 
   async findAll(
@@ -356,22 +369,25 @@ export class RepoService {
     repoId,
     repoOwner,
     repoName,
+    rangeOption,
   }: {
     repoId?: number;
     repoOwner?: string;
     repoName?: string;
+    rangeOption?: RepoRangeOnlyOptionDto;
   }): Promise<DbRepoWithStats> {
     if (!repoId && (!repoOwner || !repoName)) {
       throw new BadRequestException("must provide repo ID or repo owner/name");
     }
 
     let repo;
+    const range = rangeOption?.range ?? 30;
 
     try {
       if (repoId) {
         repo = await this.findOneById(repoId);
       } else if (repoOwner && repoName) {
-        repo = await this.findOneByOwnerAndRepo(repoOwner, repoName);
+        repo = await this.findOneByOwnerAndRepo(repoOwner, repoName, range);
       }
     } catch (e) {
       // could not find repo being added to workspace in our database. Add it.
