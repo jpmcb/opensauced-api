@@ -5,6 +5,19 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.21.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0...v2.21.0) (2024-04-25)
+
+
+### 🍕 Features
+
+* add issues devstats to /repo/<org>/<repo> ([#743](https://github.com/open-sauced/api.opensauced.pizza/issues/743)) ([213658c](https://github.com/open-sauced/api.opensauced.pizza/commit/213658c7476c2a6583ebb87f8d7071bfe5120f94))
+
+
+### 🐛 Bug Fixes
+
+* expose `range` query param for `/repo/<org>/<repo>` ([#742](https://github.com/open-sauced/api.opensauced.pizza/issues/742)) ([95d6e90](https://github.com/open-sauced/api.opensauced.pizza/commit/95d6e9027bebd669ab2ba9ef3a35874ba4c037ff))
+* remove default value from exceeds_ugprade_limit field on workspace ([#746](https://github.com/open-sauced/api.opensauced.pizza/issues/746)) ([9484df0](https://github.com/open-sauced/api.opensauced.pizza/commit/9484df02bbb6f753ef87f609f52445d6274af969))
+
 ## [2.21.0-beta.3](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.21.0-beta.2...v2.21.0-beta.3) (2024-04-25)
 
 
