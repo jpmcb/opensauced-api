@@ -10,7 +10,12 @@ import { RepoDevstatsService } from "../timescale/repo-devstats.service";
 import { DbRepo, DbRepoWithStats } from "./entities/repo.entity";
 import { RepoService } from "./repo.service";
 import { RepoPageOptionsDto } from "./dtos/repo-page-options.dto";
-import { RepoFuzzySearchOptionsDto, RepoRangeOptionsDto, RepoSearchOptionsDto } from "./dtos/repo-search-options.dto";
+import {
+  RepoFuzzySearchOptionsDto,
+  RepoRangeOnlyOptionDto,
+  RepoRangeOptionsDto,
+  RepoSearchOptionsDto,
+} from "./dtos/repo-search-options.dto";
 import { DbRepoContributor } from "./entities/repo_contributors.entity";
 import { RepoReleaseDto } from "./dtos/repo-release.dto";
 import { DbLotteryFactor } from "./entities/lotto.entity";
@@ -45,8 +50,12 @@ export class RepoController {
   @ApiOkResponse({ type: DbRepoWithStats })
   @ApiNotFoundResponse({ description: "Repository not found" })
   @Header("Cache-Control", "public, max-age=600")
-  async findOneByOwnerAndRepo(@Param("owner") owner: string, @Param("repo") repo: string): Promise<DbRepoWithStats> {
-    return this.repoService.tryFindRepoOrMakeStub({ repoOwner: owner, repoName: repo });
+  async findOneByOwnerAndRepo(
+    @Param("owner") owner: string,
+    @Param("repo") repo: string,
+    @Query() rangeOption: RepoRangeOnlyOptionDto
+  ): Promise<DbRepoWithStats> {
+    return this.repoService.tryFindRepoOrMakeStub({ repoOwner: owner, repoName: repo, rangeOption });
   }
 
   @Get("/lotto")

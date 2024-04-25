@@ -19,7 +19,12 @@ import { ForkGithubEventsService } from "../timescale/fork_github_events.service
 import { PushGithubEventsService } from "../timescale/push_github_events.service";
 import { RepoOrderFieldsEnum, RepoPageOptionsDto } from "./dtos/repo-page-options.dto";
 import { DbRepo, DbRepoWithStats } from "./entities/repo.entity";
-import { RepoFuzzySearchOptionsDto, RepoRangeOptionsDto, RepoSearchOptionsDto } from "./dtos/repo-search-options.dto";
+import {
+  RepoFuzzySearchOptionsDto,
+  RepoRangeOnlyOptionDto,
+  RepoRangeOptionsDto,
+  RepoSearchOptionsDto,
+} from "./dtos/repo-search-options.dto";
 import { DbLotteryFactor } from "./entities/lotto.entity";
 import { calculateLottoFactor } from "./common/lotto";
 
@@ -364,22 +369,25 @@ export class RepoService {
     repoId,
     repoOwner,
     repoName,
+    rangeOption,
   }: {
     repoId?: number;
     repoOwner?: string;
     repoName?: string;
+    rangeOption?: RepoRangeOnlyOptionDto;
   }): Promise<DbRepoWithStats> {
     if (!repoId && (!repoOwner || !repoName)) {
       throw new BadRequestException("must provide repo ID or repo owner/name");
     }
 
     let repo;
+    const range = rangeOption?.range ?? 30;
 
     try {
       if (repoId) {
         repo = await this.findOneById(repoId);
       } else if (repoOwner && repoName) {
-        repo = await this.findOneByOwnerAndRepo(repoOwner, repoName);
+        repo = await this.findOneByOwnerAndRepo(repoOwner, repoName, range);
       }
     } catch (e) {
       // could not find repo being added to workspace in our database. Add it.
