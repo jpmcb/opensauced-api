@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.21.0-beta.3](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.21.0-beta.2...v2.21.0-beta.3) (2024-04-25)
+
+
+### 🐛 Bug Fixes
+
+* expose `range` query param for `/repo/<org>/<repo>` ([#742](https://github.com/open-sauced/api.opensauced.pizza/issues/742)) ([95d6e90](https://github.com/open-sauced/api.opensauced.pizza/commit/95d6e9027bebd669ab2ba9ef3a35874ba4c037ff))
+
 ## [2.21.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.21.0-beta.1...v2.21.0-beta.2) (2024-04-25)
 
 
