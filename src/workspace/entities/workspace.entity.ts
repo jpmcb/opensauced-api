@@ -107,8 +107,12 @@ export class DbWorkspace extends BaseEntity {
     description: "Flag indicating workspace has exceeded upgrade threshold",
     example: true,
   })
-  @Column({ default: false, select: false, insert: false })
-  public exceeds_upgrade_limits: boolean;
+  @Column({
+    type: "boolean",
+    select: false,
+    insert: false,
+  })
+  public exceeds_upgrade_limits?: boolean;
 
   @ApiHideProperty()
   @OneToMany(() => DbWorkspaceMember, (workspaceMember) => workspaceMember.workspace, { onDelete: "CASCADE" })
