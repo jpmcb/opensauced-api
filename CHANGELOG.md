@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.21.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.21.0-beta.1...v2.21.0-beta.2) (2024-04-25)
+
+
+### 🐛 Bug Fixes
+
+* remove default value from exceeds_ugprade_limit field on workspace ([#746](https://github.com/open-sauced/api.opensauced.pizza/issues/746)) ([9484df0](https://github.com/open-sauced/api.opensauced.pizza/commit/9484df02bbb6f753ef87f609f52445d6274af969))
+
 ## [2.21.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.20.0...v2.21.0-beta.1) (2024-04-25)
 
 
