@@ -5,6 +5,23 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.22.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.21.0...v2.22.0) (2024-04-30)
+
+
+### 🍕 Features
+
+* Filter out bots on cosine similarity search ([#753](https://github.com/open-sauced/api.opensauced.pizza/issues/753)) ([4cc5355](https://github.com/open-sauced/api.opensauced.pizza/commit/4cc5355196d615e44d1fd487a9cd45c64ddb0295))
+
+
+### 📝 Documentation
+
+* update logo ([#749](https://github.com/open-sauced/api.opensauced.pizza/issues/749)) ([4219fbb](https://github.com/open-sauced/api.opensauced.pizza/commit/4219fbb8e202480c80a511b0ad3723a8bfbf6b79))
+
+
+### 🐛 Bug Fixes
+
+* update repository results to sort by updated_at date by default ([#754](https://github.com/open-sauced/api.opensauced.pizza/issues/754)) ([e9a3c24](https://github.com/open-sauced/api.opensauced.pizza/commit/e9a3c24a2d76be17d69130b7ca76ef4137b9b8db))
+
 ## [2.22.0-beta.3](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.22.0-beta.2...v2.22.0-beta.3) (2024-04-30)
 
 
