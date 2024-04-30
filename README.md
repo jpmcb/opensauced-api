@@ -1,6 +1,6 @@
 <div align="center">
   <br>
-  <img alt="Open Sauced" src="https://i.ibb.co/7jPXt0Z/logo1-92f1a87f.png" width="300px">
+  <img alt="Open Sauced" src="https://i.ibb.co/Yj2jLvg/logo2-7-T9k5-X2p.png" width="350px">
   <h1>🍕 Open Sauced Insights API 🍕</h1>
   <strong>The path to your next Open Source contribution</strong>
   <br>
