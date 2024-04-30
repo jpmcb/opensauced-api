@@ -141,7 +141,7 @@ export class RepoService {
     userRelations?: string[]
   ): Promise<PageDto<DbRepoWithStats>> {
     const queryBuilder = this.baseQueryBuilder();
-    const orderField = pageOptionsDto.orderBy ?? RepoOrderFieldsEnum.stars;
+    const orderField = pageOptionsDto.orderBy ?? RepoOrderFieldsEnum.pushed_at;
 
     if (userId) {
       userRelations?.map((relation) =>
@@ -173,7 +173,7 @@ export class RepoService {
     pageOptionsDto: RepoSearchOptionsDto,
     workspaceId: string | undefined
   ): Promise<PageDto<DbRepoWithStats>> {
-    const orderField = pageOptionsDto.orderBy ?? "stars";
+    const orderField = pageOptionsDto.orderBy ?? "pushed_at";
     const startDate = GetPrevDateISOString(pageOptionsDto.prev_days_start_date);
     const prevDaysStartDate = pageOptionsDto.prev_days_start_date!;
     const range = pageOptionsDto.range!;
@@ -201,6 +201,8 @@ export class RepoService {
 
     if (pageOptionsDto.filter === InsightFilterFieldsEnum.Recent) {
       queryBuilder.orderBy(`"repos"."updated_at"`, "DESC");
+    } else {
+      queryBuilder.orderBy(`"repos"."pushed_at"`, "DESC");
     }
 
     const cteCounter = this.repoRepository.manager
@@ -259,7 +261,7 @@ export class RepoService {
   }
 
   async fastFuzzyFind(pageOptionsDto: RepoFuzzySearchOptionsDto): Promise<PageDto<DbRepo>> {
-    const orderField = pageOptionsDto.orderBy ?? "stars";
+    const orderField = pageOptionsDto.orderBy ?? "pushed_at";
     const startDate = GetPrevDateISOString(pageOptionsDto.prev_days_start_date);
     const range = pageOptionsDto.range!;
 
@@ -352,7 +354,7 @@ export class RepoService {
       .where("user_orgs.user_id = :userId", { userId })
       .andWhere(`'${startDate}'::TIMESTAMP >= "repos"."updated_at"`)
       .andWhere(`'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "repos"."updated_at"`)
-      .orderBy("repos.stars", pageOptionsDto.orderDirection)
+      .orderBy("repos.pushed_at", pageOptionsDto.orderDirection)
       .addOrderBy("repos.updated_at", pageOptionsDto.orderDirection);
 
     queryBuilder.offset(pageOptionsDto.skip).limit(pageOptionsDto.limit);

@@ -62,9 +62,9 @@ export class WorkspaceReposService {
       )
       .where("workspace_repos.deleted_at IS NULL")
       .andWhere("workspace_repos.workspace_id = :id", { id })
+      .orderBy("workspace_repos_repo.pushed_at", "DESC")
       .skip(pageOptionsDto.skip)
       .take(pageOptionsDto.limit);
-
     const itemCount = await queryBuilder.getCount();
     const entities = await queryBuilder.getMany();
 
