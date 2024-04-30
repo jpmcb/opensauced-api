@@ -44,6 +44,7 @@ export class PullRequestGithubEventsVectorService {
       .createQueryBuilder("pull_request_github_events")
       .where(`'${startDate}'::TIMESTAMP >= "pull_request_github_events"."event_time"`)
       .andWhere(`'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "pull_request_github_events"."event_time"`)
+      .andWhere("LOWER(pr_author_login) NOT LIKE '%[bot]%'")
       .orderBy(`pull_request_github_events.embedding <=> '[${embedding.join(",")}]'::vector`)
       .limit(5);
 
