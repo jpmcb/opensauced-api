@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.22.0-beta.3](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.22.0-beta.2...v2.22.0-beta.3) (2024-04-30)
+
+
+### 🐛 Bug Fixes
+
+* update repository results to sort by updated_at date by default ([#754](https://github.com/open-sauced/api.opensauced.pizza/issues/754)) ([e9a3c24](https://github.com/open-sauced/api.opensauced.pizza/commit/e9a3c24a2d76be17d69130b7ca76ef4137b9b8db))
+
 ## [2.22.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.22.0-beta.1...v2.22.0-beta.2) (2024-04-30)
 
 
