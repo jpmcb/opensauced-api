@@ -19,6 +19,7 @@ export enum RepoOrderFieldsEnum {
   subscribers = "subscribers",
   created_at = "created_at",
   updated_at = "updated_at",
+  pushed_at = "pushed_at",
   name = "name",
   contributionsCount = "contributionsCount",
   votesCount = "votesCount",
