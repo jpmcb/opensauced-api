@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.22.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.22.0-beta.1...v2.22.0-beta.2) (2024-04-30)
+
+
+### 📝 Documentation
+
+* update logo ([#749](https://github.com/open-sauced/api.opensauced.pizza/issues/749)) ([4219fbb](https://github.com/open-sauced/api.opensauced.pizza/commit/4219fbb8e202480c80a511b0ad3723a8bfbf6b79))
+
 ## [2.22.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.21.0...v2.22.0-beta.1) (2024-04-30)
 
 
