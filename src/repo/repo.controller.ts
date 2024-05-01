@@ -58,6 +58,21 @@ export class RepoController {
     return this.repoService.tryFindRepoOrMakeStub({ repoOwner: owner, repoName: repo, rangeOption });
   }
 
+  @Get("/:owner/:repo/info")
+  @ApiOperation({
+    operationId: "findOneInfoByOwnerAndRepo",
+    summary: "Finds a repo by :owner and :repo",
+  })
+  @ApiOkResponse({ type: DbRepoWithStats })
+  @ApiNotFoundResponse({ description: "Repository not found" })
+  @Header("Cache-Control", "public, max-age=600")
+  async findOneInfoByOwnerAndRepo(
+    @Param("owner") owner: string,
+    @Param("repo") repo: string
+  ): Promise<DbRepoWithStats> {
+    return this.repoService.tryFindRepoOrMakeStub({ repoOwner: owner, repoName: repo, minimalInfo: true });
+  }
+
   @Get("/lotto")
   @ApiOperation({
     operationId: "findLottoFactorByOwnerAndRepo",
