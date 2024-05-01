@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.24.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.23.0...v2.24.0-beta.1) (2024-05-01)
+
+
+### 🍕 Features
+
+* Refactor user-list most-active-contributors query ([#756](https://github.com/open-sauced/api.opensauced.pizza/issues/756)) ([4530149](https://github.com/open-sauced/api.opensauced.pizza/commit/453014949efba0081742fe6b943de75304d277da))
+
 ## [2.23.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.22.0...v2.23.0) (2024-05-01)
 
 
