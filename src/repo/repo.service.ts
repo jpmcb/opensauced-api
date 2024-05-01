@@ -92,7 +92,7 @@ export class RepoService {
     return item;
   }
 
-  async findOneByOwnerAndRepo(owner: string, repo: string, range = 30): Promise<DbRepoWithStats> {
+  async findOneByOwnerAndRepo(owner: string, repo: string, range = 30, minimalInfo = false): Promise<DbRepoWithStats> {
     const queryBuilder = this.baseQueryBuilder();
 
     queryBuilder.where("LOWER(repo.full_name) = :name", { name: `${owner}/${repo}`.toLowerCase() });
@@ -101,6 +101,10 @@ export class RepoService {
 
     if (!item) {
       throw new NotFoundException(`Repository not found: ${owner}/${repo}`);
+    }
+
+    if (minimalInfo) {
+      return item;
     }
 
     const prStats = await this.pullRequestGithubEventsService.findPrStatsByRepo(item.full_name, range, 0);
@@ -371,11 +375,13 @@ export class RepoService {
     repoId,
     repoOwner,
     repoName,
+    minimalInfo = false,
     rangeOption,
   }: {
     repoId?: number;
     repoOwner?: string;
     repoName?: string;
+    minimalInfo?: boolean;
     rangeOption?: RepoRangeOnlyOptionDto;
   }): Promise<DbRepoWithStats> {
     if (!repoId && (!repoOwner || !repoName)) {
@@ -389,7 +395,7 @@ export class RepoService {
       if (repoId) {
         repo = await this.findOneById(repoId);
       } else if (repoOwner && repoName) {
-        repo = await this.findOneByOwnerAndRepo(repoOwner, repoName, range);
+        repo = await this.findOneByOwnerAndRepo(repoOwner, repoName, range, minimalInfo);
       }
     } catch (e) {
       // could not find repo being added to workspace in our database. Add it.

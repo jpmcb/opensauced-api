@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.23.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.22.0...v2.23.0-beta.1) (2024-05-01)
+
+
+### 🍕 Features
+
+* implemented the `repo/{org}/{name}/info` endpoint ([#752](https://github.com/open-sauced/api.opensauced.pizza/issues/752)) ([8b5790d](https://github.com/open-sauced/api.opensauced.pizza/commit/8b5790da4facaffb6aa27f6c8e1ef80a85f596e6))
+
 ## [2.22.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.21.0...v2.22.0) (2024-04-30)
 
 
@@ -21,6 +28,7 @@
 ### 🐛 Bug Fixes
 
 * update repository results to sort by updated_at date by default ([#754](https://github.com/open-sauced/api.opensauced.pizza/issues/754)) ([e9a3c24](https://github.com/open-sauced/api.opensauced.pizza/commit/e9a3c24a2d76be17d69130b7ca76ef4137b9b8db))
+* implemented the `repo/{org}/{name}/info` endpoint ([#752](https://github.com/open-sauced/api.opensauced.pizza/issues/752)) ([8b5790d](https://github.com/open-sauced/api.opensauced.pizza/commit/8b5790da4facaffb6aa27f6c8e1ef80a85f596e6))
 
 ## [2.22.0-beta.3](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.22.0-beta.2...v2.22.0-beta.3) (2024-04-30)
 
