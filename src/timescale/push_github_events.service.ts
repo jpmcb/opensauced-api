@@ -6,6 +6,8 @@ import { PushesHistogramDto } from "../histogram/dtos/pushes.dto";
 import { OrderDirectionEnum } from "../common/constants/order-direction.constant";
 import { DbPushGitHubEventsHistogram } from "./entities/push_github_events_histogram.entity";
 import { DbPushGitHubEvents } from "./entities/push_github_events.entity";
+import { applyContribTypeEnumFilters } from "./common/counts";
+import { ContributorStatsTypeEnum } from "./dtos/most-active-contrib.dto";
 
 /*
  * push events, named "PushEvent" in the GitHub API, are when
@@ -26,6 +28,23 @@ export class PushGithubEventsService {
     const builder = this.pushGitHubEventsHistogramRepository.manager.createQueryBuilder();
 
     return builder;
+  }
+
+  async getPushCountForLogin(username: string, contribType: ContributorStatsTypeEnum, range: number): Promise<number> {
+    const queryBuilder = this.pushGitHubEventsHistogramRepository.manager
+      .createQueryBuilder()
+      .select("COALESCE(sum(push_num_commits), 0) AS commits")
+      .from("push_github_events", "push_github_events")
+      .where(`LOWER(actor_login) = '${username}'`)
+      .andWhere("push_ref IN ('refs/heads/main', 'refs/heads/master')")
+      .groupBy("LOWER(actor_login)");
+
+    applyContribTypeEnumFilters(contribType, queryBuilder, range);
+
+    const result = await queryBuilder.getRawOne<{ commits: number }>();
+    const parsedResult = parseFloat(`${result?.commits ?? "0"}`);
+
+    return parsedResult;
   }
 
   async genPushHistogram(options: PushesHistogramDto): Promise<DbPushGitHubEventsHistogram[]> {

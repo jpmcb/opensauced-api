@@ -5,6 +5,8 @@ import { CommitCommentsHistogramDto } from "../histogram/dtos/commit_comments.dt
 import { GetPrevDateISOString } from "../common/util/datetimes";
 import { OrderDirectionEnum } from "../common/constants/order-direction.constant";
 import { DbCommitCommentGitHubEventsHistogram } from "./entities/commit_comment_github_events_histogram.entity";
+import { applyContribTypeEnumFilters } from "./common/counts";
+import { ContributorStatsTypeEnum } from "./dtos/most-active-contrib.dto";
 
 /*
  * commit comment events, named "CommitCommentEvent" in the GitHub API, are when
@@ -25,6 +27,26 @@ export class CommitCommentGithubEventsService {
     const builder = this.commitCommentGitHubEventsHistogramRepository.manager.createQueryBuilder();
 
     return builder;
+  }
+
+  async getCommitCommentCountForAuthor(
+    username: string,
+    contribType: ContributorStatsTypeEnum,
+    range: number
+  ): Promise<number> {
+    const queryBuilder = this.commitCommentGitHubEventsHistogramRepository.manager
+      .createQueryBuilder()
+      .select("COALESCE(COUNT(*), 0) AS commit_comments")
+      .from("commit_comment_github_events", "commit_comment_github_events")
+      .where(`LOWER(actor_login) = '${username}'`)
+      .groupBy("LOWER(actor_login)");
+
+    applyContribTypeEnumFilters(contribType, queryBuilder, range);
+
+    const result = await queryBuilder.getRawOne<{ commit_comments: number }>();
+    const parsedResult = parseFloat(`${result?.commit_comments ?? "0"}`);
+
+    return parsedResult;
   }
 
   async genCommitCommentHistogram(

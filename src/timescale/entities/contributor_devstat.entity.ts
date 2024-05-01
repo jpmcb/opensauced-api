@@ -121,4 +121,8 @@ export class DbContributorStat {
     insert: false,
   })
   total_contributions: number;
+
+  constructor(init?: Partial<DbContributorStat>) {
+    Object.assign(this, init);
+  }
 }

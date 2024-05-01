@@ -6,6 +6,8 @@ import { GetPrevDateISOString } from "../common/util/datetimes";
 import { OrderDirectionEnum } from "../common/constants/order-direction.constant";
 import { DbIssuesGitHubEventsHistogram } from "./entities/issues_github_events_histogram.entity";
 import { DbIssuesGitHubEvents } from "./entities/issues_github_event.entity";
+import { applyContribTypeEnumFilters } from "./common/counts";
+import { ContributorStatsTypeEnum } from "./dtos/most-active-contrib.dto";
 
 /*
  * issue events, named "IssueEvent" in the GitHub API, are when
@@ -77,6 +79,27 @@ export class IssuesGithubEventsService {
     }
 
     return result;
+  }
+
+  async getIssueCountForAuthor(
+    username: string,
+    contribType: ContributorStatsTypeEnum,
+    range: number
+  ): Promise<number> {
+    const queryBuilder = this.issueGitHubEventsRepository.manager
+      .createQueryBuilder()
+      .select("COALESCE(COUNT(*), 0) AS issues_created")
+      .from("issues_github_events", "issues_github_events")
+      .where(`LOWER(actor_login) = '${username}'`)
+      .andWhere("issue_action = 'opened'")
+      .groupBy("LOWER(actor_login)");
+
+    applyContribTypeEnumFilters(contribType, queryBuilder, range);
+
+    const result = await queryBuilder.getRawOne<{ issues_created: number }>();
+    const parsedResult = parseFloat(`${result?.issues_created ?? "0"}`);
+
+    return parsedResult;
   }
 
   async genIssueHistogram(options: IssueHistogramDto): Promise<DbIssuesGitHubEventsHistogram[]> {

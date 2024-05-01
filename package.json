@@ -67,6 +67,7 @@
     "@octokit/rest": "^20.0.2",
     "@octokit/types": "github:octokit/types.ts",
     "@supabase/supabase-js": "^1.35.6",
+    "@supercharge/promise-pool": "^3.2.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "mathjs": "^12.3.0",

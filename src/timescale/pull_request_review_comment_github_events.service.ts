@@ -5,6 +5,8 @@ import { PullRequestReviewCommentHistogramDto } from "../histogram/dtos/pull_req
 import { GetPrevDateISOString } from "../common/util/datetimes";
 import { OrderDirectionEnum } from "../common/constants/order-direction.constant";
 import { DbPullRequestReviewCommentGitHubEventsHistogram } from "./entities/pull_request_review_comment_github_events_histogram.entity";
+import { applyContribTypeEnumFilters } from "./common/counts";
+import { ContributorStatsTypeEnum } from "./dtos/most-active-contrib.dto";
 
 /*
  * pull request review comment events, named "PullRequestReviewCommentEvent" in the GitHub API, are when
@@ -25,6 +27,27 @@ export class PullRequestReviewCommentGithubEventsService {
     const builder = this.pullRequestReviewCommentGitHubEventsHistogramRepository.manager.createQueryBuilder();
 
     return builder;
+  }
+
+  async getPrReviewCommentCountForAuthor(
+    username: string,
+    contribType: ContributorStatsTypeEnum,
+    range: number
+  ): Promise<number> {
+    const queryBuilder = this.pullRequestReviewCommentGitHubEventsHistogramRepository.manager
+      .createQueryBuilder()
+      .select("COALESCE(COUNT(*), 0) AS pr_review_comments")
+      .from("pull_request_review_comment_github_events", "pull_request_review_comment_github_events")
+      .where(`LOWER(actor_login) = '${username}'`)
+      .andWhere(`now() - INTERVAL '${range} days' <= event_time`)
+      .groupBy("LOWER(actor_login)");
+
+    applyContribTypeEnumFilters(contribType, queryBuilder, range);
+
+    const result = await queryBuilder.getRawOne<{ pr_review_comments: number }>();
+    const parsedResult = parseFloat(`${result?.pr_review_comments ?? "0"}`);
+
+    return parsedResult;
   }
 
   async genPullRequestReviewCommentHistogram(

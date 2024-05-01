@@ -9,6 +9,8 @@ import {
   DbTopCommentGitHubEventsHistogram,
 } from "./entities/issue_comment_github_events_histogram.entity";
 import { DbPullRequestReviewCommentGitHubEventsHistogram } from "./entities/pull_request_review_comment_github_events_histogram.entity";
+import { applyContribTypeEnumFilters } from "./common/counts";
+import { ContributorStatsTypeEnum } from "./dtos/most-active-contrib.dto";
 
 /*
  * issue comment events, named "IssueCommentEvent" in the GitHub API, are when
@@ -35,6 +37,26 @@ export class IssueCommentGithubEventsService {
     const builder = this.issueCommentGitHubEventsHistogramRepository.manager.createQueryBuilder();
 
     return builder;
+  }
+
+  async getIssueCommentCountForAuthor(
+    username: string,
+    contribType: ContributorStatsTypeEnum,
+    range: number
+  ): Promise<number> {
+    const queryBuilder = this.issueCommentGitHubEventsHistogramRepository.manager
+      .createQueryBuilder()
+      .select("COALESCE(COUNT(*), 0) AS issue_comments")
+      .from("issue_comment_github_events", "issue_comment_github_events")
+      .where(`LOWER(actor_login) = '${username}'`)
+      .groupBy("LOWER(actor_login)");
+
+    applyContribTypeEnumFilters(contribType, queryBuilder, range);
+
+    const result = await queryBuilder.getRawOne<{ issue_comments: number }>();
+    const parsedResult = parseFloat(`${result?.issue_comments ?? "0"}`);
+
+    return parsedResult;
   }
 
   async genIssueCommentHistogram(options: IssueCommentsHistogramDto): Promise<DbIssueCommentGitHubEventsHistogram[]> {
