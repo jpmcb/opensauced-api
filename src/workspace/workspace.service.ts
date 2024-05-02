@@ -135,6 +135,7 @@ export class WorkspaceService {
     );
 
     queryBuilder.skip(pageOptionsDto.skip).take(pageOptionsDto.limit);
+    queryBuilder.orderBy("workspaces.updated_at", "DESC");
 
     const [itemCount, entities] = await Promise.all([queryBuilder.getCount(), queryBuilder.getMany()]);
 
