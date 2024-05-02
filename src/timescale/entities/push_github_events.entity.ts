@@ -19,7 +19,7 @@ export class DbPushGitHubEvents extends BaseEntity {
     example: "Th3nn3ss",
   })
   @Column("text")
-  public push_actor_login: string;
+  public actor_login: string;
 
   @ApiModelPropertyOptional({
     description: "Timestamp representing time of push",
@@ -37,10 +37,8 @@ export class DbPushGitHubEvents extends BaseEntity {
   })
   @Column({
     type: "text",
-    select: false,
-    insert: false,
   })
-  public repo_name?: string;
+  public repo_name: string;
 
   @ApiModelProperty({
     description: "Number of commits in the push",

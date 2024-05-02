@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { Repository, SelectQueryBuilder } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 
+import { orderDbContributorStats } from "../timescale/common/most-active-contributors";
 import { sanitizeRepos } from "../timescale/common/repos";
 import { RepoDevstatsService } from "../timescale/repo-devstats.service";
 import { IssuesGithubEventsService } from "../timescale/issues_github_events.service";
@@ -208,9 +209,21 @@ export class WorkspaceStatsService {
       );
     }
 
+    /*
+     * ignores 2 usernames that cause problems when crunching this data:
+     *
+     * 1. Usernames that somehow are an empty string. This shouldn't happen
+     *    since a username is more or less a required field in the users table.
+     *    but we have seen this from time to time which can cause problems trying
+     *    to crunch timescale data on all an empty username
+     *
+     * 2. Ignores bot accounts: many bot accounts make an astronomical number of
+     *    commits / comments / reviews etc. etc. And attempting to crunch all that data
+     *    for the bot accounts won't work and would require massive resources.
+     */
     const contributors = allContributors
       .map((c) => (c.contributor.login ? c.contributor.login.toLowerCase() : ""))
-      .filter((c) => c !== "");
+      .filter((c) => c !== "" && !c.endsWith("[bot]"));
 
     if (contributors.length === 0) {
       return new ContributionsPageDto(
@@ -219,6 +232,22 @@ export class WorkspaceStatsService {
       );
     }
 
-    return this.contributorDevstatService.findAllContributorStats(pageOptionsDto, contributors);
+    const userStats = await this.contributorDevstatService.findAllContributorStats(pageOptionsDto, contributors);
+
+    orderDbContributorStats(pageOptionsDto, userStats);
+
+    const { skip } = pageOptionsDto;
+    const limit = pageOptionsDto.limit!;
+    const slicedUserStats = userStats.slice(skip, skip + limit);
+
+    let totalCount = 0;
+
+    userStats.forEach((entity) => {
+      totalCount += entity.total_contributions;
+    });
+
+    const pageMetaDto = new ContributionPageMetaDto({ itemCount: slicedUserStats.length, pageOptionsDto }, totalCount);
+
+    return new ContributionsPageDto(slicedUserStats, pageMetaDto);
   }
 }

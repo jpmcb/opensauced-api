@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { Repository, SelectQueryBuilder } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 
+import { orderDbContributorStats } from "../timescale/common/most-active-contributors";
 import { PageDto } from "../common/dtos/page.dto";
 import { DbPullRequestGitHubEvents } from "../timescale/entities/pull_request_github_event.entity";
 import { DbContributorStat } from "../timescale/entities/contributor_devstat.entity";
@@ -182,18 +183,7 @@ export class UserListEventsStatsService {
       .leftJoin("users", "users", "user_list_contributors.user_id=users.id")
       .where("user_list_contributors.list_id = :listId", { listId });
 
-    const allUsers = await userListUsersBuilder.getMany();
-
-    if (allUsers.length === 0) {
-      return new ContributionsPageDto(
-        new Array<DbContributorStat>(),
-        new ContributionPageMetaDto({ itemCount: 0, pageOptionsDto }, 0)
-      );
-    }
-
-    const users = allUsers
-      .map((user) => (user.username ? user.username.toLowerCase() : ""))
-      .filter((user) => user !== "");
+    const users = await userListUsersBuilder.getMany();
 
     if (users.length === 0) {
       return new ContributionsPageDto(
@@ -202,7 +192,46 @@ export class UserListEventsStatsService {
       );
     }
 
-    return this.contributorDevstatsService.findAllContributorStats(pageOptionsDto, users);
+    /*
+     * ignores 2 usernames that cause problems when crunching this data:
+     *
+     * 1. Usernames that somehow are an empty string. This shouldn't happen
+     *    since a username is more or less a required field in the users table.
+     *    but we have seen this from time to time which can cause problems trying
+     *    to crunch timescale data on all an empty username
+     *
+     * 2. Ignores bot accounts: many bot accounts make an astronomical number of
+     *    commits / comments / reviews etc. etc. And attempting to crunch all that data
+     *    for the bot accounts won't work and would require massive resources.
+     */
+    const filteredUsers = users
+      .map((user) => (user.username ? user.username.toLowerCase() : ""))
+      .filter((user) => user !== "" && !user.endsWith("[bot]"));
+
+    if (filteredUsers.length === 0) {
+      return new ContributionsPageDto(
+        new Array<DbContributorStat>(),
+        new ContributionPageMetaDto({ itemCount: 0, pageOptionsDto }, 0)
+      );
+    }
+
+    const userStats = await this.contributorDevstatsService.findAllContributorStats(pageOptionsDto, filteredUsers);
+
+    orderDbContributorStats(pageOptionsDto, userStats);
+
+    const { skip } = pageOptionsDto;
+    const limit = pageOptionsDto.limit!;
+    const slicedUserStats = userStats.slice(skip, skip + limit);
+
+    let totalCount = 0;
+
+    userStats.forEach((entity) => {
+      totalCount += entity.total_contributions;
+    });
+
+    const pageMetaDto = new ContributionPageMetaDto({ itemCount: userStats.length, pageOptionsDto }, totalCount);
+
+    return new ContributionsPageDto(slicedUserStats, pageMetaDto);
   }
 
   async findContributionsInTimeFrame(
@@ -255,44 +284,32 @@ export class UserListEventsStatsService {
     options: ContributionsByProjectDto,
     listId: string
   ): Promise<DbContributionsProjects[]> {
-    const range = options.range!;
+    const userListUsersBuilder = this.userListUsersQueryBuilder();
 
-    const allUsers = await this.findContributorsByType(listId, range);
+    userListUsersBuilder
+      .leftJoin("users", "users", "user_list_contributors.user_id=users.id")
+      .where("user_list_contributors.list_id = :listId", { listId });
 
-    if (allUsers.length === 0) {
+    const users = await userListUsersBuilder.getMany();
+
+    if (users.length === 0) {
       return [];
     }
 
-    const cteQuery = this.eventsUnionCteBuilder(range);
+    /*
+     * ignore both users who have a missing username for some reason
+     * and bot users. This helps prevent extremely long running queries in the
+     * database
+     */
+    const filteredUsers = users
+      .map((user) => (user.username ? user.username.toLowerCase() : ""))
+      .filter((user) => user !== "" && !user.endsWith("[bot]"));
 
-    const entityQb = this.pullRequestGithubEventsRepository.manager
-      .createQueryBuilder()
-      .addCommonTableExpression(cteQuery, "CTE")
-      .setParameters({ users: allUsers })
-      .select("repo_name", "repo_name")
-      .addSelect("COUNT(case when event_type = 'PushEvent' then 1 end)", "commits")
-      .addSelect("COUNT(case when event_type = 'PullRequestEvent' then 1 end)", "prs_created")
-      .addSelect("COUNT(case when event_type = 'PullRequestReviewEvent' then 1 end)", "prs_reviewed")
-      .addSelect("COUNT(case when event_type = 'IssuesEvent' then 1 end)", "issues_created")
-      .addSelect("COUNT(case when event_type = 'CommitCommentEvent' then 1 end)", "commit_comments")
-      .addSelect("COUNT(case when event_type = 'IssueCommentEvent' then 1 end)", "issue_comments")
-      .addSelect("COUNT(case when event_type = 'PullRequestReviewCommentEvent' then 1 end)", "pr_review_comments")
-      .addSelect(
-        `COUNT(case
-          when event_type = 'CommitCommentEvent'
-          or event_type = 'IssueCommentEvent'
-          or event_type = 'PullRequestReviewCommentEvent'
-          then 1 end
-        )`,
-        "comments"
-      )
-      .addSelect("COUNT(*)", "total_contributions")
-      .from("CTE", "CTE")
-      .groupBy("repo_name");
+    if (filteredUsers.length === 0) {
+      return [];
+    }
 
-    const entities: DbContributionsProjects[] = await entityQb.getRawMany();
-
-    return entities;
+    return this.contributorDevstatsService.findAllContributionsByProject(options, filteredUsers);
   }
 
   async findTopContributorsByProject(options: TopProjectsDto, listId: string): Promise<DbContributorStat[]> {

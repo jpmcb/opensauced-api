@@ -43,6 +43,9 @@ import { MemberGithubEventsService } from "./member_github_events.service";
 import { PullRequestReviewCommentGithubEventsService } from "./pull_request_review_comment_github_events.service";
 import { DbPullRequestReviewCommentGitHubEventsHistogram } from "./entities/pull_request_review_comment_github_events_histogram.entity";
 import { PullRequestGithubEventsVectorService } from "./pull_request_github-events_vector.service";
+import { DbCommitCommentGitHubEvents } from "./entities/commit_comment_github_events.entity";
+import { DbPullRequestReviewCommentGitHubEvents } from "./entities/pull_request_review_comment_github_events.entity";
+import { DbIssueCommentGitHubEvents } from "./entities/issue_comment_github_events.entity";
 
 @Module({
   imports: [
@@ -50,6 +53,7 @@ import { PullRequestGithubEventsVectorService } from "./pull_request_github-even
     forwardRef(() => UserListModule),
     TypeOrmModule.forFeature(
       [
+        DbCommitCommentGitHubEvents,
         DbCommitCommentGitHubEventsHistogram,
         DbContributorStat,
         DbCreateGitHubEventsHistogram,
@@ -57,11 +61,13 @@ import { PullRequestGithubEventsVectorService } from "./pull_request_github-even
         DbForkGitHubEvents,
         DbForkGitHubEventsHistogram,
         DbGollumGitHubEventsHistogram,
+        DbIssueCommentGitHubEvents,
         DbIssueCommentGitHubEventsHistogram,
         DbIssuesGitHubEvents,
         DbIssuesGitHubEventsHistogram,
         DbMemberGitHubEventsHistogram,
         DbPullRequestGitHubEvents,
+        DbPullRequestReviewCommentGitHubEvents,
         DbPullRequestReviewCommentGitHubEventsHistogram,
         DbPullRequestReviewGitHubEvents,
         DbPushGitHubEvents,

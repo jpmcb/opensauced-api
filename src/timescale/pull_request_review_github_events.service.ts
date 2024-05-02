@@ -14,6 +14,8 @@ import { PullRequestReviewHistogramDto } from "../histogram/dtos/pull_request_re
 import { OrderDirectionEnum } from "../common/constants/order-direction.constant";
 import { DbPullRequestReviewGitHubEvents } from "./entities/pull_request_review_github_event.entity";
 import { DbPullRequestReviewGitHubEventsHistogram } from "./entities/pull_request_review_github_events_histogram.entity";
+import { ContributorStatsTypeEnum } from "./dtos/most-active-contrib.dto";
+import { applyContribTypeEnumFilters } from "./common/counts";
 
 /*
  * pull request review events, named "PullRequestReviewEvent" in the GitHub API, are when
@@ -99,6 +101,18 @@ export class PullRequestReviewGithubEventsService {
     const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
 
     return new PageDto(entities, pageMetaDto);
+  }
+
+  async getCreatedPullReqReviewEventsForLogin(
+    username: string,
+    range: number
+  ): Promise<DbPullRequestReviewGitHubEvents[]> {
+    const queryBuilder = this.baseQueryBuilder()
+      .where(`LOWER(actor_login) = '${username}'`)
+      .andWhere("pr_review_action = 'opened'")
+      .andWhere(`event_time > NOW() - INTERVAL '${range} days'`);
+
+    return queryBuilder.getMany();
   }
 
   async findAllWithFilters(
@@ -188,6 +202,27 @@ export class PullRequestReviewGithubEventsService {
     }
 
     return this.execCommonTableExpression(pageOptionsDto, cteBuilder);
+  }
+
+  async getPrReviewCountForReviewer(
+    username: string,
+    contribType: ContributorStatsTypeEnum,
+    range: number
+  ): Promise<number> {
+    const queryBuilder = this.pullRequestReviewGithubEventsRepository.manager
+      .createQueryBuilder()
+      .select("COALESCE(COUNT(*), 0) AS prs_reviewed")
+      .from("pull_request_review_github_events", "pull_request_review_github_events")
+      .where(`LOWER(actor_login) = '${username}'`)
+      .andWhere("pr_review_action = 'created'")
+      .groupBy("LOWER(actor_login)");
+
+    applyContribTypeEnumFilters(contribType, queryBuilder, range);
+
+    const result = await queryBuilder.getRawOne<{ prs_reviewed: number }>();
+    const parsedResult = parseFloat(`${result?.prs_reviewed ?? "0"}`);
+
+    return parsedResult;
   }
 
   async genPrReviewHistogram(

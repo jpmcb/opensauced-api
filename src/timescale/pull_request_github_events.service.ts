@@ -22,6 +22,8 @@ import { DbPullRequestGitHubEventsHistogram } from "./entities/pull_request_gith
 import { DbRossContributorsHistogram, DbRossIndexHistogram } from "./entities/ross_index_histogram.entity";
 import { sanitizeRepos } from "./common/repos";
 import { DbContributorCounts } from "./entities/contributor_counts.entity";
+import { applyContribTypeEnumFilters } from "./common/counts";
+import { ContributorStatsTypeEnum } from "./dtos/most-active-contrib.dto";
 
 /*
  * pull request events, named "PullRequestEvent" in the GitHub API, are when
@@ -193,6 +195,27 @@ export class PullRequestGithubEventsService {
     return queryBuilder;
   }
 
+  async getOpenedPrsCountForAuthor(
+    username: string,
+    contribType: ContributorStatsTypeEnum,
+    range: number
+  ): Promise<number> {
+    const queryBuilder = this.pullRequestGithubEventsRepository.manager
+      .createQueryBuilder()
+      .select("COALESCE(COUNT(*), 0) AS prs_created")
+      .from("pull_request_github_events", "pull_request_github_events")
+      .where(`LOWER(actor_login) = '${username}'`)
+      .andWhere("pr_action = 'opened'")
+      .groupBy("LOWER(actor_login)");
+
+    applyContribTypeEnumFilters(contribType, queryBuilder, range);
+
+    const result = await queryBuilder.getRawOne<{ prs_created: number }>();
+    const parsedResult = parseFloat(`${result?.prs_created ?? "0"}`);
+
+    return parsedResult;
+  }
+
   async findCountByPrAuthor(author: string, range: number, prevDaysStartDate: number): Promise<number> {
     /*
      * because PR events may be "opened" or "closed" many times, this inner CTE query gets similar PRs rows
@@ -261,6 +284,15 @@ export class PullRequestGithubEventsService {
     }
 
     return countResult.count !== 0;
+  }
+
+  async getOpenedPullReqEventsForLogin(username: string, range: number): Promise<DbPullRequestGitHubEvents[]> {
+    const queryBuilder = this.baseQueryBuilder()
+      .where(`LOWER(actor_login) = '${username}'`)
+      .andWhere("pr_action = 'opened'")
+      .andWhere(`event_time > NOW() - INTERVAL '${range} days'`);
+
+    return queryBuilder.getMany();
   }
 
   async findAllByPrAuthor(author: string, pageOptionsDto: PageOptionsDto): Promise<PageDto<DbPullRequestGitHubEvents>> {

@@ -183,10 +183,8 @@ export class DbPullRequestReviewGitHubEvents extends BaseEntity {
   })
   @Column({
     type: "text",
-    select: false,
-    insert: false,
   })
-  public repo_name?: string;
+  public repo_name: string;
 
   @ApiModelProperty({
     description: "Number of commits in the PR",

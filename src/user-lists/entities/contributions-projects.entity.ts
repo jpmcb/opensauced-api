@@ -13,7 +13,7 @@ export class DbContributionsProjects {
     select: false,
     insert: false,
   })
-  repo_name: string;
+  repo_name = "";
 
   @ApiModelProperty({
     description: "Number of commits within the time range",
@@ -25,7 +25,7 @@ export class DbContributionsProjects {
     select: false,
     insert: false,
   })
-  commits: number;
+  commits = 0;
 
   @ApiModelProperty({
     description: "Number of PRs created for the project within the time range",
@@ -37,7 +37,7 @@ export class DbContributionsProjects {
     select: false,
     insert: false,
   })
-  prs_created: number;
+  prs_created = 0;
 
   @ApiModelProperty({
     description: "Number of PRs reviewed for the project within the time range",
@@ -49,7 +49,7 @@ export class DbContributionsProjects {
     select: false,
     insert: false,
   })
-  prs_reviewed: number;
+  prs_reviewed = 0;
 
   @ApiModelProperty({
     description: "Number of issues for the project within the time range",
@@ -61,7 +61,7 @@ export class DbContributionsProjects {
     select: false,
     insert: false,
   })
-  issues_created: number;
+  issues_created = 0;
 
   @ApiModelProperty({
     description: "Number of commit comments for the project within the time range",
@@ -73,7 +73,7 @@ export class DbContributionsProjects {
     select: false,
     insert: false,
   })
-  commit_comments: number;
+  commit_comments = 0;
 
   @ApiModelProperty({
     description: "Number of issue comments for the project within the time range",
@@ -85,7 +85,7 @@ export class DbContributionsProjects {
     select: false,
     insert: false,
   })
-  issue_comments: number;
+  issue_comments = 0;
 
   @ApiModelProperty({
     description: "Number of pr review comments for the project within the time range",
@@ -97,7 +97,7 @@ export class DbContributionsProjects {
     select: false,
     insert: false,
   })
-  pr_review_comments: number;
+  pr_review_comments = 0;
 
   @ApiModelProperty({
     description: "Number of total comments for the project within the time range",
@@ -109,7 +109,7 @@ export class DbContributionsProjects {
     select: false,
     insert: false,
   })
-  comments: number;
+  comments = 0;
 
   @ApiModelProperty({
     description: "Number of total contributions for the project within the time range",
@@ -121,5 +121,5 @@ export class DbContributionsProjects {
     select: false,
     insert: false,
   })
-  total_contributions: number;
+  total_contributions = 0;
 }

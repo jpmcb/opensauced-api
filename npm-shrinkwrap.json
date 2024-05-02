@@ -1,12 +1,12 @@
 {
   "name": "@open-sauced/api",
-  "version": "2.23.0",
+  "version": "2.24.0-beta.3",
   "lockfileVersion": 3,
   "requires": true,
   "packages": {
     "": {
       "name": "@open-sauced/api",
-      "version": "2.23.0",
+      "version": "2.24.0-beta.3",
       "license": "MIT",
       "dependencies": {
         "@fastify/express": "^2.3.0",
@@ -25,6 +25,7 @@
         "@octokit/rest": "^20.0.2",
         "@octokit/types": "github:octokit/types.ts",
         "@supabase/supabase-js": "^1.35.6",
+        "@supercharge/promise-pool": "^3.2.0",
         "class-transformer": "^0.5.1",
         "class-validator": "^0.14.0",
         "mathjs": "^12.3.0",
@@ -4303,6 +4304,14 @@
         "@supabase/postgrest-js": "^0.37.4",
         "@supabase/realtime-js": "^1.7.4",
         "@supabase/storage-js": "^1.7.2"
+      }
+    },
+    "node_modules/@supercharge/promise-pool": {
+      "version": "3.2.0",
+      "resolved": "https://registry.npmjs.org/@supercharge/promise-pool/-/promise-pool-3.2.0.tgz",
+      "integrity": "sha512-pj0cAALblTZBPtMltWOlZTQSLT07jIaFNeM8TWoJD1cQMgDB9mcMlVMoetiB35OzNJpqQ2b+QEtwiR9f20mADg==",
+      "engines": {
+        "node": ">=8"
       }
     },
     "node_modules/@swc/core": {

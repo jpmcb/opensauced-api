@@ -9,6 +9,9 @@ import {
   DbTopCommentGitHubEventsHistogram,
 } from "./entities/issue_comment_github_events_histogram.entity";
 import { DbPullRequestReviewCommentGitHubEventsHistogram } from "./entities/pull_request_review_comment_github_events_histogram.entity";
+import { applyContribTypeEnumFilters } from "./common/counts";
+import { ContributorStatsTypeEnum } from "./dtos/most-active-contrib.dto";
+import { DbIssueCommentGitHubEvents } from "./entities/issue_comment_github_events.entity";
 
 /*
  * issue comment events, named "IssueCommentEvent" in the GitHub API, are when
@@ -25,16 +28,44 @@ import { DbPullRequestReviewCommentGitHubEventsHistogram } from "./entities/pull
 @Injectable()
 export class IssueCommentGithubEventsService {
   constructor(
-    @InjectRepository(DbIssueCommentGitHubEventsHistogram, "TimescaleConnection")
-    private issueCommentGitHubEventsHistogramRepository: Repository<DbIssueCommentGitHubEventsHistogram>,
+    @InjectRepository(DbIssueCommentGitHubEvents, "TimescaleConnection")
+    private issueCommentGitHubEventsRepository: Repository<DbIssueCommentGitHubEvents>,
     @InjectRepository(DbPullRequestReviewCommentGitHubEventsHistogram, "TimescaleConnection")
     private pullRequestReviewCommentGitHubEventsHistogramRepository: Repository<DbPullRequestReviewCommentGitHubEventsHistogram>
   ) {}
 
   baseQueryBuilder() {
-    const builder = this.issueCommentGitHubEventsHistogramRepository.manager.createQueryBuilder();
+    const builder = this.issueCommentGitHubEventsRepository.createQueryBuilder();
 
     return builder;
+  }
+
+  async getIssueCommentEventsForLogin(username: string, range: number): Promise<DbIssueCommentGitHubEvents[]> {
+    const queryBuilder = this.baseQueryBuilder()
+      .where(`LOWER(actor_login) = '${username}'`)
+      .andWhere(`event_time > NOW() - INTERVAL '${range} days'`);
+
+    return queryBuilder.getMany();
+  }
+
+  async getIssueCommentCountForAuthor(
+    username: string,
+    contribType: ContributorStatsTypeEnum,
+    range: number
+  ): Promise<number> {
+    const queryBuilder = this.issueCommentGitHubEventsRepository.manager
+      .createQueryBuilder()
+      .select("COALESCE(COUNT(*), 0) AS issue_comments")
+      .from("issue_comment_github_events", "issue_comment_github_events")
+      .where(`LOWER(actor_login) = '${username}'`)
+      .groupBy("LOWER(actor_login)");
+
+    applyContribTypeEnumFilters(contribType, queryBuilder, range);
+
+    const result = await queryBuilder.getRawOne<{ issue_comments: number }>();
+    const parsedResult = parseFloat(`${result?.issue_comments ?? "0"}`);
+
+    return parsedResult;
   }
 
   async genIssueCommentHistogram(options: IssueCommentsHistogramDto): Promise<DbIssueCommentGitHubEventsHistogram[]> {
@@ -47,9 +78,8 @@ export class IssueCommentGithubEventsService {
     const startDate = GetPrevDateISOString(options.prev_days_start_date ?? 0);
     const width = options.width ?? 1;
 
-    const queryBuilder = this.baseQueryBuilder();
-
-    queryBuilder
+    const queryBuilder = this.issueCommentGitHubEventsRepository.manager
+      .createQueryBuilder()
       .select(`time_bucket('${width} day', event_time)`, "bucket")
       .addSelect("count(CASE WHEN LOWER(issue_comment_action) = 'created' THEN 1 END)", "all_comments")
       .addSelect(
@@ -101,7 +131,7 @@ export class IssueCommentGithubEventsService {
   }
 
   async genCommentTopHistogram(): Promise<DbTopCommentGitHubEventsHistogram[]> {
-    const issueCommentsCte = this.issueCommentGitHubEventsHistogramRepository.manager
+    const issueCommentsCte = this.issueCommentGitHubEventsRepository.manager
       .createQueryBuilder()
       .select("repo_name")
       .addSelect("time_bucket('1 day', event_time)", "bucket")
@@ -129,7 +159,7 @@ export class IssueCommentGithubEventsService {
       SELECT * FROM pr_review_comments_cte
     `;
 
-    const queryBuilder = this.issueCommentGitHubEventsHistogramRepository.manager
+    const queryBuilder = this.issueCommentGitHubEventsRepository.manager
       .createQueryBuilder()
       .addCommonTableExpression(issueCommentsCte, "issue_comments_cte")
       .setParameters(issueCommentsCte.getParameters())

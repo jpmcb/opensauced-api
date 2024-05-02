@@ -6,6 +6,8 @@ import { GetPrevDateISOString } from "../common/util/datetimes";
 import { OrderDirectionEnum } from "../common/constants/order-direction.constant";
 import { DbIssuesGitHubEventsHistogram } from "./entities/issues_github_events_histogram.entity";
 import { DbIssuesGitHubEvents } from "./entities/issues_github_event.entity";
+import { applyContribTypeEnumFilters } from "./common/counts";
+import { ContributorStatsTypeEnum } from "./dtos/most-active-contrib.dto";
 
 /*
  * issue events, named "IssueEvent" in the GitHub API, are when
@@ -27,7 +29,7 @@ export class IssuesGithubEventsService {
   ) {}
 
   baseQueryBuilder() {
-    const builder = this.issueGitHubEventsRepository.manager.createQueryBuilder();
+    const builder = this.issueGitHubEventsRepository.createQueryBuilder();
 
     return builder;
   }
@@ -79,6 +81,36 @@ export class IssuesGithubEventsService {
     return result;
   }
 
+  async getCreatedIssueEventsForLogin(username: string, range: number): Promise<DbIssuesGitHubEvents[]> {
+    const queryBuilder = this.baseQueryBuilder()
+      .where(`LOWER(actor_login) = '${username}'`)
+      .andWhere("issue_action = 'opened'")
+      .andWhere(`event_time > NOW() - INTERVAL '${range} days'`);
+
+    return queryBuilder.getMany();
+  }
+
+  async getIssueCountForAuthor(
+    username: string,
+    contribType: ContributorStatsTypeEnum,
+    range: number
+  ): Promise<number> {
+    const queryBuilder = this.issueGitHubEventsRepository.manager
+      .createQueryBuilder()
+      .select("COALESCE(COUNT(*), 0) AS issues_created")
+      .from("issues_github_events", "issues_github_events")
+      .where(`LOWER(actor_login) = '${username}'`)
+      .andWhere("issue_action = 'opened'")
+      .groupBy("LOWER(actor_login)");
+
+    applyContribTypeEnumFilters(contribType, queryBuilder, range);
+
+    const result = await queryBuilder.getRawOne<{ issues_created: number }>();
+    const parsedResult = parseFloat(`${result?.issues_created ?? "0"}`);
+
+    return parsedResult;
+  }
+
   async genIssueHistogram(options: IssueHistogramDto): Promise<DbIssuesGitHubEventsHistogram[]> {
     if (!options.contributor && !options.repo && !options.repoIds) {
       throw new BadRequestException("must provide contributor, repo, or repoIds");
@@ -89,9 +121,8 @@ export class IssuesGithubEventsService {
     const startDate = GetPrevDateISOString(options.prev_days_start_date ?? 0);
     const width = options.width ?? 1;
 
-    const queryBuilder = this.baseQueryBuilder();
-
-    queryBuilder
+    const queryBuilder = this.issueGitHubEventsRepository.manager
+      .createQueryBuilder()
       .select(`time_bucket('${width} day', event_time)`, "bucket")
       .addSelect(
         "count(CASE WHEN LOWER(issue_author_association) = 'collaborator' THEN 1 END)",
