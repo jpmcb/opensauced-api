@@ -286,6 +286,15 @@ export class PullRequestGithubEventsService {
     return countResult.count !== 0;
   }
 
+  async getOpenedPullReqEventsForLogin(username: string, range: number): Promise<DbPullRequestGitHubEvents[]> {
+    const queryBuilder = this.baseQueryBuilder()
+      .where(`LOWER(actor_login) = '${username}'`)
+      .andWhere("pr_action = 'opened'")
+      .andWhere(`event_time > NOW() - INTERVAL '${range} days'`);
+
+    return queryBuilder.getMany();
+  }
+
   async findAllByPrAuthor(author: string, pageOptionsDto: PageOptionsDto): Promise<PageDto<DbPullRequestGitHubEvents>> {
     const startDate = GetPrevDateISOString(pageOptionsDto.prev_days_start_date);
     const range = pageOptionsDto.range!;

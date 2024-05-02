@@ -87,8 +87,6 @@ export class DbIssuesGitHubEvents extends BaseEntity {
   })
   @Column({
     type: "text",
-    select: false,
-    insert: false,
   })
-  public repo_name?: string;
+  public repo_name: string;
 }

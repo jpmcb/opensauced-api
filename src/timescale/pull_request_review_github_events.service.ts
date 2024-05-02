@@ -103,6 +103,18 @@ export class PullRequestReviewGithubEventsService {
     return new PageDto(entities, pageMetaDto);
   }
 
+  async getCreatedPullReqReviewEventsForLogin(
+    username: string,
+    range: number
+  ): Promise<DbPullRequestReviewGitHubEvents[]> {
+    const queryBuilder = this.baseQueryBuilder()
+      .where(`LOWER(actor_login) = '${username}'`)
+      .andWhere("pr_review_action = 'opened'")
+      .andWhere(`event_time > NOW() - INTERVAL '${range} days'`);
+
+    return queryBuilder.getMany();
+  }
+
   async findAllWithFilters(
     pageOptionsDto: PullRequestPageOptionsDto
   ): Promise<PageDto<DbPullRequestReviewGitHubEvents>> {

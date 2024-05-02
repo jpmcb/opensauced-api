@@ -29,7 +29,7 @@ export class IssuesGithubEventsService {
   ) {}
 
   baseQueryBuilder() {
-    const builder = this.issueGitHubEventsRepository.manager.createQueryBuilder();
+    const builder = this.issueGitHubEventsRepository.createQueryBuilder();
 
     return builder;
   }
@@ -81,6 +81,15 @@ export class IssuesGithubEventsService {
     return result;
   }
 
+  async getCreatedIssueEventsForLogin(username: string, range: number): Promise<DbIssuesGitHubEvents[]> {
+    const queryBuilder = this.baseQueryBuilder()
+      .where(`LOWER(actor_login) = '${username}'`)
+      .andWhere("issue_action = 'opened'")
+      .andWhere(`event_time > NOW() - INTERVAL '${range} days'`);
+
+    return queryBuilder.getMany();
+  }
+
   async getIssueCountForAuthor(
     username: string,
     contribType: ContributorStatsTypeEnum,
@@ -112,9 +121,8 @@ export class IssuesGithubEventsService {
     const startDate = GetPrevDateISOString(options.prev_days_start_date ?? 0);
     const width = options.width ?? 1;
 
-    const queryBuilder = this.baseQueryBuilder();
-
-    queryBuilder
+    const queryBuilder = this.issueGitHubEventsRepository.manager
+      .createQueryBuilder()
       .select(`time_bucket('${width} day', event_time)`, "bucket")
       .addSelect(
         "count(CASE WHEN LOWER(issue_author_association) = 'collaborator' THEN 1 END)",

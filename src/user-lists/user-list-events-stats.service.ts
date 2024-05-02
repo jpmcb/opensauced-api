@@ -284,44 +284,32 @@ export class UserListEventsStatsService {
     options: ContributionsByProjectDto,
     listId: string
   ): Promise<DbContributionsProjects[]> {
-    const range = options.range!;
+    const userListUsersBuilder = this.userListUsersQueryBuilder();
 
-    const allUsers = await this.findContributorsByType(listId, range);
+    userListUsersBuilder
+      .leftJoin("users", "users", "user_list_contributors.user_id=users.id")
+      .where("user_list_contributors.list_id = :listId", { listId });
 
-    if (allUsers.length === 0) {
+    const users = await userListUsersBuilder.getMany();
+
+    if (users.length === 0) {
       return [];
     }
 
-    const cteQuery = this.eventsUnionCteBuilder(range);
+    /*
+     * ignore both users who have a missing username for some reason
+     * and bot users. This helps prevent extremely long running queries in the
+     * database
+     */
+    const filteredUsers = users
+      .map((user) => (user.username ? user.username.toLowerCase() : ""))
+      .filter((user) => user !== "" && !user.endsWith("[bot]"));
 
-    const entityQb = this.pullRequestGithubEventsRepository.manager
-      .createQueryBuilder()
-      .addCommonTableExpression(cteQuery, "CTE")
-      .setParameters({ users: allUsers })
-      .select("repo_name", "repo_name")
-      .addSelect("COUNT(case when event_type = 'PushEvent' then 1 end)", "commits")
-      .addSelect("COUNT(case when event_type = 'PullRequestEvent' then 1 end)", "prs_created")
-      .addSelect("COUNT(case when event_type = 'PullRequestReviewEvent' then 1 end)", "prs_reviewed")
-      .addSelect("COUNT(case when event_type = 'IssuesEvent' then 1 end)", "issues_created")
-      .addSelect("COUNT(case when event_type = 'CommitCommentEvent' then 1 end)", "commit_comments")
-      .addSelect("COUNT(case when event_type = 'IssueCommentEvent' then 1 end)", "issue_comments")
-      .addSelect("COUNT(case when event_type = 'PullRequestReviewCommentEvent' then 1 end)", "pr_review_comments")
-      .addSelect(
-        `COUNT(case
-          when event_type = 'CommitCommentEvent'
-          or event_type = 'IssueCommentEvent'
-          or event_type = 'PullRequestReviewCommentEvent'
-          then 1 end
-        )`,
-        "comments"
-      )
-      .addSelect("COUNT(*)", "total_contributions")
-      .from("CTE", "CTE")
-      .groupBy("repo_name");
+    if (filteredUsers.length === 0) {
+      return [];
+    }
 
-    const entities: DbContributionsProjects[] = await entityQb.getRawMany();
-
-    return entities;
+    return this.contributorDevstatsService.findAllContributionsByProject(options, filteredUsers);
   }
 
   async findTopContributorsByProject(options: TopProjectsDto, listId: string): Promise<DbContributorStat[]> {

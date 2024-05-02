@@ -91,6 +91,9 @@ import { DbPushGitHubEvents } from "./timescale/entities/push_github_events.enti
 import { DbWorkspaceUserLists } from "./workspace/entities/workspace-user-list.entity";
 import { UrlModule } from "./url/url.module";
 import { StarSearchModule } from "./star-search/star-search.module";
+import { DbCommitCommentGitHubEvents } from "./timescale/entities/commit_comment_github_events.entity";
+import { DbPullRequestReviewCommentGitHubEvents } from "./timescale/entities/pull_request_review_comment_github_events.entity";
+import { DbIssueCommentGitHubEvents } from "./timescale/entities/issue_comment_github_events.entity";
 
 @Module({
   imports: [
@@ -185,6 +188,9 @@ import { StarSearchModule } from "./star-search/star-search.module";
             DbPullRequestGitHubEvents,
             DbIssuesGitHubEvents,
             DbPullRequestReviewGitHubEvents,
+            DbCommitCommentGitHubEvents,
+            DbPullRequestReviewCommentGitHubEvents,
+            DbIssueCommentGitHubEvents,
           ],
           synchronize: false,
           logger: new DatabaseLoggerMiddleware("OS"),

@@ -182,7 +182,7 @@ export class DbPullRequestGitHubEvents extends BaseEntity {
     example: "open-sauced/insights",
   })
   @Column({ type: "text" })
-  public repo_name?: string;
+  public repo_name: string;
 
   @ApiModelProperty({
     description: "Number of commits in the PR",
