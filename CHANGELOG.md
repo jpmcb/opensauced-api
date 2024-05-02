@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.24.0-beta.3](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.24.0-beta.2...v2.24.0-beta.3) (2024-05-02)
+
+
+### 🐛 Bug Fixes
+
+* Refactors contributions-by-project endpoint ([#760](https://github.com/open-sauced/api.opensauced.pizza/issues/760)) ([b2d28f4](https://github.com/open-sauced/api.opensauced.pizza/commit/b2d28f4987fd1a8d751fc958767a0a035104633f))
+
 ## [2.24.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.24.0-beta.1...v2.24.0-beta.2) (2024-05-02)
 
 
