@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+### [2.24.1-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.24.0...v2.24.1-beta.1) (2024-05-03)
+
+
+### 🐛 Bug Fixes
+
+* Push base query builder now uses right table name ([#766](https://github.com/open-sauced/api.opensauced.pizza/issues/766)) ([9726e9e](https://github.com/open-sauced/api.opensauced.pizza/commit/9726e9e5f83e16ba40d66e71bb98a2528afb9977))
+
 ## [2.24.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.23.0...v2.24.0) (2024-05-02)
 
 
