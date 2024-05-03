@@ -27,7 +27,7 @@ export class PushGithubEventsService {
   ) {}
 
   baseQueryBuilder() {
-    const builder = this.pushGitHubEventsRepository.createQueryBuilder();
+    const builder = this.pushGitHubEventsRepository.createQueryBuilder("push_github_events");
 
     return builder;
   }
