@@ -5,6 +5,19 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.24.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.23.0...v2.24.0) (2024-05-02)
+
+
+### 🍕 Features
+
+* Refactor user-list most-active-contributors query ([#756](https://github.com/open-sauced/api.opensauced.pizza/issues/756)) ([4530149](https://github.com/open-sauced/api.opensauced.pizza/commit/453014949efba0081742fe6b943de75304d277da))
+
+
+### 🐛 Bug Fixes
+
+* Refactors contributions-by-project endpoint ([#760](https://github.com/open-sauced/api.opensauced.pizza/issues/760)) ([b2d28f4](https://github.com/open-sauced/api.opensauced.pizza/commit/b2d28f4987fd1a8d751fc958767a0a035104633f))
+* sort workspaces by most recently updated by default ([#761](https://github.com/open-sauced/api.opensauced.pizza/issues/761)) ([b42df63](https://github.com/open-sauced/api.opensauced.pizza/commit/b42df6331c0aa463ed71d15b7a22b2833fa3fe69))
+
 ## [2.24.0-beta.3](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.24.0-beta.2...v2.24.0-beta.3) (2024-05-02)
 
 
