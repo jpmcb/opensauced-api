@@ -55,7 +55,7 @@ export class PullRequestGithubEventsVectorService {
     }
 
     if (repoName) {
-      queryBuilder.andWhere(`LOWER("pull_request_github_events"."pr_repo_name") = LOWER(:repoName)`, {
+      queryBuilder.andWhere(`LOWER("pull_request_github_events"."repo_name") = LOWER(:repoName)`, {
         repoName: repoName.toLowerCase(),
       });
     }

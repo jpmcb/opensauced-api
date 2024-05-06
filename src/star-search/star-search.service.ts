@@ -4,10 +4,12 @@ import { PullRequestGithubEventsVectorService } from "../timescale/pull_request_
 import { DbPullRequestGitHubEvents } from "../timescale/entities/pull_request_github_event.entity";
 import { OpenAIWrappedService } from "../openai-wrapped/openai-wrapped.service";
 import { StarSearchStreamDto } from "./dtos/create-star-search.dto";
+import { StarSearchToolsService } from "./star-search-tools.service";
 
 @Injectable()
 export class StarSearchService {
   constructor(
+    private naturalLanguageClassificationService: StarSearchToolsService,
     private pullRequestGithubEventsVectorService: PullRequestGithubEventsVectorService,
     private openAIWrappedService: OpenAIWrappedService
   ) {}

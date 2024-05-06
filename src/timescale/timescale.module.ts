@@ -46,6 +46,7 @@ import { PullRequestGithubEventsVectorService } from "./pull_request_github-even
 import { DbCommitCommentGitHubEvents } from "./entities/commit_comment_github_events.entity";
 import { DbPullRequestReviewCommentGitHubEvents } from "./entities/pull_request_review_comment_github_events.entity";
 import { DbIssueCommentGitHubEvents } from "./entities/issue_comment_github_events.entity";
+import { IssuesGithubEventsVectorService } from "./issues_github-events_vector.service";
 
 @Module({
   imports: [
@@ -91,6 +92,7 @@ import { DbIssueCommentGitHubEvents } from "./entities/issue_comment_github_even
     ForkGithubEventsService,
     GollumGithubEventsService,
     IssueCommentGithubEventsService,
+    IssuesGithubEventsVectorService,
     IssuesGithubEventsService,
     MemberGithubEventsService,
     PullRequestGithubEventsService,
@@ -110,6 +112,7 @@ import { DbIssueCommentGitHubEvents } from "./entities/issue_comment_github_even
     ForkGithubEventsService,
     GollumGithubEventsService,
     IssueCommentGithubEventsService,
+    IssuesGithubEventsVectorService,
     IssuesGithubEventsService,
     MemberGithubEventsService,
     PullRequestGithubEventsService,
