@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.25.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.24.1...v2.25.0-beta.1) (2024-05-06)
+
+
+### 🍕 Features
+
+* Star-search-tools integration with OpenAI Tools ([#764](https://github.com/open-sauced/api.opensauced.pizza/issues/764)) ([65d8022](https://github.com/open-sauced/api.opensauced.pizza/commit/65d8022736adad186193455e37988410781d468c))
+
 ### [2.24.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.24.0...v2.24.1) (2024-05-03)
 
 
