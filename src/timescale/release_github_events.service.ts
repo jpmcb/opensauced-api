@@ -31,14 +31,28 @@ export class ReleaseGithubEventsService {
     return builder;
   }
 
-  async getReleases(options: ReleasesDto): Promise<PageDto<DbReleaseGitHubEvent>> {
-    if (!options.contributor && !options.repos && !options.repoIds) {
+  releasesQueryBuilder({
+    contributor = "",
+    notContributor = "",
+    repos = "",
+    repoIds = "",
+    range = 30,
+    order = OrderDirectionEnum.DESC,
+    prevDaysStartDate = 0,
+  }: {
+    contributor?: string;
+    notContributor?: string;
+    repos?: string;
+    repoIds?: string;
+    range?: number;
+    order?: OrderDirectionEnum;
+    prevDaysStartDate: number;
+  }) {
+    if (contributor && repos && repoIds) {
       throw new BadRequestException("must provide contributor, repo, or repoIds");
     }
 
-    const range = options.range ?? 30;
-    const order = options.orderDirection ?? OrderDirectionEnum.DESC;
-    const startDate = GetPrevDateISOString(options.prev_days_start_date ?? 0);
+    const startDate = GetPrevDateISOString(prevDaysStartDate);
 
     const queryBuilder = this.baseQueryBuilder();
 
@@ -56,32 +70,46 @@ export class ReleaseGithubEventsService {
       .orderBy("event_time", order);
 
     /* filter on the provided releaser username */
-    if (options.contributor) {
+    if (contributor) {
       queryBuilder.andWhere(`LOWER("release_github_events"."actor_login") = LOWER(:actor)`, {
-        actor: options.contributor,
+        actor: contributor,
       });
     }
 
     /* filter on the provided releaser username */
-    if (options.not_contributor) {
+    if (notContributor) {
       queryBuilder.andWhere(`LOWER("release_github_events"."actor_login") != LOWER(:actor)`, {
-        actor: options.not_contributor,
+        actor: notContributor,
       });
     }
 
     /* filter on the provided repo names */
-    if (options.repos) {
+    if (repos) {
       queryBuilder.andWhere(`LOWER("release_github_events"."repo_name") IN (:...repoNames)`).setParameters({
-        repoNames: options.repos.toLowerCase().split(","),
+        repoNames: repos.toLowerCase().split(","),
       });
     }
 
     /* filter on the provided repo ids */
-    if (options.repoIds) {
+    if (repoIds) {
       queryBuilder.andWhere(`"release_github_events"."repo_id" IN (:...repoIds)`).setParameters({
-        repoIds: options.repoIds.split(","),
+        repoIds: repoIds.split(","),
       });
     }
+
+    return queryBuilder;
+  }
+
+  async getPagedReleases(options: ReleasesDto): Promise<PageDto<DbReleaseGitHubEvent>> {
+    const queryBuilder = this.releasesQueryBuilder({
+      repos: options.repos,
+      repoIds: options.repoIds,
+      contributor: options.contributor,
+      notContributor: options.not_contributor,
+      range: options.range,
+      order: options.orderDirection,
+      prevDaysStartDate: options.prev_days_start_date ?? 0,
+    });
 
     const cteCounter = this.releaseGitHubEventsRepository.manager
       .createQueryBuilder()
@@ -107,6 +135,20 @@ export class ReleaseGithubEventsService {
     });
 
     return new PageDto(entities, pageMetaDto);
+  }
+
+  async getReleases(options: ReleasesDto): Promise<DbReleaseGitHubEvent[]> {
+    const queryBuilder = this.releasesQueryBuilder({
+      repos: options.repos,
+      repoIds: options.repoIds,
+      contributor: options.contributor,
+      notContributor: options.not_contributor,
+      range: options.range,
+      order: options.orderDirection,
+      prevDaysStartDate: options.prev_days_start_date ?? 0,
+    });
+
+    return queryBuilder.getRawMany<DbReleaseGitHubEvent>();
   }
 
   async genReleaseHistogram(options: ReleaseHistogramDto): Promise<DbReleaseGitHubEventsHistogram[]> {
