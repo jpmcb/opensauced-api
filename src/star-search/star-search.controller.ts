@@ -4,11 +4,15 @@ import { ApiOperation, ApiBadRequestResponse, ApiBody, ApiTags } from "@nestjs/s
 import { Observable } from "rxjs";
 import { StarSearchService } from "./star-search.service";
 import { StarSearchStreamDto } from "./dtos/create-star-search.dto";
+import { StarSearchToolsService } from "./star-search-tools.service";
 
 @Controller("star-search")
 @ApiTags("Star Search Service")
 export class StarSearchController {
-  constructor(private readonly starSerachService: StarSearchService) {}
+  constructor(
+    private readonly starSearchToolsService: StarSearchToolsService,
+    private readonly starSerachService: StarSearchService
+  ) {}
 
   @Post("stream")
   @Sse("stream")
@@ -18,15 +22,19 @@ export class StarSearchController {
   })
   @ApiBadRequestResponse({ description: "Invalid request" })
   @ApiBody({ type: StarSearchStreamDto })
-  async starSearchStream(@Body() options: StarSearchStreamDto): Promise<Observable<{ data: string }>> {
-    const stream = await this.starSerachService.starSearchStream(options);
+  starSearchStream(@Body() options: StarSearchStreamDto): Observable<{ data: string }> {
+    const stream = this.starSearchToolsService.runTools(options.query_text);
 
     return new Observable<{ data: string }>((observer) => {
-      stream.on("content", (delta) => {
-        observer.next({
-          data: delta,
-        });
-      });
+      stream
+        .on("content", (delta) => {
+          observer.next({
+            data: delta,
+          });
+        })
+        .on("message", (msg) => console.log("msg", msg))
+        .on("functionCall", (functionCall) => console.log("functionCall", functionCall))
+        .on("functionCallResult", (functionCallResult) => console.log("functionCallResult", functionCallResult));
 
       stream
         .finalChatCompletion()

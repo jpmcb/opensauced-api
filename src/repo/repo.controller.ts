@@ -122,7 +122,7 @@ export class RepoController {
       skip: ((pageOptionsDto.page ?? 1) - 1) * (pageOptionsDto.limit ?? 10),
     };
 
-    return this.releaseGitHubEventsService.getReleases(options);
+    return this.releaseGitHubEventsService.getPagedReleases(options);
   }
 
   @Get("/list")
