@@ -44,7 +44,8 @@ export class PullRequestGithubEventsService {
     private pullRequestGithubEventsRepository: Repository<DbPullRequestGitHubEvents>,
     @Inject(forwardRef(() => RepoService))
     private readonly repoService: RepoService,
-    private readonly userListService: UserListService
+    @Inject(forwardRef(() => UserListService))
+    private userListService: UserListService
   ) {}
 
   baseQueryBuilder() {

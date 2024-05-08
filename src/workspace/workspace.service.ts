@@ -1,4 +1,11 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+  forwardRef,
+} from "@nestjs/common";
 import { Repository, SelectQueryBuilder } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 
@@ -27,6 +34,7 @@ export class WorkspaceService {
     private workspaceContributorRepository: Repository<DbWorkspaceContributor>,
     @InjectRepository(DbUser, "ApiConnection")
     private userRepository: Repository<DbUser>,
+    @Inject(forwardRef(() => RepoService))
     private repoService: RepoService,
     private userService: UserService
   ) {}

@@ -38,6 +38,7 @@ export class RepoService {
     private pullRequestGithubEventsService: PullRequestGithubEventsService,
     private forkGithubEventsService: ForkGithubEventsService,
     private pushGithubEventsService: PushGithubEventsService,
+    @Inject(forwardRef(() => IssuesGithubEventsService))
     private issueGithubEventsService: IssuesGithubEventsService,
     private repoDevstatsService: RepoDevstatsService,
     private configService: ConfigService,
