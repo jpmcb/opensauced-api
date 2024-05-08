@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.26.0-beta.4](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.26.0-beta.3...v2.26.0-beta.4) (2024-05-08)
+
+
+### 🍕 Features
+
+* Makes user PRs endpoint able to filter on repos ([#779](https://github.com/open-sauced/api.opensauced.pizza/issues/779)) ([66e2657](https://github.com/open-sauced/api.opensauced.pizza/commit/66e26574cb5d06c96eecef44d8cf6413e1db5f93))
+
 ## [2.26.0-beta.3](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.26.0-beta.2...v2.26.0-beta.3) (2024-05-08)
 
 
