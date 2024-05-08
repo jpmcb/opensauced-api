@@ -5,6 +5,7 @@ import { ReleaseGithubEventsService } from "../timescale/release_github_events.s
 import { PullRequestGithubEventsVectorService } from "../timescale/pull_request_github-events_vector.service";
 import { OpenAIWrappedService } from "../openai-wrapped/openai-wrapped.service";
 import { IssuesGithubEventsVectorService } from "../timescale/issues_github-events_vector.service";
+import { BingSearchToolsSearch } from "./bing-search-tools.service";
 
 /*
  * ---------------
@@ -74,10 +75,21 @@ export const ReleasesParams = z.object({
 });
 export type ReleasesParams = z.infer<typeof ReleasesParams>;
 
+/*
+ * ---------------
+ * Bing search schema
+ */
+
+export const SearchBingParams = z.object({
+  query: z.string(),
+});
+export type SearchBingParams = z.infer<typeof SearchBingParams>;
+
 @Injectable()
 export class StarSearchToolsService {
   constructor(
     private openAIWrappedService: OpenAIWrappedService,
+    private bingSearchToolsService: BingSearchToolsSearch,
     private pullRequestGithubEventsVectorService: PullRequestGithubEventsVectorService,
     private issuesGithubEventsVectorService: IssuesGithubEventsVectorService,
     private releaseGithubEventsService: ReleaseGithubEventsService
@@ -194,6 +206,15 @@ export class StarSearchToolsService {
     });
   }
 
+  /*
+   * ---------------
+   * Bing search functions
+   */
+
+  async searchBing({ query }: SearchBingParams) {
+    return this.bingSearchToolsService.bingSearch(query);
+  }
+
   runTools(question: string): ChatCompletionStreamingRunner {
     const tools = [
       /*
@@ -281,6 +302,18 @@ export class StarSearchToolsService {
         description:
           "Gets the latest GitHub releases and their context for a specific repository. The repoName parameter should be of the form: 'organization/name'. Example: facebook/react.",
       }),
+
+      /*
+       * ---------------
+       * Bing search tools
+       */
+
+      this.openAIWrappedService.zodFunction({
+        function: async (params: SearchBingParams) => this.searchBing(params),
+        schema: SearchBingParams,
+        name: "searchBing",
+        description: "Search Bing using an input query.",
+      }),
     ];
 
     const systemMessage = `As an OpenSauced AI assistant, your purpose is to answer the user's queries by discerning impactful open-source contributors, including those often overlooked, within the GitHub community by analyzing GitHub Events data that you will be given.
@@ -304,6 +337,8 @@ Utilize the 'searchIssuesByAuthor' function when queries pertain to issues from 
 Utilize the 'searchIssuesByRepoNameAndAuthor' function when queries pertain to issues in specific repositories and further narrow down the search by a specific repo name. Use this to analyze user engagement and the intricacies of contributions. This function is key in elucidating the extent of a contributor's involvement and their domain knowledge within a specific project for a specific user.
 
 Utilize the 'getReleaseGithubEvents' function when queries pertain to releases and queries about new releases of a specific repositories code.
+
+Utilize the 'searchBing' function when user queries need additional context outside of what would be known on GitHub (like talks given by people, blog posts written by contributors, etc.). These searches should be tailored to find software developers and people in the open source community.
 
 In instances where the query lacks specificity, such as missing repository names or technology stacks, infer intelligently from the provided context, user input, and your own knowledge to enrich the response appropriately, without conjecture or misrepresentation. Use the 'searchAllPrs' function when all else fails.
 
