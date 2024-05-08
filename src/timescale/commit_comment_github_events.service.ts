@@ -33,7 +33,8 @@ export class CommitCommentGithubEventsService {
   async getCommitCommentCountForAuthor(
     username: string,
     contribType: ContributorStatsTypeEnum,
-    range: number
+    range: number,
+    repos?: string[]
   ): Promise<number> {
     const queryBuilder = this.commitCommentGitHubEventsRepository.manager
       .createQueryBuilder()
@@ -41,6 +42,10 @@ export class CommitCommentGithubEventsService {
       .from("commit_comment_github_events", "commit_comment_github_events")
       .where(`LOWER(actor_login) = '${username}'`)
       .groupBy("LOWER(actor_login)");
+
+    if (repos && repos.length > 0) {
+      queryBuilder.andWhere(`LOWER(repo_name) IN (:...repos)`, { repos });
+    }
 
     applyContribTypeEnumFilters(contribType, queryBuilder, range);
 
@@ -50,10 +55,18 @@ export class CommitCommentGithubEventsService {
     return parsedResult;
   }
 
-  async getCommitCommentEventsForLogin(username: string, range: number): Promise<DbCommitCommentGitHubEvents[]> {
+  async getCommitCommentEventsForLogin(
+    username: string,
+    range: number,
+    repos?: string[]
+  ): Promise<DbCommitCommentGitHubEvents[]> {
     const queryBuilder = this.baseQueryBuilder()
       .where(`LOWER(actor_login) = '${username}'`)
       .andWhere(`event_time > NOW() - INTERVAL '${range} days'`);
+
+    if (repos && repos.length > 0) {
+      queryBuilder.andWhere(`LOWER(repo_name) IN (:...repos)`, { repos });
+    }
 
     return queryBuilder.getMany();
   }

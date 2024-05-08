@@ -40,10 +40,18 @@ export class IssueCommentGithubEventsService {
     return builder;
   }
 
-  async getIssueCommentEventsForLogin(username: string, range: number): Promise<DbIssueCommentGitHubEvents[]> {
+  async getIssueCommentEventsForLogin(
+    username: string,
+    range: number,
+    repos?: string[]
+  ): Promise<DbIssueCommentGitHubEvents[]> {
     const queryBuilder = this.baseQueryBuilder()
       .where(`LOWER(actor_login) = '${username}'`)
       .andWhere(`event_time > NOW() - INTERVAL '${range} days'`);
+
+    if (repos && repos.length > 0) {
+      queryBuilder.andWhere(`LOWER(repo_name) IN (:...repos)`, { repos });
+    }
 
     return queryBuilder.getMany();
   }
@@ -51,7 +59,8 @@ export class IssueCommentGithubEventsService {
   async getIssueCommentCountForAuthor(
     username: string,
     contribType: ContributorStatsTypeEnum,
-    range: number
+    range: number,
+    repos?: string[]
   ): Promise<number> {
     const queryBuilder = this.issueCommentGitHubEventsRepository.manager
       .createQueryBuilder()
@@ -59,6 +68,10 @@ export class IssueCommentGithubEventsService {
       .from("issue_comment_github_events", "issue_comment_github_events")
       .where(`LOWER(actor_login) = '${username}'`)
       .groupBy("LOWER(actor_login)");
+
+    if (repos && repos.length > 0) {
+      queryBuilder.andWhere(`LOWER(repo_name) IN (:...repos)`, { repos });
+    }
 
     applyContribTypeEnumFilters(contribType, queryBuilder, range);
 

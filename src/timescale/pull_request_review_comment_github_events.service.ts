@@ -33,7 +33,8 @@ export class PullRequestReviewCommentGithubEventsService {
   async getPrReviewCommentCountForAuthor(
     username: string,
     contribType: ContributorStatsTypeEnum,
-    range: number
+    range: number,
+    repos?: string[]
   ): Promise<number> {
     const queryBuilder = this.pullRequestReviewCommentGitHubEventsRepository.manager
       .createQueryBuilder()
@@ -42,6 +43,10 @@ export class PullRequestReviewCommentGithubEventsService {
       .where(`LOWER(actor_login) = '${username}'`)
       .andWhere(`now() - INTERVAL '${range} days' <= event_time`)
       .groupBy("LOWER(actor_login)");
+
+    if (repos && repos.length > 0) {
+      queryBuilder.andWhere(`LOWER(repo_name) IN (:...repos)`, { repos });
+    }
 
     applyContribTypeEnumFilters(contribType, queryBuilder, range);
 
@@ -53,11 +58,16 @@ export class PullRequestReviewCommentGithubEventsService {
 
   async getPullReqReviewCommentEventsForLogin(
     username: string,
-    range: number
+    range: number,
+    repos?: string[]
   ): Promise<DbPullRequestReviewCommentGitHubEvents[]> {
     const queryBuilder = this.baseQueryBuilder()
       .where(`LOWER(actor_login) = '${username}'`)
       .andWhere(`event_time > NOW() - INTERVAL '${range} days'`);
+
+    if (repos && repos.length > 0) {
+      queryBuilder.andWhere(`LOWER(repo_name) IN (:...repos)`, { repos });
+    }
 
     return queryBuilder.getMany();
   }

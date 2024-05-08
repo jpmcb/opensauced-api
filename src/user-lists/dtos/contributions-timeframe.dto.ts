@@ -1,4 +1,4 @@
-import { IsEnum, IsIn, IsInt, IsOptional } from "class-validator";
+import { IsEnum, IsIn, IsInt, IsOptional, IsString } from "class-validator";
 
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
@@ -24,4 +24,14 @@ export class ContributionsTimeframeDto {
   @IsEnum(ContributorStatsTypeEnum)
   @IsOptional()
   contributorType?: ContributorStatsTypeEnum = ContributorStatsTypeEnum.all;
+
+  @ApiPropertyOptional({
+    description: "Repo, comma delimited names",
+    type: "string",
+    example: "open-sauced/app",
+  })
+  @Type(() => String)
+  @IsString()
+  @IsOptional()
+  readonly repos?: string;
 }

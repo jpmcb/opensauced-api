@@ -105,12 +105,17 @@ export class PullRequestReviewGithubEventsService {
 
   async getCreatedPullReqReviewEventsForLogin(
     username: string,
-    range: number
+    range: number,
+    repos?: string[]
   ): Promise<DbPullRequestReviewGitHubEvents[]> {
     const queryBuilder = this.baseQueryBuilder()
       .where(`LOWER(actor_login) = '${username}'`)
       .andWhere("pr_review_action = 'opened'")
       .andWhere(`event_time > NOW() - INTERVAL '${range} days'`);
+
+    if (repos && repos.length > 0) {
+      queryBuilder.andWhere(`LOWER(repo_name) IN (:...repos)`, { repos });
+    }
 
     return queryBuilder.getMany();
   }
@@ -207,7 +212,8 @@ export class PullRequestReviewGithubEventsService {
   async getPrReviewCountForReviewer(
     username: string,
     contribType: ContributorStatsTypeEnum,
-    range: number
+    range: number,
+    repos?: string[]
   ): Promise<number> {
     const queryBuilder = this.pullRequestReviewGithubEventsRepository.manager
       .createQueryBuilder()
@@ -216,6 +222,10 @@ export class PullRequestReviewGithubEventsService {
       .where(`LOWER(actor_login) = '${username}'`)
       .andWhere("pr_review_action = 'created'")
       .groupBy("LOWER(actor_login)");
+
+    if (repos && repos.length > 0) {
+      queryBuilder.andWhere(`LOWER(repo_name) IN (:...repos)`, { repos });
+    }
 
     applyContribTypeEnumFilters(contribType, queryBuilder, range);
 

@@ -198,7 +198,8 @@ export class PullRequestGithubEventsService {
   async getOpenedPrsCountForAuthor(
     username: string,
     contribType: ContributorStatsTypeEnum,
-    range: number
+    range: number,
+    repos?: string[]
   ): Promise<number> {
     const queryBuilder = this.pullRequestGithubEventsRepository.manager
       .createQueryBuilder()
@@ -207,6 +208,10 @@ export class PullRequestGithubEventsService {
       .where(`LOWER(actor_login) = '${username}'`)
       .andWhere("pr_action = 'opened'")
       .groupBy("LOWER(actor_login)");
+
+    if (repos && repos.length > 0) {
+      queryBuilder.andWhere(`LOWER(repo_name) IN (:...repos)`, { repos });
+    }
 
     applyContribTypeEnumFilters(contribType, queryBuilder, range);
 
@@ -286,11 +291,19 @@ export class PullRequestGithubEventsService {
     return countResult.count !== 0;
   }
 
-  async getOpenedPullReqEventsForLogin(username: string, range: number): Promise<DbPullRequestGitHubEvents[]> {
+  async getOpenedPullReqEventsForLogin(
+    username: string,
+    range: number,
+    repos?: string[]
+  ): Promise<DbPullRequestGitHubEvents[]> {
     const queryBuilder = this.baseQueryBuilder()
       .where(`LOWER(actor_login) = '${username}'`)
       .andWhere("pr_action = 'opened'")
       .andWhere(`event_time > NOW() - INTERVAL '${range} days'`);
+
+    if (repos && repos.length > 0) {
+      queryBuilder.andWhere(`LOWER(repo_name) IN (:...repos)`, { repos });
+    }
 
     return queryBuilder.getMany();
   }

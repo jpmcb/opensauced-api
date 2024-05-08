@@ -61,16 +61,24 @@ export class ContributorDevstatsService {
   ): Promise<DbContributorStat> {
     const contribType = pageOptionsDto.contributorType ?? ContributorStatsTypeEnum.all;
     const range = pageOptionsDto.range!;
+    const repos = pageOptionsDto.repos ? pageOptionsDto.repos.toLowerCase().split(",") : undefined;
 
     const statsFunctions = [
-      async () => this.pushGithubEventsService.getPushCountForLogin(user, contribType, range),
-      async () => this.pullRequestGithubEventsService.getOpenedPrsCountForAuthor(user, contribType, range),
-      async () => this.pullRequestReviewGithubEventsService.getPrReviewCountForReviewer(user, contribType, range),
-      async () => this.issuesGithubEventsService.getIssueCountForAuthor(user, contribType, range),
-      async () => this.commitCommentsGithubEventsService.getCommitCommentCountForAuthor(user, contribType, range),
-      async () => this.issueCommentsGithubEventsService.getIssueCommentCountForAuthor(user, contribType, range),
+      async () => this.pushGithubEventsService.getPushCountForLogin(user, contribType, range, repos),
+      async () => this.pullRequestGithubEventsService.getOpenedPrsCountForAuthor(user, contribType, range, repos),
       async () =>
-        this.pullRequestReviewCommentGithubEventsService.getPrReviewCommentCountForAuthor(user, contribType, range),
+        this.pullRequestReviewGithubEventsService.getPrReviewCountForReviewer(user, contribType, range, repos),
+      async () => this.issuesGithubEventsService.getIssueCountForAuthor(user, contribType, range, repos),
+      async () =>
+        this.commitCommentsGithubEventsService.getCommitCommentCountForAuthor(user, contribType, range, repos),
+      async () => this.issueCommentsGithubEventsService.getIssueCommentCountForAuthor(user, contribType, range, repos),
+      async () =>
+        this.pullRequestReviewCommentGithubEventsService.getPrReviewCommentCountForAuthor(
+          user,
+          contribType,
+          range,
+          repos
+        ),
     ];
 
     const { results } = await PromisePool.withConcurrency(5)
@@ -101,6 +109,7 @@ export class ContributorDevstatsService {
     const aggregatedStats: Record<string, DbContributionsProjects> = {};
 
     const range = pageOptionsDto.range!;
+    const repos = pageOptionsDto.repos ? pageOptionsDto.repos.toLowerCase().split(",") : undefined;
 
     /*
      * only process 1 users info at a time since there may be race conditions with
@@ -110,14 +119,15 @@ export class ContributorDevstatsService {
       .for(users)
       .process(async (user) => {
         const statsFunctions = [
-          async () => this.pushGithubEventsService.getPushEventsAllForLogin(user, range),
-          async () => this.pullRequestGithubEventsService.getOpenedPullReqEventsForLogin(user, range),
-          async () => this.pullRequestReviewGithubEventsService.getCreatedPullReqReviewEventsForLogin(user, range),
-          async () => this.issuesGithubEventsService.getCreatedIssueEventsForLogin(user, range),
-          async () => this.commitCommentsGithubEventsService.getCommitCommentEventsForLogin(user, range),
-          async () => this.issueCommentsGithubEventsService.getIssueCommentEventsForLogin(user, range),
+          async () => this.pushGithubEventsService.getPushEventsAllForLogin(user, range, repos),
+          async () => this.pullRequestGithubEventsService.getOpenedPullReqEventsForLogin(user, range, repos),
           async () =>
-            this.pullRequestReviewCommentGithubEventsService.getPullReqReviewCommentEventsForLogin(user, range),
+            this.pullRequestReviewGithubEventsService.getCreatedPullReqReviewEventsForLogin(user, range, repos),
+          async () => this.issuesGithubEventsService.getCreatedIssueEventsForLogin(user, range, repos),
+          async () => this.commitCommentsGithubEventsService.getCommitCommentEventsForLogin(user, range, repos),
+          async () => this.issueCommentsGithubEventsService.getIssueCommentEventsForLogin(user, range, repos),
+          async () =>
+            this.pullRequestReviewCommentGithubEventsService.getPullReqReviewCommentEventsForLogin(user, range, repos),
         ];
 
         const { results, errors } = await PromisePool.withConcurrency(5)
