@@ -8,6 +8,7 @@ export enum IssueOrderFieldsEnum {
   created_at = "created_at",
   closed_at = "closed_at",
   updated_at = "updated_at",
+  reactions_heart = "reactions_heart",
 }
 
 export enum IssueStatusEnum {
