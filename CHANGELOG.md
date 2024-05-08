@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.26.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.25.0...v2.26.0-beta.1) (2024-05-08)
+
+
+### 🍕 Features
+
+* Allow Star-Search to search Bing ([#777](https://github.com/open-sauced/api.opensauced.pizza/issues/777)) ([4e9df53](https://github.com/open-sauced/api.opensauced.pizza/commit/4e9df535ed89f15c9e3ff7efef4132250c89ec57))
+
 ## [2.25.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.24.1...v2.25.0) (2024-05-07)
 
 
