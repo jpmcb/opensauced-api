@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.26.0-beta.5](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.26.0-beta.4...v2.26.0-beta.5) (2024-05-08)
+
+
+### 🍕 Features
+
+* now you can sort by heart reaction for workspace issues ([#780](https://github.com/open-sauced/api.opensauced.pizza/issues/780)) ([a125477](https://github.com/open-sauced/api.opensauced.pizza/commit/a1254773758e43aca8c64515711b3de7b58b9465))
+
 ## [2.26.0-beta.4](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.26.0-beta.3...v2.26.0-beta.4) (2024-05-08)
 
 
