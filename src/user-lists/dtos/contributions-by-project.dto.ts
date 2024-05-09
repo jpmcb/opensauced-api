@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsIn, IsInt, IsOptional } from "class-validator";
+import { IsIn, IsInt, IsOptional, IsString } from "class-validator";
 
 export class ContributionsByProjectDto {
   @ApiPropertyOptional({
@@ -13,4 +13,14 @@ export class ContributionsByProjectDto {
   @IsInt()
   @IsOptional()
   readonly range?: number = 30;
+
+  @ApiPropertyOptional({
+    description: "Repo, comma delimited names",
+    type: "string",
+    example: "open-sauced/app",
+  })
+  @Type(() => String)
+  @IsString()
+  @IsOptional()
+  readonly repos?: string;
 }

@@ -1,13 +1,21 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, NotFoundException, forwardRef } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { IssueHistogramDto } from "../histogram/dtos/issue.dto";
-import { GetPrevDateISOString } from "../common/util/datetimes";
+import { Repository, SelectQueryBuilder } from "typeorm";
+import { PageDto } from "../common/dtos/page.dto";
+import { RepoService } from "../repo/repo.service";
+import { FilterListContributorsDto } from "../user-lists/dtos/filter-contributors.dto";
+import { UserListService } from "../user-lists/user-list.service";
+import { IssuePageOptionsDto } from "../pull-requests/dtos/issue-page-options.dto";
+import { RepoSearchOptionsDto } from "../repo/dtos/repo-search-options.dto";
+import { PageMetaDto } from "../common/dtos/page-meta.dto";
+import { PageOptionsDto } from "../common/dtos/page-options.dto";
 import { OrderDirectionEnum } from "../common/constants/order-direction.constant";
-import { DbIssuesGitHubEventsHistogram } from "./entities/issues_github_events_histogram.entity";
-import { DbIssuesGitHubEvents } from "./entities/issues_github_event.entity";
-import { applyContribTypeEnumFilters } from "./common/counts";
+import { GetPrevDateISOString } from "../common/util/datetimes";
+import { IssueHistogramDto } from "../histogram/dtos/issue.dto";
 import { ContributorStatsTypeEnum } from "./dtos/most-active-contrib.dto";
+import { applyContribTypeEnumFilters } from "./common/counts";
+import { DbIssuesGitHubEvents } from "./entities/issues_github_event.entity";
+import { DbIssuesGitHubEventsHistogram } from "./entities/issues_github_events_histogram.entity";
 
 /*
  * issue events, named "IssueEvent" in the GitHub API, are when
@@ -25,7 +33,11 @@ import { ContributorStatsTypeEnum } from "./dtos/most-active-contrib.dto";
 export class IssuesGithubEventsService {
   constructor(
     @InjectRepository(DbIssuesGitHubEvents, "TimescaleConnection")
-    private issueGitHubEventsRepository: Repository<DbIssuesGitHubEvents>
+    private issueGitHubEventsRepository: Repository<DbIssuesGitHubEvents>,
+    @Inject(forwardRef(() => RepoService))
+    private repoService: RepoService,
+    @Inject(forwardRef(() => UserListService))
+    private userListService: UserListService
   ) {}
 
   baseQueryBuilder() {
@@ -81,11 +93,19 @@ export class IssuesGithubEventsService {
     return result;
   }
 
-  async getCreatedIssueEventsForLogin(username: string, range: number): Promise<DbIssuesGitHubEvents[]> {
+  async getCreatedIssueEventsForLogin(
+    username: string,
+    range: number,
+    repos?: string[]
+  ): Promise<DbIssuesGitHubEvents[]> {
     const queryBuilder = this.baseQueryBuilder()
       .where(`LOWER(actor_login) = '${username}'`)
       .andWhere("issue_action = 'opened'")
       .andWhere(`event_time > NOW() - INTERVAL '${range} days'`);
+
+    if (repos && repos.length > 0) {
+      queryBuilder.andWhere(`LOWER(repo_name) IN (:...repos)`, { repos });
+    }
 
     return queryBuilder.getMany();
   }
@@ -93,7 +113,8 @@ export class IssuesGithubEventsService {
   async getIssueCountForAuthor(
     username: string,
     contribType: ContributorStatsTypeEnum,
-    range: number
+    range: number,
+    repos?: string[]
   ): Promise<number> {
     const queryBuilder = this.issueGitHubEventsRepository.manager
       .createQueryBuilder()
@@ -102,6 +123,10 @@ export class IssuesGithubEventsService {
       .where(`LOWER(actor_login) = '${username}'`)
       .andWhere("issue_action = 'opened'")
       .groupBy("LOWER(actor_login)");
+
+    if (repos && repos.length > 0) {
+      queryBuilder.andWhere(`LOWER(repo_name) IN (:...repos)`, { repos });
+    }
 
     applyContribTypeEnumFilters(contribType, queryBuilder, range);
 
@@ -172,5 +197,159 @@ export class IssuesGithubEventsService {
     const rawResults = await queryBuilder.getRawMany();
 
     return rawResults as DbIssuesGitHubEventsHistogram[];
+  }
+
+  /*
+   * this function takes a cte builder and gets the common rows for issues_github_events
+   * off of it. It also builds a cte counter to ensure metadata is built correctly
+   * for the timescale query.
+   */
+  async execCommonTableExpression(
+    pageOptionsDto: PageOptionsDto,
+    cteBuilder: SelectQueryBuilder<DbIssuesGitHubEvents>
+  ) {
+    const queryBuilder = this.issueGitHubEventsRepository.manager
+      .createQueryBuilder()
+      .addCommonTableExpression(cteBuilder, "CTE")
+      .setParameters(cteBuilder.getParameters())
+      .select(
+        `event_id,
+        issue_number,
+        issue_state,
+        issue_title,
+        issue_body,
+        issue_author_login,
+        issue_created_at,
+        issue_closed_at,
+        issue_updated_at,
+        issue_comments,
+        repo_name,
+        issue_reactions_plus_one,
+        issue_reactions_minus_one,
+        issue_reactions_laugh,
+        issue_reactions_hooray,
+        issue_reactions_confused,
+        issue_reactions_heart,
+        issue_reactions_rocket,
+        issue_reactions_eyes
+        `
+      )
+      .from("CTE", "CTE")
+      .where("row_num = 1")
+      .offset(pageOptionsDto.skip)
+      .limit(pageOptionsDto.limit);
+
+    const cteCounter = this.issueGitHubEventsRepository.manager
+      .createQueryBuilder()
+      .addCommonTableExpression(cteBuilder, "CTE")
+      .setParameters(cteBuilder.getParameters())
+      .select(`COUNT(*) as count`)
+      .from("CTE", "CTE")
+      .where("row_num = 1");
+
+    const cteCounterResult = await cteCounter.getRawOne<{ count: number }>();
+    const itemCount = parseInt(`${cteCounterResult?.count ?? "0"}`, 10);
+
+    const entities = await queryBuilder.getRawMany<DbIssuesGitHubEvents>();
+
+    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+
+    return new PageDto(entities, pageMetaDto);
+  }
+
+  async findAllWithFilters(pageOptionsDto: IssuePageOptionsDto): Promise<PageDto<DbIssuesGitHubEvents>> {
+    const startDate = GetPrevDateISOString(pageOptionsDto.prev_days_start_date);
+    const range = pageOptionsDto.range!;
+    const order = pageOptionsDto.orderDirection!;
+
+    const cteBuilder = this.issueGitHubEventsRepository.createQueryBuilder("issues_github_events").select("*");
+
+    if (pageOptionsDto.distinctAuthors) {
+      const distinctAuthors = pageOptionsDto.distinctAuthors === "true" || pageOptionsDto.distinctAuthors === "1";
+
+      if (distinctAuthors) {
+        cteBuilder.addSelect(
+          `ROW_NUMBER() OVER (PARTITION BY issue_author_login, repo_name ORDER BY event_time ${order}) AS row_num`
+        );
+      } else {
+        cteBuilder.addSelect(
+          `ROW_NUMBER() OVER (PARTITION BY issue_number, repo_name ORDER BY event_time ${order}) AS row_num`
+        );
+      }
+    }
+
+    cteBuilder
+      .orderBy("event_time", order)
+      .where(`'${startDate}'::TIMESTAMP >= "issues_github_events"."event_time"`)
+      .andWhere(`'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "issues_github_events"."event_time"`);
+
+    /* filter on PR author / contributor */
+    if (pageOptionsDto.contributor) {
+      cteBuilder.andWhere(`LOWER("issues_github_events"."issue_author_login") = LOWER(:author)`, {
+        author: pageOptionsDto.contributor,
+      });
+    }
+
+    /*
+     * apply repo specific filters (topics, top 100, etc.) - this captures a few
+     * pre-defined filters provided by the PullRequestPageOptionsDto.
+     * This will call out to the API connection to get metadata on the repos.
+     */
+    if (pageOptionsDto.filter || pageOptionsDto.topic) {
+      const filtersDto: RepoSearchOptionsDto = {
+        filter: pageOptionsDto.filter,
+        topic: pageOptionsDto.topic,
+        limit: 50,
+        skip: 0,
+        range,
+      };
+
+      const repos = await this.repoService.findAllWithFilters(filtersDto);
+      const repoNames = repos.data.map((repo) => repo.full_name.toLowerCase());
+
+      cteBuilder.andWhere(`LOWER("issues_github_events"."repo_name") IN (:...repoNames)`, {
+        repoNames,
+      });
+    }
+
+    /* apply user provided repo name filters */
+    if (pageOptionsDto.repo) {
+      cteBuilder.andWhere(`LOWER("issues_github_events"."repo_name") IN (:...repoNames)`, {
+        repoNames: pageOptionsDto.repo.toLowerCase().split(","),
+      });
+    }
+
+    /* apply filters for consumer provided repo ids */
+    if (pageOptionsDto.repoIds) {
+      cteBuilder.andWhere(`"issues_github_events"."repo_id" IN (:...repoIds)`, {
+        repoIds: pageOptionsDto.repoIds.split(","),
+      });
+    }
+
+    /*
+     * filter on a given list ID: this uses the API connection to find the usernames
+     * to use for filtering on the timescale data.
+     */
+    if (pageOptionsDto.listId) {
+      const filtersDto: FilterListContributorsDto = {
+        skip: 0,
+      };
+
+      const users = await this.userListService.findContributorsByListId(filtersDto, pageOptionsDto.listId);
+      const userNames = users.data.map((user) => user.username?.toLowerCase());
+
+      cteBuilder.andWhere(`LOWER("issues_github_events"."issue_author_login") IN (:...userNames)`, {
+        userNames,
+      });
+    }
+
+    /* filter on provided status */
+    if (pageOptionsDto.status) {
+      cteBuilder.andWhere(`"issues_github_events"."issue_state" = LOWER(:status)`, {
+        status: pageOptionsDto.status,
+      });
+    }
+
+    return this.execCommonTableExpression(pageOptionsDto, cteBuilder);
   }
 }

@@ -11,6 +11,7 @@ import {
   ApiParam,
 } from "@nestjs/swagger";
 
+import { DbIssuesGitHubEvents } from "../timescale/entities/issues_github_event.entity";
 import { PassthroughSupabaseGuard } from "../auth/passthrough-supabase.guard";
 import { PageOptionsDto } from "../common/dtos/page-options.dto";
 import { PageDto } from "../common/dtos/page.dto";
@@ -27,6 +28,7 @@ import { UpdateWorkspaceReposDto } from "./dtos/update-workspace-repos.dto";
 import { DbWorkspace } from "./entities/workspace.entity";
 import { DeleteWorkspaceReposDto } from "./dtos/delete-workspace-repos.dto";
 import { WorkspaceRepoPullRequestPageOptionsDto } from "./dtos/workspace-repo-prs.dto";
+import { WorkspaceRepoIssuePageOptionsDto } from "./dtos/workspace-repo-issues.dto";
 
 @Controller("workspaces/:id/repos")
 @ApiTags("Workspace repos service")
@@ -67,6 +69,24 @@ export class WorkspaceRepoController {
     @Query() pageOptionsDto: WorkspaceRepoPullRequestPageOptionsDto
   ): Promise<PageDto<DbPullRequestGitHubEvents>> {
     return this.workspaceRepoService.findAllRepoPrsByWorkspaceIdForUserId(pageOptionsDto, id, userId);
+  }
+
+  @Get("/issues")
+  @ApiOperation({
+    operationId: "getWorkspaceRepoIssuesForUser",
+    summary: "Gets workspace repo issues for the authenticated user",
+  })
+  @ApiBearerAuth()
+  @UseGuards(PassthroughSupabaseGuard)
+  @ApiOkResponse({ type: DbIssuesGitHubEvents })
+  @ApiNotFoundResponse({ description: "Unable to get user workspace repo issues" })
+  @ApiBadRequestResponse({ description: "Invalid request" })
+  async getWorkspaceRepoIssuesForUser(
+    @Param("id") id: string,
+    @OptionalUserId() userId: number | undefined,
+    @Query() pageOptionsDto: WorkspaceRepoIssuePageOptionsDto
+  ): Promise<PageDto<DbIssuesGitHubEvents>> {
+    return this.workspaceRepoService.findAllRepoIssuesByWorkspaceIdForUserId(pageOptionsDto, id, userId);
   }
 
   @Get("/search")

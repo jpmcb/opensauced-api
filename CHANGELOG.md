@@ -5,6 +5,41 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.26.0-beta.5](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.26.0-beta.4...v2.26.0-beta.5) (2024-05-08)
+
+
+### 🍕 Features
+
+* now you can sort by heart reaction for workspace issues ([#780](https://github.com/open-sauced/api.opensauced.pizza/issues/780)) ([a125477](https://github.com/open-sauced/api.opensauced.pizza/commit/a1254773758e43aca8c64515711b3de7b58b9465))
+
+## [2.26.0-beta.4](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.26.0-beta.3...v2.26.0-beta.4) (2024-05-08)
+
+
+### 🍕 Features
+
+* Makes user PRs endpoint able to filter on repos ([#779](https://github.com/open-sauced/api.opensauced.pizza/issues/779)) ([66e2657](https://github.com/open-sauced/api.opensauced.pizza/commit/66e26574cb5d06c96eecef44d8cf6413e1db5f93))
+
+## [2.26.0-beta.3](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.26.0-beta.2...v2.26.0-beta.3) (2024-05-08)
+
+
+### 🍕 Features
+
+* created the /v2/workspaces/{id}/repos/issues endpoint ([#774](https://github.com/open-sauced/api.opensauced.pizza/issues/774)) ([5937c38](https://github.com/open-sauced/api.opensauced.pizza/commit/5937c381e8aa6a89e78b07573e2ae57d08d8d917))
+
+## [2.26.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.26.0-beta.1...v2.26.0-beta.2) (2024-05-08)
+
+
+### 🍕 Features
+
+* add repository filters to contributor stats endpoints ([#776](https://github.com/open-sauced/api.opensauced.pizza/issues/776)) ([061f77e](https://github.com/open-sauced/api.opensauced.pizza/commit/061f77e1f343274b594e4b9b354d67404397e656))
+
+## [2.26.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.25.0...v2.26.0-beta.1) (2024-05-08)
+
+
+### 🍕 Features
+
+* Allow Star-Search to search Bing ([#777](https://github.com/open-sauced/api.opensauced.pizza/issues/777)) ([4e9df53](https://github.com/open-sauced/api.opensauced.pizza/commit/4e9df535ed89f15c9e3ff7efef4132250c89ec57))
+
 ## [2.25.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.24.1...v2.25.0) (2024-05-07)
 
 

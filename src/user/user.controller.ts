@@ -18,6 +18,7 @@ import { DbFilteredUser } from "./entities/filtered-users.entity";
 import { FilteredUsersDto } from "./dtos/filtered-users.dto";
 import { DbUserOrganization } from "./entities/user-organization.entity";
 import { UserOrganizationService } from "./user-organization.service";
+import { UserPrsDto } from "./dtos/user-prs.dto";
 
 @Controller("users")
 @ApiTags("User service")
@@ -52,7 +53,7 @@ export class UserController {
   @Header("Cache-Control", "public, max-age=600")
   async findContributorPullRequestGitHubEvents(
     @Param("username") username: string,
-    @Query() pageOptionsDto: PageOptionsDto
+    @Query() pageOptionsDto: UserPrsDto
   ): Promise<PageDto<DbPullRequestGitHubEvents>> {
     return this.pullRequestGitHubEventsService.findAllByPrAuthor(username, pageOptionsDto);
   }

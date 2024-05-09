@@ -2,6 +2,8 @@ import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/co
 import { Repository, SelectQueryBuilder } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 
+import { IssuesGithubEventsService } from "../timescale/issues_github_events.service";
+import { DbIssuesGitHubEvents } from "../timescale/entities/issues_github_event.entity";
 import { PageMetaDto } from "../common/dtos/page-meta.dto";
 import { PageDto } from "../common/dtos/page.dto";
 import { PageOptionsDto } from "../common/dtos/page-options.dto";
@@ -17,6 +19,7 @@ import { canUserEditWorkspace, canUserViewWorkspace } from "./common/memberAcces
 import { UpdateWorkspaceReposDto } from "./dtos/update-workspace-repos.dto";
 import { DeleteWorkspaceReposDto } from "./dtos/delete-workspace-repos.dto";
 import { WorkspaceRepoPullRequestPageOptionsDto } from "./dtos/workspace-repo-prs.dto";
+import { WorkspaceRepoIssuePageOptionsDto } from "./dtos/workspace-repo-issues.dto";
 
 @Injectable()
 export class WorkspaceReposService {
@@ -25,7 +28,8 @@ export class WorkspaceReposService {
     private workspaceRepoRepository: Repository<DbWorkspaceRepo>,
     private workspaceService: WorkspaceService,
     private repoService: RepoService,
-    private pullRequestGithubEventsService: PullRequestGithubEventsService
+    private pullRequestGithubEventsService: PullRequestGithubEventsService,
+    private issuesGithubEventsService: IssuesGithubEventsService
   ) {}
 
   baseQueryBuilder(): SelectQueryBuilder<DbWorkspaceRepo> {
@@ -117,6 +121,56 @@ export class WorkspaceReposService {
     }
 
     return this.pullRequestGithubEventsService.findAllWithFilters({
+      ...pageOptionsDto,
+      skip: pageOptionsDto.skip,
+      repoIds: entities.map((entity) => entity.repo_id.toString()).join(","),
+    });
+  }
+
+  async findAllRepoIssuesByWorkspaceIdForUserId(
+    pageOptionsDto: WorkspaceRepoIssuePageOptionsDto,
+    id: string,
+    userId: number | undefined
+  ): Promise<PageDto<DbIssuesGitHubEvents>> {
+    const workspace = await this.workspaceService.findOneById(id);
+
+    /*
+     * viewers, editors, and owners can see what repos belongs to a workspace
+     */
+
+    const canView = canUserViewWorkspace(workspace, userId);
+
+    if (!canView) {
+      throw new NotFoundException();
+    }
+
+    const queryBuilder = this.baseQueryBuilder();
+
+    queryBuilder
+      .withDeleted()
+      .leftJoinAndSelect(
+        "workspace_repos.repo",
+        "workspace_repos_repo",
+        "workspace_repos.repo_id = workspace_repos_repo.id"
+      )
+      .where("workspace_repos.deleted_at IS NULL")
+      .andWhere("workspace_repos.workspace_id = :id", { id });
+
+    if (pageOptionsDto.repoIds) {
+      queryBuilder.andWhere("workspace_repos_repo.id IN (:...repoIds)", {
+        repoIds: pageOptionsDto.repoIds.split(","),
+      });
+    }
+
+    const entities = await queryBuilder.getMany();
+
+    if (entities.length === 0) {
+      const pageMeta = new PageMetaDto({ itemCount: 0, pageOptionsDto });
+
+      return new PageDto([], pageMeta);
+    }
+
+    return this.issuesGithubEventsService.findAllWithFilters({
       ...pageOptionsDto,
       skip: pageOptionsDto.skip,
       repoIds: entities.map((entity) => entity.repo_id.toString()).join(","),

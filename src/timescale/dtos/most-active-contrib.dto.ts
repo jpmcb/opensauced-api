@@ -1,6 +1,7 @@
-import { IsEnum, IsOptional } from "class-validator";
+import { IsEnum, IsOptional, IsString } from "class-validator";
 
 import { ApiPropertyOptional } from "@nestjs/swagger";
+import { Type } from "class-transformer";
 import { PageOptionsDto } from "../../common/dtos/page-options.dto";
 
 export enum ContributorStatsOrderEnum {
@@ -34,4 +35,14 @@ export class MostActiveContributorsDto extends PageOptionsDto {
   @IsEnum(ContributorStatsOrderEnum)
   @IsOptional()
   readonly orderBy?: ContributorStatsOrderEnum = ContributorStatsOrderEnum.commits;
+
+  @ApiPropertyOptional({
+    description: "Repo, comma delimited names",
+    type: "string",
+    example: "open-sauced/app",
+  })
+  @Type(() => String)
+  @IsString()
+  @IsOptional()
+  readonly repos?: string;
 }

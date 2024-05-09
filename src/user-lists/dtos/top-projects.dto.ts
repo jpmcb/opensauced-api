@@ -21,4 +21,14 @@ export class TopProjectsDto {
   })
   @IsString()
   repo_name: string;
+
+  @ApiPropertyOptional({
+    description: "Repo, comma delimited names",
+    type: "string",
+    example: "open-sauced/app",
+  })
+  @Type(() => String)
+  @IsString()
+  @IsOptional()
+  readonly repos?: string;
 }

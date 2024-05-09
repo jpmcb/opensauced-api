@@ -40,11 +40,12 @@ export class UserListEventsStatsService {
     return builder;
   }
 
-  private eventsUnionCteBuilder(range: number): string {
+  private eventsUnionCteBuilder(range: number, repos?: string[]): string {
     const cteBuilder = `
       SELECT event_type, event_time, repo_name, actor_login
       FROM push_github_events
       WHERE LOWER(actor_login) IN (:...users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND push_ref IN('refs/heads/main', 'refs/heads/master')
       AND now() - INTERVAL '${range} days' <= event_time
 
@@ -54,6 +55,7 @@ export class UserListEventsStatsService {
       FROM pull_request_github_events
       WHERE LOWER(actor_login) IN (:...users)
       AND pr_action='opened'
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND now() - INTERVAL '${range} days' <= event_time
 
       UNION ALL
@@ -62,6 +64,7 @@ export class UserListEventsStatsService {
       FROM pull_request_review_github_events
       WHERE LOWER(actor_login) IN (:...users)
       AND pr_review_action='created'
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND now() - INTERVAL '${range} days' <= event_time
 
       UNION ALL
@@ -70,6 +73,7 @@ export class UserListEventsStatsService {
       FROM issues_github_events
       WHERE LOWER(actor_login) IN (:...users)
       AND issue_action='opened'
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND now() - INTERVAL '${range} days' <= event_time
 
       UNION ALL
@@ -77,6 +81,7 @@ export class UserListEventsStatsService {
       SELECT event_type, event_time, repo_name, actor_login
       FROM commit_comment_github_events
       WHERE LOWER(actor_login) IN (:...users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND now() - INTERVAL '${range} days' <= event_time
 
       UNION ALL
@@ -84,6 +89,7 @@ export class UserListEventsStatsService {
       SELECT event_type, event_time, repo_name, actor_login
       FROM issue_comment_github_events
       WHERE LOWER(actor_login) IN (:...users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND now() - INTERVAL '${range} days' <= event_time
 
       UNION ALL
@@ -91,6 +97,7 @@ export class UserListEventsStatsService {
       SELECT event_type, event_time, repo_name, actor_login
       FROM pull_request_review_comment_github_events
       WHERE LOWER(actor_login) IN (:...users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND now() - INTERVAL '${range} days' <= event_time`;
 
     return cteBuilder;
@@ -99,7 +106,8 @@ export class UserListEventsStatsService {
   async findContributorsByType(
     listId: string,
     range: number,
-    type: ContributorStatsTypeEnum = ContributorStatsTypeEnum.all
+    type: ContributorStatsTypeEnum = ContributorStatsTypeEnum.all,
+    repos?: string[]
   ): Promise<string[]> {
     const now = new Date().toISOString();
 
@@ -134,7 +142,12 @@ export class UserListEventsStatsService {
           .select("LOWER(actor_login)", "login")
           .distinct()
           .from(DbPullRequestGitHubEvents, "pull_request_github_events")
-          .where("LOWER(actor_login) IN (:...users)", { users }),
+          .where(
+            `LOWER(actor_login) IN (:...users) ${
+              repos && repos.length > 0 ? `AND LOWER(repo_name) IN (:...repos)` : ""
+            }`,
+            { users, repos }
+          ),
       "users"
     );
 
@@ -240,19 +253,20 @@ export class UserListEventsStatsService {
   ): Promise<DbContributionStatTimeframe[]> {
     const range = options.range!;
     const contribType = options.contributorType;
+    const repos = options.repos ? options.repos.toLowerCase().split(",") : undefined;
 
-    const allUsers = await this.findContributorsByType(listId, range, contribType);
+    const allUsers = await this.findContributorsByType(listId, range, contribType, repos);
 
     if (allUsers.length === 0) {
       return [];
     }
 
-    const cteQuery = this.eventsUnionCteBuilder(range);
+    const cteQuery = this.eventsUnionCteBuilder(range, repos);
 
     const entityQb = this.pullRequestGithubEventsRepository.manager
       .createQueryBuilder()
       .addCommonTableExpression(cteQuery, "CTE")
-      .setParameters({ users: allUsers })
+      .setParameters({ users: allUsers, repos })
       .select(`time_bucket('1 day', event_time)`, "bucket")
       .addSelect("COUNT(case when event_type = 'PushEvent' then 1 end)", "commits")
       .addSelect("COUNT(case when event_type = 'PullRequestEvent' then 1 end)", "prs_created")
@@ -315,19 +329,20 @@ export class UserListEventsStatsService {
   async findTopContributorsByProject(options: TopProjectsDto, listId: string): Promise<DbContributorStat[]> {
     const range = options.range!;
     const { repo_name } = options;
+    const repos = options.repos ? options.repos.toLowerCase().split(",") : undefined;
 
-    const allUsers = await this.findContributorsByType(listId, range);
+    const allUsers = await this.findContributorsByType(listId, range, undefined, repos);
 
     if (allUsers.length === 0) {
       return [];
     }
 
-    const cteQuery = this.eventsUnionCteBuilder(range);
+    const cteQuery = this.eventsUnionCteBuilder(range, repos);
 
     const entityQb = this.pullRequestGithubEventsRepository.manager
       .createQueryBuilder()
       .addCommonTableExpression(cteQuery, "CTE")
-      .setParameters({ users: allUsers })
+      .setParameters({ users: allUsers, repos })
       .select("actor_login", "login")
       .addSelect("COUNT(case when event_type = 'PushEvent' then 1 end)", "commits")
       .addSelect("COUNT(case when event_type = 'PullRequestEvent' then 1 end)", "prs_created")
@@ -345,11 +360,15 @@ export class UserListEventsStatsService {
         )`,
         "comments"
       )
-      .addSelect("COUNT(*)", "total_contributions")
-      .where(`LOWER(repo_name) = '${repo_name}'`)
-      .from("CTE", "CTE")
-      .groupBy("login")
-      .limit(25);
+      .addSelect("COUNT(*)", "total_contributions");
+
+    if (repos && repos.length > 0) {
+      entityQb.where(`LOWER(repo_name) IN (:...repos)`, { repos });
+    } else {
+      entityQb.where(`LOWER(repo_name) = '${repo_name}'`);
+    }
+
+    entityQb.from("CTE", "CTE").groupBy("login").limit(25);
 
     const entities: DbContributionsProjects[] = await entityQb.getRawMany();
 
@@ -361,16 +380,17 @@ export class UserListEventsStatsService {
     listId: string
   ): Promise<DbContributorCategoryTimeframe[]> {
     const range = options.range!;
+    const repos = options.repos ? options.repos.toLowerCase().split(",") : undefined;
 
-    const allUsers = await this.findContributorsByType(listId, range, ContributorStatsTypeEnum.all);
+    const allUsers = await this.findContributorsByType(listId, range, ContributorStatsTypeEnum.all, repos);
 
     if (allUsers.length === 0) {
       return [];
     }
 
-    const activeUsers = await this.findContributorsByType(listId, range, ContributorStatsTypeEnum.active);
-    const newUsers = await this.findContributorsByType(listId, range, ContributorStatsTypeEnum.new);
-    const alumniUsers = await this.findContributorsByType(listId, range, ContributorStatsTypeEnum.alumni);
+    const activeUsers = await this.findContributorsByType(listId, range, ContributorStatsTypeEnum.active, repos);
+    const newUsers = await this.findContributorsByType(listId, range, ContributorStatsTypeEnum.new, repos);
+    const alumniUsers = await this.findContributorsByType(listId, range, ContributorStatsTypeEnum.alumni, repos);
 
     /*
      * it's possible that one of the filtered lists will have no returned users:
@@ -392,6 +412,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'all_users' as contributor_category
       FROM push_github_events
       WHERE LOWER(actor_login) IN (:...all_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND push_ref IN('refs/heads/main', 'refs/heads/master')
       AND now() - INTERVAL '${range} days' <= event_time
 
@@ -400,6 +421,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'active_users' as contributor_category
       FROM push_github_events
       WHERE LOWER(actor_login) IN (:...active_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND push_ref IN('refs/heads/main', 'refs/heads/master')
       AND now() - INTERVAL '${range} days' <= event_time
 
@@ -408,6 +430,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'new_users' as contributor_category
       FROM push_github_events
       WHERE LOWER(actor_login) IN (:...new_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND push_ref IN('refs/heads/main', 'refs/heads/master')
       AND now() - INTERVAL '${range} days' <= event_time
 
@@ -416,6 +439,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'alumni_users' as contributor_category
       FROM push_github_events
       WHERE LOWER(actor_login) IN (:...alumni_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND push_ref IN('refs/heads/main', 'refs/heads/master')
       AND now() - INTERVAL '${range} days' <= event_time
 
@@ -424,6 +448,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'all_users' as contributor_category
       FROM pull_request_github_events
       WHERE LOWER(actor_login) IN (:...all_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND pr_action='opened'
       AND now() - INTERVAL '${range} days' <= event_time
 
@@ -432,6 +457,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'active_users' as contributor_category
       FROM pull_request_github_events
       WHERE LOWER(actor_login) IN (:...active_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND pr_action='opened'
       AND now() - INTERVAL '${range} days' <= event_time
 
@@ -440,6 +466,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'new_users' as contributor_category
       FROM pull_request_github_events
       WHERE LOWER(actor_login) IN (:...new_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND pr_action='opened'
       AND now() - INTERVAL '${range} days' <= event_time
 
@@ -448,6 +475,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'alumni_users' as contributor_category
       FROM pull_request_github_events
       WHERE LOWER(actor_login) IN (:...alumni_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND pr_action='opened'
       AND now() - INTERVAL '${range} days' <= event_time
 
@@ -456,6 +484,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'all_users' as contributor_category
       FROM pull_request_review_github_events
       WHERE LOWER(actor_login) IN (:...all_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND pr_review_action='created'
       AND now() - INTERVAL '${range} days' <= event_time
 
@@ -464,6 +493,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'active_users' as contributor_category
       FROM pull_request_review_github_events
       WHERE LOWER(actor_login) IN (:...active_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND pr_review_action='created'
       AND now() - INTERVAL '${range} days' <= event_time
 
@@ -472,6 +502,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'new_users' as contributor_category
       FROM pull_request_review_github_events
       WHERE LOWER(actor_login) IN (:...new_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND pr_review_action='created'
       AND now() - INTERVAL '${range} days' <= event_time
 
@@ -480,6 +511,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'alumni_users' as contributor_category
       FROM pull_request_review_github_events
       WHERE LOWER(actor_login) IN (:...alumni_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND pr_review_action='created'
       AND now() - INTERVAL '${range} days' <= event_time
 
@@ -488,6 +520,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'all_users' as contributor_category
       FROM issues_github_events
       WHERE LOWER(actor_login) IN (:...all_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND issue_action='opened'
       AND now() - INTERVAL '${range} days' <= event_time
 
@@ -496,6 +529,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'active_users' as contributor_category
       FROM issues_github_events
       WHERE LOWER(actor_login) IN (:...active_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND issue_action='opened'
       AND now() - INTERVAL '${range} days' <= event_time
 
@@ -504,6 +538,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'new_users' as contributor_category
       FROM issues_github_events
       WHERE LOWER(actor_login) IN (:...new_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND issue_action='opened'
       AND now() - INTERVAL '${range} days' <= event_time
 
@@ -512,6 +547,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'alumni_users' as contributor_category
       FROM issues_github_events
       WHERE LOWER(actor_login) IN (:...alumni_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND issue_action='opened'
       AND now() - INTERVAL '${range} days' <= event_time
 
@@ -520,6 +556,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'all_users' as contributor_category
       FROM commit_comment_github_events
       WHERE LOWER(actor_login) IN (:...all_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND now() - INTERVAL '${range} days' <= event_time
 
       UNION ALL
@@ -527,6 +564,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'active_users' as contributor_category
       FROM commit_comment_github_events
       WHERE LOWER(actor_login) IN (:...active_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND now() - INTERVAL '${range} days' <= event_time
 
       UNION ALL
@@ -534,6 +572,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'new_users' as contributor_category
       FROM commit_comment_github_events
       WHERE LOWER(actor_login) IN (:...new_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND now() - INTERVAL '${range} days' <= event_time
 
       UNION ALL
@@ -541,6 +580,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'alumni_users' as contributor_category
       FROM commit_comment_github_events
       WHERE LOWER(actor_login) IN (:...alumni_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND now() - INTERVAL '${range} days' <= event_time
 
       UNION ALL
@@ -548,6 +588,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'all_users' as contributor_category
       FROM issue_comment_github_events
       WHERE LOWER(actor_login) IN (:...all_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND now() - INTERVAL '${range} days' <= event_time
 
       UNION ALL
@@ -555,6 +596,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'active_users' as contributor_category
       FROM issue_comment_github_events
       WHERE LOWER(actor_login) IN (:...active_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND now() - INTERVAL '${range} days' <= event_time
 
       UNION ALL
@@ -562,6 +604,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'new_users' as contributor_category
       FROM issue_comment_github_events
       WHERE LOWER(actor_login) IN (:...new_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND now() - INTERVAL '${range} days' <= event_time
 
       UNION ALL
@@ -569,6 +612,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'alumni_users' as contributor_category
       FROM issue_comment_github_events
       WHERE LOWER(actor_login) IN (:...alumni_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND now() - INTERVAL '${range} days' <= event_time
 
       UNION ALL
@@ -576,6 +620,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'all_users' as contributor_category
       FROM pull_request_review_comment_github_events
       WHERE LOWER(actor_login) IN (:...all_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND now() - INTERVAL '${range} days' <= event_time
 
       UNION ALL
@@ -583,6 +628,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'active_users' as contributor_category
       FROM pull_request_review_comment_github_events
       WHERE LOWER(actor_login) IN (:...active_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND now() - INTERVAL '${range} days' <= event_time
 
       UNION ALL
@@ -590,6 +636,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'new_users' as contributor_category
       FROM pull_request_review_comment_github_events
       WHERE LOWER(actor_login) IN (:...new_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND now() - INTERVAL '${range} days' <= event_time
 
       UNION ALL
@@ -597,6 +644,7 @@ export class UserListEventsStatsService {
       SELECT event_time, 'alumni_users' as contributor_category
       FROM pull_request_review_comment_github_events
       WHERE LOWER(actor_login) IN (:...alumni_users)
+      ${repos && repos.length > 0 ? ` AND LOWER(repo_name) IN (:...repos) ` : ""}
       AND now() - INTERVAL '${range} days' <= event_time`;
 
     const entityQb = this.pullRequestGithubEventsRepository.manager
@@ -606,6 +654,7 @@ export class UserListEventsStatsService {
       .setParameters({ active_users: activeUsers })
       .setParameters({ new_users: newUsers })
       .setParameters({ alumni_users: alumniUsers })
+      .setParameters({ repos })
       .select(`time_bucket('1 day', event_time)`, "bucket")
       .addSelect("COUNT(case when contributor_category = 'all_users' then 1 end)", "all")
       .addSelect("COUNT(case when contributor_category = 'active_users' then 1 end)", "active")

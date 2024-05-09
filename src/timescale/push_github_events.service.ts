@@ -32,16 +32,25 @@ export class PushGithubEventsService {
     return builder;
   }
 
-  async getPushEventsAllForLogin(username: string, range: number): Promise<DbPushGitHubEvents[]> {
+  async getPushEventsAllForLogin(username: string, range: number, repos?: string[]): Promise<DbPushGitHubEvents[]> {
     const queryBuilder = this.baseQueryBuilder()
       .where(`LOWER(actor_login) = '${username}'`)
       .andWhere("push_ref IN ('refs/heads/main', 'refs/heads/master')")
       .andWhere(`event_time > NOW() - INTERVAL '${range} days'`);
 
+    if (repos && repos.length > 0) {
+      queryBuilder.andWhere(`LOWER(repo_name) IN (:...repos)`, { repos });
+    }
+
     return queryBuilder.getMany();
   }
 
-  async getPushCountForLogin(username: string, contribType: ContributorStatsTypeEnum, range: number): Promise<number> {
+  async getPushCountForLogin(
+    username: string,
+    contribType: ContributorStatsTypeEnum,
+    range: number,
+    repos?: string[]
+  ): Promise<number> {
     const queryBuilder = this.pushGitHubEventsRepository.manager
       .createQueryBuilder()
       .select("COALESCE(sum(push_num_commits), 0) AS commits")
@@ -49,6 +58,10 @@ export class PushGithubEventsService {
       .where(`LOWER(actor_login) = '${username}'`)
       .andWhere("push_ref IN ('refs/heads/main', 'refs/heads/master')")
       .groupBy("LOWER(actor_login)");
+
+    if (repos && repos.length > 0) {
+      queryBuilder.andWhere(`LOWER(repo_name) IN (:...repos)`, { repos });
+    }
 
     applyContribTypeEnumFilters(contribType, queryBuilder, range);
 
