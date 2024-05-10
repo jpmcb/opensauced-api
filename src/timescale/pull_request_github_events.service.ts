@@ -249,10 +249,12 @@ export class PullRequestGithubEventsService {
     range,
     prevDaysStartDate,
     repoNames,
+    noBots = false,
   }: {
     range: number;
     prevDaysStartDate: number;
     repoNames: string[];
+    noBots?: boolean;
   }): Promise<DbContributorCounts[]> {
     const startDate = GetPrevDateISOString(prevDaysStartDate);
 
@@ -268,6 +270,10 @@ export class PullRequestGithubEventsService {
       })
       .groupBy("pr_author_login")
       .orderBy("count", "DESC");
+
+    if (noBots) {
+      queryBuilder.andWhere("LOWER(pr_author_login) NOT LIKE '%[bot]%'");
+    }
 
     return queryBuilder.getRawMany<DbContributorCounts>();
   }

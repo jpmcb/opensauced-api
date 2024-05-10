@@ -301,6 +301,7 @@ export class RepoService {
       range: pageOptionsDto.range ?? 30,
       prevDaysStartDate: pageOptionsDto.prev_days_start_date ?? 0,
       repoNames: pageOptionsDto.repos.split(","),
+      noBots: true,
     });
 
     return calculateLottoFactor(contribCounts);
