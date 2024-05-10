@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+### [2.26.1-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.26.0...v2.26.1-beta.1) (2024-05-10)
+
+
+### 🐛 Bug Fixes
+
+* Ignore bots when calculating the lottery factor ([#786](https://github.com/open-sauced/api.opensauced.pizza/issues/786)) ([ddbd708](https://github.com/open-sauced/api.opensauced.pizza/commit/ddbd70863488292e64036e8fdb8f704301c3cd6a))
+
 ## [2.26.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.25.0...v2.26.0) (2024-05-09)
 
 
