@@ -103,7 +103,7 @@ export class OpenAIWrappedService {
     });
 
     return openai.beta.chat.completions.runTools({
-      model: "gpt-4-turbo",
+      model: "gpt-4o-2024-05-13",
       stream: true,
       tools,
       tool_choice: "auto",
