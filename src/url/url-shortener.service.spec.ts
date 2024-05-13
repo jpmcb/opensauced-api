@@ -30,4 +30,22 @@ describe("UrlShortenerService", () => {
 
     expect(error).toBeDefined();
   });
+
+  it("should return a custom key for a URL for a contributor profile", () => {
+    const customKey = service.getCustomKey("https://app.opensauced.pizza/user/bdougie");
+
+    expect(customKey).toBe("bdougie");
+  });
+
+  it("should return a custom key for a URL for a repo page", () => {
+    const customKey = service.getCustomKey("https://app.opensauced.pizza/s/open-sauced/app");
+
+    expect(customKey).toBe("open-sauced/app");
+  });
+
+  it("should not return a custom key for a URL for a non contributor/repo page", () => {
+    const customKey = service.getCustomKey("https://app.opensauced.pizza/feed");
+
+    expect(customKey).toBeUndefined();
+  });
 });
