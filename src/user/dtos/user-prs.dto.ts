@@ -14,4 +14,14 @@ export class UserPrsDto extends PageOptionsDto {
   @IsString()
   @IsOptional()
   readonly repos?: string;
+
+  @ApiPropertyOptional({
+    description: "Repo, comma delimited IDs",
+    type: "string",
+    example: "12345",
+  })
+  @Type(() => String)
+  @IsString()
+  @IsOptional()
+  readonly repoIds?: string;
 }

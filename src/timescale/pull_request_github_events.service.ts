@@ -321,6 +321,7 @@ export class PullRequestGithubEventsService {
     const range = pageOptionsDto.range!;
     const order = pageOptionsDto.orderDirection!;
     const repos = pageOptionsDto.repos ? pageOptionsDto.repos.toLowerCase().split(",") : undefined;
+    const repoIds = pageOptionsDto.repoIds ? pageOptionsDto.repoIds.toLowerCase().split(",") : undefined;
 
     /*
      * because PR events may be "opened" or "closed" many times, this inner CTE query gets similar PRs rows
@@ -339,6 +340,10 @@ export class PullRequestGithubEventsService {
 
     if (repos && repos.length > 0) {
       cteBuilder.andWhere(`LOWER("pull_request_github_events"."repo_name") IN (:...repos)`, { repos });
+    }
+
+    if (repoIds && repoIds.length > 0) {
+      cteBuilder.andWhere(`"pull_request_github_events"."repo_id" IN (:...repoIds)`, { repoIds });
     }
 
     return this.execCommonTableExpression(pageOptionsDto, cteBuilder);
