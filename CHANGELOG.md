@@ -5,6 +5,14 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.27.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.26.1-beta.1...v2.27.0-beta.1) (2024-05-13)
+
+
+### 🍕 Features
+
+* Upgrade to GPT-4o ([#789](https://github.com/open-sauced/api.opensauced.pizza/issues/789)) ([a8a63f5](https://github.com/open-sauced/api.opensauced.pizza/commit/a8a63f5172c8c36349c292ee7cdfcc8f8c421a97))
+* v2/users/username/prs now supports repoIds ([#790](https://github.com/open-sauced/api.opensauced.pizza/issues/790)) ([7b561f6](https://github.com/open-sauced/api.opensauced.pizza/commit/7b561f6f9b1ce31fc18b4a87b2bfe9eb1cc3eda7))
+
 ### [2.26.1-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.26.0...v2.26.1-beta.1) (2024-05-10)
 
 
