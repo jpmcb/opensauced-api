@@ -8,6 +8,8 @@ import { JSONSchema } from "openai/lib/jsonschema";
 import { ZodSchema } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
+type AsyncOrSyncFunction<T extends object, R> = (args: T) => Promise<R> | R;
+
 @Injectable()
 export class OpenAIWrappedService {
   constructor(private configService: ConfigService) {}
@@ -62,13 +64,14 @@ export class OpenAIWrappedService {
    *
    * Provided by OpenAI via: https://github.com/openai/openai-node/blob/master/examples/tool-call-helpers-zod.ts
    */
-  zodFunction<T extends object>({
+
+  zodFunction<T extends object, R>({
     function: fn,
     schema,
     description = "",
     name,
   }: {
-    function: (args: T) => Promise<object[]>;
+    function: AsyncOrSyncFunction<T, R>;
     schema: ZodSchema<T>;
     description?: string;
     name?: string;

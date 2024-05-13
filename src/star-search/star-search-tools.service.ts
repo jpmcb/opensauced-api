@@ -1,11 +1,17 @@
 import { Injectable } from "@nestjs/common";
 import { z } from "zod";
 import { ChatCompletionStreamingRunner } from "openai/lib/ChatCompletionStreamingRunner";
+import { RepoService } from "../repo/repo.service";
 import { ReleaseGithubEventsService } from "../timescale/release_github_events.service";
 import { PullRequestGithubEventsVectorService } from "../timescale/pull_request_github-events_vector.service";
 import { OpenAIWrappedService } from "../openai-wrapped/openai-wrapped.service";
 import { IssuesGithubEventsVectorService } from "../timescale/issues_github-events_vector.service";
 import { BingSearchToolsSearch } from "./bing-search-tools.service";
+
+export const RenderLottoFactorParams = z.object({
+  repoName: z.string(),
+});
+export type RenderLottoFactorParams = z.infer<typeof RenderLottoFactorParams>;
 
 /*
  * ---------------
@@ -88,12 +94,22 @@ export type SearchBingParams = z.infer<typeof SearchBingParams>;
 @Injectable()
 export class StarSearchToolsService {
   constructor(
+    private repoService: RepoService,
     private openAIWrappedService: OpenAIWrappedService,
     private bingSearchToolsService: BingSearchToolsSearch,
     private pullRequestGithubEventsVectorService: PullRequestGithubEventsVectorService,
     private issuesGithubEventsVectorService: IssuesGithubEventsVectorService,
     private releaseGithubEventsService: ReleaseGithubEventsService
   ) {}
+
+  /*
+   * ---------------
+   * Client signals to render components
+   */
+
+  async renderLottoFactor({ repoName }: RenderLottoFactorParams) {
+    return this.repoService.findLottoFactor({ repos: repoName });
+  }
 
   /*
    * ---------------
@@ -219,6 +235,18 @@ export class StarSearchToolsService {
     const tools = [
       /*
        * ---------------
+       * Misc tools
+       */
+      this.openAIWrappedService.zodFunction({
+        function: async (params: RenderLottoFactorParams) => this.renderLottoFactor(params),
+        schema: RenderLottoFactorParams,
+        name: "renderLottoFactor",
+        description:
+          "Signals to clients that they should render a Lottery Factor graph component: the Lottery Factor component is a visualization of the distribution of contributions and shows the risk profile of repositories most active contributors suddenly no longer being available, putting that project's future in jeopardy.",
+      }),
+
+      /*
+       * ---------------
        * PRs tools
        */
       this.openAIWrappedService.zodFunction({
@@ -319,6 +347,8 @@ export class StarSearchToolsService {
     const systemMessage = `As an OpenSauced AI assistant, your purpose is to answer the user's queries by discerning impactful open-source contributors, including those often overlooked, within the GitHub community by analyzing GitHub Events data that you will be given.
 
 In your toolkit, you have multiple functions designed to retrieve GitHub event data in parallel, aligning with OpenSauced's mission to surface diverse contributions within the open-source community. These functions enable the identification of active participation and expertise through IssueEvents and PullRequestEvents, which are essential indicators of a contributor's engagement in a project.
+
+Use the 'renderLottoFactor' function when queries ask about the "Lottery Factor" for certain repositories or about the risk profile of certain projects important individuals suddently disappearing. This function signals to clients that it should render a Lottery Factor graph for a specific repository.
 
 Utilize the 'searchAllPrs' function when queries pertain to issues and pull requests to analyze user engagement and the intricacies of contributions. This function is key in elucidating the extent of a contributor's involvement and their domain knowledge within the project.
 
