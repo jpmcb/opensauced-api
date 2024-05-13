@@ -5,6 +5,14 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.27.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.27.0-beta.1...v2.27.0-beta.2) (2024-05-13)
+
+
+### 🍕 Features
+
+* add support for shortening repo page URLs with a custom short link ([#791](https://github.com/open-sauced/api.opensauced.pizza/issues/791)) ([7743605](https://github.com/open-sauced/api.opensauced.pizza/commit/774360555c4889b7973cdef2196ee545817562dd))
+* Skunkworks - Star-search send "functionCall" events to clients ([#787](https://github.com/open-sauced/api.opensauced.pizza/issues/787)) ([0407685](https://github.com/open-sauced/api.opensauced.pizza/commit/04076850a6f73c4d983cd040ccd37a58e68a4fce))
+
 ## [2.27.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.26.1-beta.1...v2.27.0-beta.1) (2024-05-13)
 
 
