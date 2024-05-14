@@ -27,6 +27,7 @@ import { DbUserCollaboration } from "../entities/user-collaboration.entity";
 import { DbUserList } from "../../user-lists/entities/user-list.entity";
 import { DbWorkspace } from "../../workspace/entities/workspace.entity";
 import { DbWorkspaceMember, WorkspaceMemberRoleEnum } from "../../workspace/entities/workspace-member.entity";
+import { UserDto } from "../dtos/user.dto";
 
 @Injectable()
 export class UserService {
@@ -140,11 +141,8 @@ export class UserService {
     return item;
   }
 
-  async findOneByUsername(username: string): Promise<DbUser> {
-    const recentPrCount = await this.pullRequestGithubEventsService.findCountByPrAuthor(username, 30, 0);
-    const userVelocity = await this.pullRequestGithubEventsService.findVelocityByPrAuthor(username, 30, 0);
-    const isMaintainer = await this.pullRequestGithubEventsService.isMaintainer(username);
-
+  async findOneByUsername(username: string, options?: UserDto): Promise<DbUser> {
+    const maintainerRepoIds = options?.maintainerRepoIds?.split(",");
     const queryBuilder = this.baseQueryBuilder();
 
     queryBuilder
@@ -183,6 +181,10 @@ export class UserService {
     if (!item) {
       throw new NotFoundException();
     }
+
+    const recentPrCount = await this.pullRequestGithubEventsService.findCountByPrAuthor(username, 30, 0);
+    const userVelocity = await this.pullRequestGithubEventsService.findVelocityByPrAuthor(username, 30, 0);
+    const isMaintainer = await this.pullRequestGithubEventsService.isMaintainer(username, maintainerRepoIds);
 
     item.recent_pull_request_velocity_count = userVelocity;
     item.recent_pull_requests_count = recentPrCount;

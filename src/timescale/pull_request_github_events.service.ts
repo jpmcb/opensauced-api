@@ -278,7 +278,7 @@ export class PullRequestGithubEventsService {
     return queryBuilder.getRawMany<DbContributorCounts>();
   }
 
-  async isMaintainer(merger: string): Promise<boolean> {
+  async isMaintainer(merger: string, repoIds?: string[]): Promise<boolean> {
     const queryBuilder = this.baseQueryBuilder();
 
     queryBuilder
@@ -289,6 +289,20 @@ export class PullRequestGithubEventsService {
       .andWhere(`LOWER("pull_request_github_events"."actor_login") = LOWER(:merger)`, {
         merger: merger.toLowerCase(),
       });
+
+    if (repoIds && repoIds.length > 0) {
+      const repoIdReqs = repoIds.map(async (repoId) =>
+        this.repoService
+          .tryFindRepoOrMakeStub({ repoId: Number(repoId) })
+          .then((repoInfo) => repoInfo.full_name)
+          .catch(() => undefined)
+      );
+      const repoNames = (await Promise.all(repoIdReqs)).filter((name) => name !== undefined);
+
+      if (repoNames.length > 0) {
+        queryBuilder.andWhere(`LOWER("pull_request_github_events"."repo_name") IN (:...repos)`, { repos: repoNames });
+      }
+    }
 
     const countResult = await queryBuilder.getRawOne<{ count: number }>();
 
