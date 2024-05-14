@@ -46,8 +46,7 @@ export class UrlShortenerService {
   }
 
   async createShortLink(url: string) {
-    const urlPath = new URL(url).pathname;
-    const customKey = new RegExp("^/user/(.*)$").test(urlPath) ? urlPath.split("/").pop() : undefined;
+    const customKey = this.getCustomKey(url);
     const response = await fetch(`${this.dubApiHost}/links?workspaceId=${this.dubWorkspaceId}`, {
       method: "POST",
       headers: {
@@ -63,5 +62,25 @@ export class UrlShortenerService {
     }
 
     throw new BadRequestException("Unable to shorten URL");
+  }
+
+  getCustomKey(url: string) {
+    const urlPath = new URL(url).pathname;
+
+    // ex: /user/:username
+    const userKey = new RegExp("^/user/(.*)$").test(urlPath) ? urlPath.split("/").pop() : undefined;
+
+    if (userKey) {
+      return userKey;
+    }
+
+    // ex: /s/:org/:repo
+    const repoKey = new RegExp("^/s/(.*)$").test(urlPath) ? urlPath.split("/").slice(2).join("/") : undefined;
+
+    if (repoKey) {
+      return repoKey;
+    }
+
+    return undefined;
   }
 }

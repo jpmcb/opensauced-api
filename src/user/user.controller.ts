@@ -19,6 +19,7 @@ import { FilteredUsersDto } from "./dtos/filtered-users.dto";
 import { DbUserOrganization } from "./entities/user-organization.entity";
 import { UserOrganizationService } from "./user-organization.service";
 import { UserPrsDto } from "./dtos/user-prs.dto";
+import { UserDto } from "./dtos/user.dto";
 
 @Controller("users")
 @ApiTags("User service")
@@ -38,8 +39,8 @@ export class UserController {
   })
   @ApiOkResponse({ type: DbUser })
   @ApiNotFoundResponse({ description: "User not found" })
-  async findOneUserById(@Param("username") username: string): Promise<DbUser> {
-    return this.userService.findOneByUsername(username);
+  async findOneUserById(@Param("username") username: string, @Query() userOptions?: UserDto): Promise<DbUser> {
+    return this.userService.findOneByUsername(username, userOptions);
   }
 
   @Get("/:username/prs")

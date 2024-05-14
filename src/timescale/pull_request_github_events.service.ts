@@ -249,10 +249,12 @@ export class PullRequestGithubEventsService {
     range,
     prevDaysStartDate,
     repoNames,
+    noBots = false,
   }: {
     range: number;
     prevDaysStartDate: number;
     repoNames: string[];
+    noBots?: boolean;
   }): Promise<DbContributorCounts[]> {
     const startDate = GetPrevDateISOString(prevDaysStartDate);
 
@@ -269,10 +271,14 @@ export class PullRequestGithubEventsService {
       .groupBy("pr_author_login")
       .orderBy("count", "DESC");
 
+    if (noBots) {
+      queryBuilder.andWhere("LOWER(pr_author_login) NOT LIKE '%[bot]%'");
+    }
+
     return queryBuilder.getRawMany<DbContributorCounts>();
   }
 
-  async isMaintainer(merger: string): Promise<boolean> {
+  async isMaintainer(merger: string, repoIds?: string[]): Promise<boolean> {
     const queryBuilder = this.baseQueryBuilder();
 
     queryBuilder
@@ -283,6 +289,20 @@ export class PullRequestGithubEventsService {
       .andWhere(`LOWER("pull_request_github_events"."actor_login") = LOWER(:merger)`, {
         merger: merger.toLowerCase(),
       });
+
+    if (repoIds && repoIds.length > 0) {
+      const repoIdReqs = repoIds.map(async (repoId) =>
+        this.repoService
+          .tryFindRepoOrMakeStub({ repoId: Number(repoId) })
+          .then((repoInfo) => repoInfo.full_name)
+          .catch(() => undefined)
+      );
+      const repoNames = (await Promise.all(repoIdReqs)).filter((name) => name !== undefined);
+
+      if (repoNames.length > 0) {
+        queryBuilder.andWhere(`LOWER("pull_request_github_events"."repo_name") IN (:...repos)`, { repos: repoNames });
+      }
+    }
 
     const countResult = await queryBuilder.getRawOne<{ count: number }>();
 
@@ -315,6 +335,7 @@ export class PullRequestGithubEventsService {
     const range = pageOptionsDto.range!;
     const order = pageOptionsDto.orderDirection!;
     const repos = pageOptionsDto.repos ? pageOptionsDto.repos.toLowerCase().split(",") : undefined;
+    const repoIds = pageOptionsDto.repoIds ? pageOptionsDto.repoIds.toLowerCase().split(",") : undefined;
 
     /*
      * because PR events may be "opened" or "closed" many times, this inner CTE query gets similar PRs rows
@@ -333,6 +354,10 @@ export class PullRequestGithubEventsService {
 
     if (repos && repos.length > 0) {
       cteBuilder.andWhere(`LOWER("pull_request_github_events"."repo_name") IN (:...repos)`, { repos });
+    }
+
+    if (repoIds && repoIds.length > 0) {
+      cteBuilder.andWhere(`"pull_request_github_events"."repo_id" IN (:...repoIds)`, { repoIds });
     }
 
     return this.execCommonTableExpression(pageOptionsDto, cteBuilder);

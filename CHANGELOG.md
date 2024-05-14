@@ -5,6 +5,36 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.27.0-beta.3](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.27.0-beta.2...v2.27.0-beta.3) (2024-05-14)
+
+
+### 🍕 Features
+
+* add repositories filter for maintainer flag to user endpoint ([#794](https://github.com/open-sauced/api.opensauced.pizza/issues/794)) ([a951637](https://github.com/open-sauced/api.opensauced.pizza/commit/a9516376579b2bc333f08179c0884e266bd98f62))
+
+## [2.27.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.27.0-beta.1...v2.27.0-beta.2) (2024-05-13)
+
+
+### 🍕 Features
+
+* add support for shortening repo page URLs with a custom short link ([#791](https://github.com/open-sauced/api.opensauced.pizza/issues/791)) ([7743605](https://github.com/open-sauced/api.opensauced.pizza/commit/774360555c4889b7973cdef2196ee545817562dd))
+* Skunkworks - Star-search send "functionCall" events to clients ([#787](https://github.com/open-sauced/api.opensauced.pizza/issues/787)) ([0407685](https://github.com/open-sauced/api.opensauced.pizza/commit/04076850a6f73c4d983cd040ccd37a58e68a4fce))
+
+## [2.27.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.26.1-beta.1...v2.27.0-beta.1) (2024-05-13)
+
+
+### 🍕 Features
+
+* Upgrade to GPT-4o ([#789](https://github.com/open-sauced/api.opensauced.pizza/issues/789)) ([a8a63f5](https://github.com/open-sauced/api.opensauced.pizza/commit/a8a63f5172c8c36349c292ee7cdfcc8f8c421a97))
+* v2/users/username/prs now supports repoIds ([#790](https://github.com/open-sauced/api.opensauced.pizza/issues/790)) ([7b561f6](https://github.com/open-sauced/api.opensauced.pizza/commit/7b561f6f9b1ce31fc18b4a87b2bfe9eb1cc3eda7))
+
+### [2.26.1-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.26.0...v2.26.1-beta.1) (2024-05-10)
+
+
+### 🐛 Bug Fixes
+
+* Ignore bots when calculating the lottery factor ([#786](https://github.com/open-sauced/api.opensauced.pizza/issues/786)) ([ddbd708](https://github.com/open-sauced/api.opensauced.pizza/commit/ddbd70863488292e64036e8fdb8f704301c3cd6a))
+
 ## [2.26.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.25.0...v2.26.0) (2024-05-09)
 
 
