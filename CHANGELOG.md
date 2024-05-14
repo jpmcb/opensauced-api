@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.27.0-beta.3](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.27.0-beta.2...v2.27.0-beta.3) (2024-05-14)
+
+
+### 🍕 Features
+
+* add repositories filter for maintainer flag to user endpoint ([#794](https://github.com/open-sauced/api.opensauced.pizza/issues/794)) ([a951637](https://github.com/open-sauced/api.opensauced.pizza/commit/a9516376579b2bc333f08179c0884e266bd98f62))
+
 ## [2.27.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.27.0-beta.1...v2.27.0-beta.2) (2024-05-13)
 
 
