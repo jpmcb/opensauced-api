@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.28.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.27.0...v2.28.0-beta.1) (2024-05-15)
+
+
+### 🍕 Features
+
+* Add hack/call-sse.sh script for easy star-search testing ([#797](https://github.com/open-sauced/api.opensauced.pizza/issues/797)) ([aaa0b36](https://github.com/open-sauced/api.opensauced.pizza/commit/aaa0b365dc5347a115fb9f967ff21db9a8b658ba))
+
 ## [2.27.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.26.0...v2.27.0) (2024-05-14)
 
 
