@@ -5,6 +5,20 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.28.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.28.0-beta.1...v2.28.0-beta.2) (2024-05-16)
+
+
+### 🍕 Features
+
+* StarSearch agents refactor ([#795](https://github.com/open-sauced/api.opensauced.pizza/issues/795)) ([9da34f7](https://github.com/open-sauced/api.opensauced.pizza/commit/9da34f7d76a7725407f382089b2d58465019c84d))
+
+## [2.28.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.27.0...v2.28.0-beta.1) (2024-05-15)
+
+
+### 🍕 Features
+
+* Add hack/call-sse.sh script for easy star-search testing ([#797](https://github.com/open-sauced/api.opensauced.pizza/issues/797)) ([aaa0b36](https://github.com/open-sauced/api.opensauced.pizza/commit/aaa0b365dc5347a115fb9f967ff21db9a8b658ba))
+
 ## [2.27.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.26.0...v2.27.0) (2024-05-14)
 
 
