@@ -42,15 +42,17 @@ export class StarSearchController {
             data: delta,
           });
         })
-        .on("message", (msg) => console.log("msg", msg))
+        .on("message", (msg) => console.log("manager msg", msg))
         .on("functionCall", (functionCall: ChatCompletionMessage.FunctionCall) => {
-          console.log("functionCall", functionCall);
+          console.log("manager functionCall", functionCall);
           observer.next({
             type: StarSearchObservableEventTypeEnum.function_call,
             data: JSON.stringify(functionCall),
           });
         })
-        .on("functionCallResult", (functionCallResult) => console.log("functionCallResult", functionCallResult));
+        .on("functionCallResult", (functionCallResult) =>
+          console.log("manager functionCallResult", functionCallResult)
+        );
 
       stream
         .finalChatCompletion()
