@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.29.0-beta.4](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.29.0-beta.3...v2.29.0-beta.4) (2024-05-17)
+
+
+### 🐛 Bug Fixes
+
+* Found repos for lottery factor have full_names correctly lower-cased ([#816](https://github.com/open-sauced/api.opensauced.pizza/issues/816)) ([cf50b75](https://github.com/open-sauced/api.opensauced.pizza/commit/cf50b759a9e0e71f5636e25d0ca564ae4cc0abcd))
+
 ## [2.29.0-beta.3](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.29.0-beta.2...v2.29.0-beta.3) (2024-05-17)
 
 
