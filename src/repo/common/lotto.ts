@@ -29,9 +29,39 @@ import { DbLotteryFactor, LotteryFactorEnum } from "../entities/lotto.entity";
  *   - A contributor has between 25-50% of commits: High risk
  *   - A contributor has between 10-25% of commits: Moderate risk
  *   - A contributor has under 10% of commits: Low risk
+ *
+ * There are some special edge cases this algorithm accounts for:
+ *   - With no contributions where the grace period has ended, the lottery factor is very high
+ *   - With no contributions but still within the grace period, the lottery factor is low
  */
 
-export function calculateLottoFactor(contribCounts: DbContributorCounts[]): DbLotteryFactor {
+export function calculateLottoFactor(contribCounts: DbContributorCounts[], gracePeriodEnd: Date): DbLotteryFactor {
+  /*
+   * early escape where no contributions were found and the repos are outside the grace period.
+   * this accounts for the edge case where a repo / a set of repos have no contributions
+   * and the project is possibly abandoned.
+   */
+  if (contribCounts.length === 0 && new Date() > gracePeriodEnd) {
+    return {
+      all_contribs: [],
+      all_lotto_factor: LotteryFactorEnum.VERY_HIGH,
+      grace_period_end: gracePeriodEnd,
+    };
+  }
+
+  /*
+   * early escape where no contributions were found but the repos are inside the grace period.
+   * this accounts for the edge case where a repo / a set of repos have no contributions
+   * but there are new projects within the grace period.
+   */
+  if (contribCounts.length === 0 && new Date() <= gracePeriodEnd) {
+    return {
+      all_contribs: [],
+      all_lotto_factor: LotteryFactorEnum.LOW,
+      grace_period_end: gracePeriodEnd,
+    };
+  }
+
   const result = new DbLotteryFactor();
 
   // first, ensure the list is sorted by the contributor counts in descending order
@@ -110,6 +140,7 @@ export function calculateLottoFactor(contribCounts: DbContributorCounts[]): DbLo
 
   result.all_contribs = contribCounts;
   result.all_lotto_factor = allLottoFactor;
+  result.grace_period_end = gracePeriodEnd;
 
   return result;
 }
