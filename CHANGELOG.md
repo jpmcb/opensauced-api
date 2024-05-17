@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.29.0-beta.3](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.29.0-beta.2...v2.29.0-beta.3) (2024-05-17)
+
+
+### 🍕 Features
+
+* Implements lottery factor grace period ([#809](https://github.com/open-sauced/api.opensauced.pizza/issues/809)) ([134b6ee](https://github.com/open-sauced/api.opensauced.pizza/commit/134b6ee633da75f6e1612d5e39c8a498ea5c8d0d))
+
 ## [2.29.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.29.0-beta.1...v2.29.0-beta.2) (2024-05-17)
 
 
