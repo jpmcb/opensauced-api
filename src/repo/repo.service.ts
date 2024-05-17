@@ -302,7 +302,7 @@ export class RepoService {
     });
 
     const reposResolved = await Promise.all(repoInfos);
-    const resolvedRepoNames = reposResolved.map((repo) => repo.full_name);
+    const resolvedRepoNames = reposResolved.map((repo) => repo.full_name.toLowerCase());
 
     // finding the oldest 'created_at' date for the given repos
     const endOfGracePeriod = reposResolved.reduce(
