@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.29.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.28.0...v2.29.0-beta.1) (2024-05-17)
+
+
+### 🍕 Features
+
+* Refactors prompts into the environment ([#807](https://github.com/open-sauced/api.opensauced.pizza/issues/807)) ([33d947a](https://github.com/open-sauced/api.opensauced.pizza/commit/33d947a9bd2dfeafa6765c6c8694b65c58948232))
+
 ## [2.28.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.27.0...v2.28.0) (2024-05-16)
 
 
