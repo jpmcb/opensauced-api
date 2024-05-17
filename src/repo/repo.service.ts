@@ -293,14 +293,22 @@ export class RepoService {
   }
 
   async findLottoFactor(pageOptionsDto: RepoRangeOptionsDto): Promise<DbLotteryFactor> {
-    if (pageOptionsDto.repos.length === 0) {
+    const repos = pageOptionsDto.repos.split(",");
+    const repoInfos = repos.map(async (repo) => {
+      const [repoOwner, repoName] = repo.split("/");
+
+      return this.tryFindRepoOrMakeStub({ repoOwner, repoName });
+    });
+    const resolvedRepoNames = (await Promise.all(repoInfos)).map((repo) => repo.full_name);
+
+    if (resolvedRepoNames.length === 0) {
       return new DbLotteryFactor();
     }
 
     const contribCounts = await this.pullRequestGithubEventsService.findAllPrAuthorCounts({
       range: pageOptionsDto.range ?? 30,
       prevDaysStartDate: pageOptionsDto.prev_days_start_date ?? 0,
-      repoNames: pageOptionsDto.repos.split(","),
+      repoNames: resolvedRepoNames,
       noBots: true,
     });
 
@@ -434,7 +442,11 @@ export class RepoService {
       });
     } catch (error: unknown) {
       console.error(error);
-      throw new BadRequestException("Error fetching repo:", `${owner}/${repo}`);
+      if (error instanceof Error) {
+        throw new BadRequestException("Error fetching repo:", `${owner}/${repo} - ${error.message}`);
+      } else {
+        throw new BadRequestException("Error fetching repo:", `${owner}/${repo} - Unknown error`);
+      }
     }
 
     const parts = octoResponse.data.full_name.split("/");

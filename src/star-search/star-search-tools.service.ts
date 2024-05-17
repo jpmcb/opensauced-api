@@ -38,7 +38,15 @@ export class StarSearchToolsService {
    */
 
   async renderLottoFactor({ repoName }: RenderLottoFactorParams) {
-    return this.repoService.findLottoFactor({ repos: repoName });
+    try {
+      const result = await this.repoService.findLottoFactor({ repos: repoName });
+
+      return result;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return `error getting lottery factor data: ${error.message}`;
+      }
+    }
   }
 
   runTools(question: string): ChatCompletionStreamingRunner {
