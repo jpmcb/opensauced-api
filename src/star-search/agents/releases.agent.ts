@@ -18,11 +18,15 @@ export class ReleaseAgent {
   }
 
   async getReleasesByReponame({ repoName }: ReleasesParams) {
-    return this.releaseGithubEventsService.getReleases({
+    const results = await this.releaseGithubEventsService.getReleases({
       repos: repoName,
       range: 30,
       skip: 0,
     });
+
+    if (results.length === 0) {
+      return "no releases found";
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

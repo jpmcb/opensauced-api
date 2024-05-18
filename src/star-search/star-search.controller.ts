@@ -1,10 +1,12 @@
-import { Body, Controller, Post, Sse } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Post, Sse } from "@nestjs/common";
 import { ApiOperation, ApiBadRequestResponse, ApiBody, ApiTags } from "@nestjs/swagger";
 
 import { Observable } from "rxjs";
 import { ChatCompletionMessage } from "openai/resources";
 import { StarSearchStreamDto } from "./dtos/create-star-search.dto";
 import { StarSearchToolsService } from "./star-search-tools.service";
+import { PreProcessorAgent } from "./agents/pre-processor.agent";
+import { isPreProcessorError } from "./schemas/pre-processor.schema";
 
 enum StarSearchObservableEventTypeEnum {
   content = "content",
@@ -21,7 +23,10 @@ interface StarSearchObservable {
 @Controller("star-search")
 @ApiTags("Star Search Service")
 export class StarSearchController {
-  constructor(private readonly starSearchToolsService: StarSearchToolsService) {}
+  constructor(
+    private readonly starSearchToolsService: StarSearchToolsService,
+    private readonly preProcessAgent: PreProcessorAgent
+  ) {}
 
   @Post("stream")
   @Sse("stream")
@@ -31,8 +36,18 @@ export class StarSearchController {
   })
   @ApiBadRequestResponse({ description: "Invalid request" })
   @ApiBody({ type: StarSearchStreamDto })
-  starSearchStream(@Body() options: StarSearchStreamDto): Observable<StarSearchObservable> {
-    const stream = this.starSearchToolsService.runTools(options.query_text);
+  async starSearchStream(@Body() options: StarSearchStreamDto): Promise<Observable<StarSearchObservable>> {
+    const preProcessResults = await this.preProcessAgent.preProcessPrompt({ prompt: options.query_text });
+
+    if (!preProcessResults) {
+      throw new BadRequestException();
+    }
+
+    if (isPreProcessorError(preProcessResults)) {
+      throw new BadRequestException(`error: ${preProcessResults.error}`);
+    }
+
+    const stream = this.starSearchToolsService.runTools(preProcessResults.prompt);
 
     return new Observable<StarSearchObservable>((observer) => {
       stream

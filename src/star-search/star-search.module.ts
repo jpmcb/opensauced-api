@@ -9,10 +9,11 @@ import { BingSearchAgent } from "./agents/bing-search.agent";
 import { PullRequestAgent } from "./agents/pull-request.agent";
 import { IssuesAgent } from "./agents/issues.agent";
 import { ReleaseAgent } from "./agents/releases.agent";
+import { PreProcessorAgent } from "./agents/pre-processor.agent";
 
 @Module({
   imports: [HttpModule, TimescaleModule, OpenAIWrappedModule, RepoModule],
-  providers: [BingSearchAgent, IssuesAgent, PullRequestAgent, ReleaseAgent, StarSearchToolsService],
+  providers: [BingSearchAgent, IssuesAgent, PreProcessorAgent, PullRequestAgent, ReleaseAgent, StarSearchToolsService],
   exports: [BingSearchAgent, StarSearchToolsService],
   controllers: [StarSearchController],
 })

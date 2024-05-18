@@ -233,7 +233,15 @@ export class OpenAIWrappedService {
     scTools: RunnableToolFunctionWithParse<object>[]
   ): Promise<{ name: string; validatedParams: any } | null> {
     const scToolNames = scTools.map((tool) => tool.function.name);
-    const scToolSchemas = scTools.map((tool) => JSON.stringify(tool.function.parameters));
+    const scToolChunks = scTools.map((tool) => {
+      if (!tool.function.name) {
+        return "";
+      }
+
+      return `Name: ${tool.function.name}\nParameters: ${JSON.stringify(tool.function.parameters)}\nDescription: ${
+        tool.function.description
+      }\n`;
+    });
 
     const prompt = `System message to evaluate:
 ${systemMessageToEvaluate}
@@ -242,10 +250,7 @@ Prompt:
 ${promptToEvaluate}
 
 Available short-circuit tools:
-${scToolNames.join(", ")}
-
-Tool schemas:
-${scToolSchemas.join("\n")}`;
+${scToolChunks.join("\n")}`;
 
     try {
       const response = await this.openaiClient.chat.completions.create({
@@ -281,6 +286,7 @@ ${scToolSchemas.join("\n")}`;
        * return null so that the other agent can enter its run-tools loop.
        */
       if (!scToolNames.includes(choiceJson.name)) {
+        console.error("short-circuit tools does not include chosen name", choiceJson.name);
         return null;
       }
 

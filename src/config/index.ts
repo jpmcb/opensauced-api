@@ -10,6 +10,7 @@ export const envSchema = z.object({
   STARSEARCH_PULL_REQUEST_AGENT_SYSTEM_MESSAGE: z
     .string()
     .min(1, "StarSearch pull request agent system message is required"),
+  STARSEARCH_RELEASE_AGENT_SYSTEM_MESSAGE: z.string().min(1, "Pre-processor agent system message is required"),
 });
 
 export * from "./api.config";

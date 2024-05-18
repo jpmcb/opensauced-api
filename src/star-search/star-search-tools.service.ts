@@ -27,9 +27,6 @@ export class StarSearchToolsService {
     private releaseAgent: ReleaseAgent
   ) {
     this.managerSystemMessage = this.configService.get("starsearch.managerSystemMessage")!;
-    if (!this.managerSystemMessage) {
-      throw new Error("StarSearch manager system prompt not in environment");
-    }
   }
 
   /*
@@ -39,7 +36,7 @@ export class StarSearchToolsService {
 
   async renderLottoFactor({ repoName }: RenderLottoFactorParams) {
     try {
-      const result = await this.repoService.findLottoFactor({ repos: repoName });
+      const result = await this.repoService.findLottoFactor({ repos: repoName, range: 30 });
 
       return result;
     } catch (error: unknown) {
