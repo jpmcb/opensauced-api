@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.29.0-beta.5](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.29.0-beta.4...v2.29.0-beta.5) (2024-05-18)
+
+
+### 🍕 Features
+
+* Adds a "pre-processor" agent ([#817](https://github.com/open-sauced/api.opensauced.pizza/issues/817)) ([cfbdb49](https://github.com/open-sauced/api.opensauced.pizza/commit/cfbdb49fb967d34c8686a304544c38638ff6decb))
+
 ## [2.29.0-beta.4](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.29.0-beta.3...v2.29.0-beta.4) (2024-05-17)
 
 
