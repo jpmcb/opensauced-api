@@ -8,7 +8,7 @@ describe("calculateLottoFactor", () => {
       { contributor: "jpmcb", count: 600, percent_of_total: 0, lotto_factor: "" },
       { contributor: "nickytonline", count: 400, percent_of_total: 0, lotto_factor: "" },
     ];
-    const result = calculateLottoFactor(contribCounts);
+    const result = calculateLottoFactor(contribCounts, new Date());
 
     expect(result.all_lotto_factor).toEqual(LotteryFactorEnum.VERY_HIGH);
     expect(result.all_contribs[0].lotto_factor).toEqual(LotteryFactorEnum.VERY_HIGH);
@@ -20,7 +20,7 @@ describe("calculateLottoFactor", () => {
       { contributor: "nickytonline", count: 300, percent_of_total: 0, lotto_factor: "" },
       { contributor: "bdougie", count: 400, percent_of_total: 0, lotto_factor: "" },
     ];
-    const result = calculateLottoFactor(contribCounts);
+    const result = calculateLottoFactor(contribCounts, new Date());
 
     expect(result.all_lotto_factor).toEqual(LotteryFactorEnum.HIGH);
   });
@@ -33,7 +33,7 @@ describe("calculateLottoFactor", () => {
       { contributor: "zeucapua", count: 200, percent_of_total: 0, lotto_factor: "" },
       { contributor: "brandonroberts", count: 200, percent_of_total: 0, lotto_factor: "" },
     ];
-    const result = calculateLottoFactor(contribCounts);
+    const result = calculateLottoFactor(contribCounts, new Date());
 
     expect(result.all_lotto_factor).toEqual(LotteryFactorEnum.MODERATE);
   });
@@ -51,9 +51,29 @@ describe("calculateLottoFactor", () => {
       { contributor: "OgDev-01", count: 100, percent_of_total: 0, lotto_factor: "" },
       { contributor: "manipanditk", count: 100, percent_of_total: 0, lotto_factor: "" },
     ];
-    const result = calculateLottoFactor(contribCounts);
+    const result = calculateLottoFactor(contribCounts, new Date());
 
     expect(result.all_lotto_factor).toEqual(LotteryFactorEnum.LOW);
+  });
+
+  it("should assign VERY_HIGH risk if there are no contributions and outside the grace period", () => {
+    const contribCounts: DbContributorCounts[] = [];
+    const gracePeriodDate = new Date(Date.now() - 1 * 86400000);
+    const result = calculateLottoFactor(contribCounts, gracePeriodDate);
+
+    expect(result.all_lotto_factor).toEqual(LotteryFactorEnum.VERY_HIGH);
+    expect(result.all_contribs.length).toEqual(0);
+    expect(result.grace_period_end).toEqual(gracePeriodDate);
+  });
+
+  it("should assign LOW risk if there are no contributions but within the grace period", () => {
+    const contribCounts: DbContributorCounts[] = [];
+    const gracePeriodDate = new Date(Date.now() + 1 * 86400000);
+    const result = calculateLottoFactor(contribCounts, gracePeriodDate);
+
+    expect(result.all_lotto_factor).toEqual(LotteryFactorEnum.LOW);
+    expect(result.all_contribs.length).toEqual(0);
+    expect(result.grace_period_end).toEqual(gracePeriodDate);
   });
 
   it("should correctly calculate individual lotto factors based on contribution percentages", () => {
@@ -64,7 +84,7 @@ describe("calculateLottoFactor", () => {
       { contributor: "zeucapua", count: 501, percent_of_total: 0, lotto_factor: "" },
     ];
 
-    const result = calculateLottoFactor(contribCounts);
+    const result = calculateLottoFactor(contribCounts, new Date());
 
     expect(result.all_contribs[3].lotto_factor).toEqual(LotteryFactorEnum.LOW);
     expect(result.all_contribs[2].lotto_factor).toEqual(LotteryFactorEnum.MODERATE);

@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { OpenAIWrappedService } from "../../openai-wrapped/openai-wrapped.service";
 import { ToolFunction } from "../types/toolfunction.type";
 import {
@@ -12,10 +13,15 @@ import { IssuesGithubEventsVectorService } from "../../timescale/issues_github-e
 
 @Injectable()
 export class IssuesAgent {
+  agentSystemMessage: string;
+
   constructor(
+    private configService: ConfigService,
     private openAIWrappedService: OpenAIWrappedService,
     private issuesGithubEventsVectorService: IssuesGithubEventsVectorService
-  ) {}
+  ) {
+    this.agentSystemMessage = this.configService.get("starsearch.issuesAgentSystemMessage")!;
+  }
 
   async searchAllIssues({ question }: SearchAllIssuesParams) {
     const queryEmbedding = await this.openAIWrappedService.generateEmbedding(question);
@@ -104,29 +110,9 @@ export class IssuesAgent {
       }),
     ];
 
-    const systemMessage = `You are the OpenSauced "Issues AI Agent". Your purpose is to interact with other AI agent callers that are querying you for information and insights into GitHub issues.
-
-In your toolkit, you have multiple functions designed to retrieve GitHub issues event data in parallel. These functions enable the identification of active participation and expertise, which are essential indicators of a contributor's engagement in a project.
-
-Utilize the 'searchAllIssues' function when queries pertain to issues to analyze problems or work done for a project. This function is key in elucidating the extent of a contributor's involvement and their domain knowledge within the project.
-
-Utilize the 'searchIssuesByRepoName' function when queries pertain to issues in a specific repository to analyze problems and work done for a project. This function is key in elucidating the extent of a contributor's involvement and their domain knowledge within the project.
-
-Utilize the 'searchIssuesByAuthor' function when queries pertain to issues from a specific user problems raised and work done for a project. This function is key in elucidating the extent of a contributor's involvement and their domain knowledge within a specific project. This will only return data for that specific GitHub user.
-
-Utilize the 'searchIssuesByRepoNameAndAuthor' function when queries pertain to issues in specific repositories and further narrow down the search by a specific repo name. Use this to analyze user engagement and the intricacies of contributions. This function is key in elucidating the extent of a contributor's involvement and their domain knowledge within a specific project for a specific user.
-
-In instances where the query lacks specificity, such as missing repository names or technology stacks, infer intelligently from the provided context, user input, and your own knowledge to enrich the response appropriately, without conjecture or misrepresentation. Use the 'searchAllIssues' function when all else fails.
-
-When faced with vague queries, use contextual cues and known data to deduce missing details like repository names or technologies. Avoid assumptions; only infer what can be logically concluded from the information provided.
-
-Summarize issue data concisely, focusing on the core contributions and omitting bot-generated content and extraneous details.
-
-Craft responses that are informative and accessible to diverse stakeholders in the open-source community, including maintainers, contributors, and community managers.`;
-
     // directly call the function if the agent can decide based on the prompt
     const shortCircuitDecision = await this.openAIWrappedService.decideShortCircuitTool(
-      systemMessage,
+      this.agentSystemMessage,
       agentParams.prompt,
       tools
     );
@@ -141,7 +127,7 @@ Craft responses that are informative and accessible to diverse stakeholders in t
     }
 
     const runner = this.openAIWrappedService
-      .runTools(systemMessage, agentParams.prompt, tools)
+      .runTools(this.agentSystemMessage, agentParams.prompt, tools)
       .on("message", (msg) => console.log("issues agent msg", msg))
       .on("functionCall", (functionCall) => console.log("issues agent functionCall", functionCall))
       .on("functionCallResult", (functionCallResult) =>

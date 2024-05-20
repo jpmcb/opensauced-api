@@ -293,18 +293,41 @@ export class RepoService {
   }
 
   async findLottoFactor(pageOptionsDto: RepoRangeOptionsDto): Promise<DbLotteryFactor> {
-    if (pageOptionsDto.repos.length === 0) {
+    const range = pageOptionsDto.range!;
+    const repos = pageOptionsDto.repos.split(",");
+    const repoInfos = repos.map(async (repo) => {
+      const [repoOwner, repoName] = repo.split("/");
+
+      return this.tryFindRepoOrMakeStub({ repoOwner, repoName });
+    });
+
+    const reposResolved = await Promise.all(repoInfos);
+    const resolvedRepoNames = reposResolved.map((repo) => repo.full_name.toLowerCase());
+
+    // finding the oldest 'created_at' date for the given repos
+    const endOfGracePeriod = reposResolved.reduce(
+      (oldest, current) => (oldest < current.created_at! ? oldest : current.created_at!),
+      reposResolved[0].created_at!
+    );
+
+    /*
+     * the lottery factor grace period is the oldest created repo plus a month of
+     * time to allow for some wiggle room for newly created projects.
+     */
+    endOfGracePeriod.setDate(endOfGracePeriod.getDate() + 30);
+
+    if (resolvedRepoNames.length === 0) {
       return new DbLotteryFactor();
     }
 
     const contribCounts = await this.pullRequestGithubEventsService.findAllPrAuthorCounts({
-      range: pageOptionsDto.range ?? 30,
+      range,
       prevDaysStartDate: pageOptionsDto.prev_days_start_date ?? 0,
-      repoNames: pageOptionsDto.repos.split(","),
+      repoNames: resolvedRepoNames,
       noBots: true,
     });
 
-    return calculateLottoFactor(contribCounts);
+    return calculateLottoFactor(contribCounts, endOfGracePeriod);
   }
 
   async findAllWithFilters(pageOptionsDto: RepoSearchOptionsDto): Promise<PageDto<DbRepoWithStats>> {
@@ -434,7 +457,11 @@ export class RepoService {
       });
     } catch (error: unknown) {
       console.error(error);
-      throw new BadRequestException("Error fetching repo:", `${owner}/${repo}`);
+      if (error instanceof Error) {
+        throw new BadRequestException("Error fetching repo:", `${owner}/${repo} - ${error.message}`);
+      } else {
+        throw new BadRequestException("Error fetching repo:", `${owner}/${repo} - Unknown error`);
+      }
     }
 
     const parts = octoResponse.data.full_name.split("/");

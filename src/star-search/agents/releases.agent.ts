@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { OpenAIWrappedService } from "../../openai-wrapped/openai-wrapped.service";
 import { ToolFunction } from "../types/toolfunction.type";
 import { ReleaseGithubEventsService } from "../../timescale/release_github_events.service";
@@ -6,17 +7,26 @@ import { ReleaseAgentParams, ReleasesParams } from "../schemas/releases.schema";
 
 @Injectable()
 export class ReleaseAgent {
+  agentSystemMessage: string;
+
   constructor(
+    private configService: ConfigService,
     private openAIWrappedService: OpenAIWrappedService,
     private releaseGithubEventsService: ReleaseGithubEventsService
-  ) {}
+  ) {
+    this.agentSystemMessage = this.configService.get("starsearch.releaseAgentSystemMessage")!;
+  }
 
   async getReleasesByReponame({ repoName }: ReleasesParams) {
-    return this.releaseGithubEventsService.getReleases({
+    const results = await this.releaseGithubEventsService.getReleases({
       repos: repoName,
       range: 30,
       skip: 0,
     });
+
+    if (results.length === 0) {
+      return "no releases found";
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,15 +49,9 @@ export class ReleaseAgent {
       }),
     ];
 
-    const systemMessage = `You are the OpenSauced "Release AI Agent". Your purpose is to interact with other AI agent callers that are querying you for information and insights about GitHub releases.
-
-In your toolkit, you have multiple functions designed to retrieve GitHub release events data in parallel. These functions enable you to gain an understanding of releases across the github ecosystem.
-
-Utilize the 'getReleasesByReponame' function when queries pertain to releases in specific repositories`;
-
     // directly call the function if the agent can decide based on the prompt
     const shortCircuitDecision = await this.openAIWrappedService.decideShortCircuitTool(
-      systemMessage,
+      this.agentSystemMessage,
       agentParams.prompt,
       tools
     );
@@ -62,7 +66,7 @@ Utilize the 'getReleasesByReponame' function when queries pertain to releases in
     }
 
     const runner = this.openAIWrappedService
-      .runTools(systemMessage, agentParams.prompt, tools)
+      .runTools(this.agentSystemMessage, agentParams.prompt, tools)
       .on("message", (msg) => console.log("release agent msg", msg))
       .on("functionCall", (functionCall) => console.log("release agent functionCall", functionCall))
       .on("functionCallResult", (functionCallResult) =>

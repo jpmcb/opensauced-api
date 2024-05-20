@@ -20,6 +20,8 @@ import {
   DbTimescaleConfig,
   GitHubConfig,
   DubConfig,
+  StarSearchConfig,
+  envSchema,
 } from "./config";
 import { RepoModule } from "./repo/repo.module";
 import { HealthModule } from "./health/health.module";
@@ -106,6 +108,7 @@ import { DbIssueCommentGitHubEvents } from "./timescale/entities/issue_comment_g
         EndpointConfig,
         StripeConfig,
         OpenAIConfig,
+        StarSearchConfig,
         BingConfig,
         PizzaConfig,
         DbTimescaleConfig,
@@ -113,6 +116,21 @@ import { DbIssueCommentGitHubEvents } from "./timescale/entities/issue_comment_g
         DubConfig,
       ],
       isGlobal: true,
+      validate: (config) => {
+        const parsed = envSchema.safeParse(config);
+
+        if (!parsed.success) {
+          throw new Error(parsed.error.issues.map((issue) => `${issue.path.join(".")} ${issue.message}`).join(", "));
+        }
+
+        /*
+         * todo - in the future, we will want to return parsed.data from the validated
+         * Zod environment schema. This way, we only pass in a validated
+         * and runtime type safe object. For now, just returning the raw env config
+         * works fine.
+         */
+        return config;
+      },
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

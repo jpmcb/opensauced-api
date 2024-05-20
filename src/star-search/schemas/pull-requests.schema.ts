@@ -8,6 +8,11 @@ export type SearchAllPrsParams = z.infer<typeof SearchAllPrsParams>;
 export const SearchPrsByRepoNameParams = z.object({
   question: z.string(),
   repoName: z.string(),
+  range: z
+    .number({
+      description: "the number of days in the past to look back for data",
+    })
+    .lte(90, "can only look back 90 days or less"),
 });
 export type SearchPrsByRepoNameParams = z.infer<typeof SearchPrsByRepoNameParams>;
 

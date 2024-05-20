@@ -36,4 +36,15 @@ export class DbLotteryFactor {
   })
   @IsEnum(LotteryFactorEnum)
   public all_lotto_factor: LotteryFactorEnum;
+
+  @ApiModelProperty({
+    description: "The timestamp that represents the end of the grace period. May be in the future",
+    example: "moderate",
+  })
+  @Column({
+    select: false,
+    insert: false,
+  })
+  @IsEnum(LotteryFactorEnum)
+  public grace_period_end: Date;
 }

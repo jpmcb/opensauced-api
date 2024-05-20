@@ -40,7 +40,12 @@ export class OpenAIWrappedService {
    */
   completionsModel: string;
   toolsModel: string;
-  deciderModel: string;
+  shortCircuitDeciderModel: string;
+
+  /*
+   * the configured system message for the decider model
+   */
+  shortCircuitDeciderSystemMessage: string;
 
   constructor(private configService: ConfigService) {
     const openAIKey: string = this.configService.get("openai.APIKey")!;
@@ -49,12 +54,17 @@ export class OpenAIWrappedService {
       apiKey: openAIKey,
     });
 
+    // embeddings
     this.embeddingModel = this.configService.get("openai.embeddingsModelName")!;
     this.embeddingDimensions = parseInt(this.configService.get("openai.embeddingsModelDimensions")!);
 
+    // models
     this.completionsModel = this.configService.get("openai.completionsModelName")!;
     this.toolsModel = this.configService.get("openai.toolsModelName")!;
-    this.deciderModel = this.configService.get("openai.deciderModelName")!;
+    this.shortCircuitDeciderModel = this.configService.get("openai.shortCircuitDeciderModelName")!;
+
+    // system / user messages
+    this.shortCircuitDeciderSystemMessage = this.configService.get("openai.shortCircuitDeciderSystemMessage")!;
   }
 
   async generateCompletion(systemMessage: string, userMessage: string, temperature: number): Promise<string> {
@@ -223,50 +233,15 @@ export class OpenAIWrappedService {
     scTools: RunnableToolFunctionWithParse<object>[]
   ): Promise<{ name: string; validatedParams: any } | null> {
     const scToolNames = scTools.map((tool) => tool.function.name);
-    const scToolSchemas = scTools.map((tool) => JSON.stringify(tool.function.parameters));
+    const scToolChunks = scTools.map((tool) => {
+      if (!tool.function.name) {
+        return "";
+      }
 
-    const systemMessage = `You are a "Tool Short Circuit AI agent". Your goal is to evaluate other AI agent systems and determine if any one provided tool based on the system and user prompt can return immediate results, bypassing the usual processing loop. A short-circuit is optimal when you can determine with an extremely high level of confidence that the raw results from a single tool will satisfy the provided prompt.
-
-You will also be provided with the schemas for the available short circuit tools. Provide your results as a valid JSON object where "name" is the name of the tool and "params" is the tool's valid schema like so:
-
-{
-  "name": <short-circuit-tool-name>,
-  "params": {
-    <short-circuit-tool-json-schema>
-  }
-}
-
-Your results should contain ONLY JSON. Do not include \`\`\` backticks or denote that it is JSON. Do not provide any further explanation, only JSON.
-
-If no optimal tool can be selected or the query is too vague to reach a confident decision, simply return nothing.
-
-If multiple short-circuit tools can be used and no single tool is the obvious outstanding choice, simply return nothing.
-
-Only select tools from the provide short-circuit list. If one of the tools from the system message that is NOT part of the short-circuit tools is better, simply return nothing.
-
-Additional Guidelines:
-- Validate the parameters against the provided schemas to ensure correctness.
-- Do not make assumptions about parameter names or values if the information is ambiguous or incorrect.
-- If the provided information does not match any available tool's schema accurately, return nothing.
-
-End to end example:
-
-You receive a system message that instructs a 'User Content AI agent' on how to use its various tools to aggregate and summarize user content. It includes descriptions of both "summarizeUserContent" and "getUserContent".
-
-In the system message, "summarizeUserContent" is described as a tool that aggregates the specified user's content and generates a summary. The "getUserContent" tool returns the user's content without summarizing or generating anything.
-
-The list of 'short-circuit tools' includes "getUserContent" but not "summarizeUserContent". You are also provided with the schema for "getUserContent" which expects a JSON object of { username: <specified-user> }
-
-- If the query is "Summarize all the content for user jpmcb", return nothing since the 'User Content AI agent' should enter it's function calling loop to execute the "summarizeUserContent" tool.
-
-- If the query is "Get all content for brandonroberts", select the "getUserContent" tool and return the JSON object with the name and parameters based on the schema:
-
-{
-  "name": "getUserContent",
-  "params": {
-    "username": "brandonroberts"
-  }
-}`;
+      return `Name: ${tool.function.name}\nParameters: ${JSON.stringify(tool.function.parameters)}\nDescription: ${
+        tool.function.description
+      }\n`;
+    });
 
     const prompt = `System message to evaluate:
 ${systemMessageToEvaluate}
@@ -275,17 +250,14 @@ Prompt:
 ${promptToEvaluate}
 
 Available short-circuit tools:
-${scToolNames.join(", ")}
-
-Tool schemas:
-${scToolSchemas.join("\n")}`;
+${scToolChunks.join("\n")}`;
 
     try {
       const response = await this.openaiClient.chat.completions.create({
-        model: this.deciderModel,
+        model: this.shortCircuitDeciderModel,
         temperature: 0.5,
         messages: [
-          { role: "system", content: systemMessage },
+          { role: "system", content: this.shortCircuitDeciderSystemMessage },
           { role: "user", content: prompt },
         ],
         max_tokens: 256,
@@ -314,6 +286,7 @@ ${scToolSchemas.join("\n")}`;
        * return null so that the other agent can enter its run-tools loop.
        */
       if (!scToolNames.includes(choiceJson.name)) {
+        console.error("short-circuit tools does not include chosen name", choiceJson.name);
         return null;
       }
 

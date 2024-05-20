@@ -10,11 +10,15 @@ import { OpenAIWrappedService } from "../../openai-wrapped/openai-wrapped.servic
 
 @Injectable()
 export class BingSearchAgent {
+  agentSystemMessage: string;
+
   constructor(
     private httpService: HttpService,
     private configService: ConfigService,
     private openAIWrappedService: OpenAIWrappedService
-  ) {}
+  ) {
+    this.agentSystemMessage = this.configService.get("starsearch.bingAgentSystemMessage")!;
+  }
 
   async bingSearch({ query }: SearchBingParams): Promise<BingSearchResultDto[]> {
     const subscriptionApiKey: string = this.configService.get("bing.subscriptionApiKey")!;
@@ -95,17 +99,9 @@ export class BingSearchAgent {
       }),
     ];
 
-    const systemMessage = `You are the OpenSauced 'Bing Search AI Agent'. Your goal is to search the internet for relevant information on software developers and the open soucre ecosystem.
-
-In your toolbelt are a number of functions that you can use to search the internet using Bing.
-
-Use the "bingSearch" function when making general searches on the internet based on input queries.
-
-Only provide accurate information on information returned by any search results.`;
-
     // directly call the function if the agent can decide based on the prompt
     const shortCircuitDecision = await this.openAIWrappedService.decideShortCircuitTool(
-      systemMessage,
+      this.agentSystemMessage,
       agentParams.prompt,
       tools
     );
@@ -120,7 +116,7 @@ Only provide accurate information on information returned by any search results.
     }
 
     const runner = this.openAIWrappedService
-      .runTools(systemMessage, agentParams.prompt, tools)
+      .runTools(this.agentSystemMessage, agentParams.prompt, tools)
       .on("message", (msg) => console.log("bing agent msg", msg))
       .on("functionCall", (functionCall) => console.log("bing agent functionCall", functionCall))
       .on("functionCallResult", (functionCallResult) =>
