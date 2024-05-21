@@ -5,6 +5,21 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.30.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.30.0-beta.1...v2.30.0-beta.2) (2024-05-21)
+
+
+### 🐛 Bug Fixes
+
+* exclude organizations from user search ([#823](https://github.com/open-sauced/api.opensauced.pizza/issues/823)) ([b378bee](https://github.com/open-sauced/api.opensauced.pizza/commit/b378bee06d21c57f3ca2a5665370905e00e82acc))
+
+## [2.30.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.29.0...v2.30.0-beta.1) (2024-05-21)
+
+
+### 🍕 Features
+
+* Introduces a strongly typed, defined data object for StarSearch ([#818](https://github.com/open-sauced/api.opensauced.pizza/issues/818)) ([a4a75a7](https://github.com/open-sauced/api.opensauced.pizza/commit/a4a75a73d21d9760ff15b3446fb0917896ddf246))
+* Pipe validators for UUIDs ([ad4cf2e](https://github.com/open-sauced/api.opensauced.pizza/commit/ad4cf2e4a1d9371cf41f606a12c0fb408048501e))
+
 ## [2.29.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.28.0...v2.29.0) (2024-05-20)
 
 
@@ -13,12 +28,22 @@
 * Found repos for lottery factor have full_names correctly lower-cased ([#816](https://github.com/open-sauced/api.opensauced.pizza/issues/816)) ([cf50b75](https://github.com/open-sauced/api.opensauced.pizza/commit/cf50b759a9e0e71f5636e25d0ca564ae4cc0abcd))
 * validate the repository before requesting the lottery factor to be rendered ([#804](https://github.com/open-sauced/api.opensauced.pizza/issues/804)) ([550ec78](https://github.com/open-sauced/api.opensauced.pizza/commit/550ec78105085be35e5b7bd12b7fbb1936b78005))
 
+## [2.29.0-beta.7](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.29.0-beta.6...v2.29.0-beta.7) (2024-05-21)
+
+
+### 🍕 Features
+
+* Pipe validators for UUIDs ([ad4cf2e](https://github.com/open-sauced/api.opensauced.pizza/commit/ad4cf2e4a1d9371cf41f606a12c0fb408048501e))
+
+## [2.29.0-beta.6](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.29.0-beta.5...v2.29.0-beta.6) (2024-05-21)
+
 
 ### 🍕 Features
 
 * Adds a "pre-processor" agent ([#817](https://github.com/open-sauced/api.opensauced.pizza/issues/817)) ([cfbdb49](https://github.com/open-sauced/api.opensauced.pizza/commit/cfbdb49fb967d34c8686a304544c38638ff6decb))
 * Implements lottery factor grace period ([#809](https://github.com/open-sauced/api.opensauced.pizza/issues/809)) ([134b6ee](https://github.com/open-sauced/api.opensauced.pizza/commit/134b6ee633da75f6e1612d5e39c8a498ea5c8d0d))
 * Refactors prompts into the environment ([#807](https://github.com/open-sauced/api.opensauced.pizza/issues/807)) ([33d947a](https://github.com/open-sauced/api.opensauced.pizza/commit/33d947a9bd2dfeafa6765c6c8694b65c58948232))
+* Introduces a strongly typed, defined data object for StarSearch ([#818](https://github.com/open-sauced/api.opensauced.pizza/issues/818)) ([a4a75a7](https://github.com/open-sauced/api.opensauced.pizza/commit/a4a75a73d21d9760ff15b3446fb0917896ddf246))
 
 ## [2.29.0-beta.5](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.29.0-beta.4...v2.29.0-beta.5) (2024-05-18)
 

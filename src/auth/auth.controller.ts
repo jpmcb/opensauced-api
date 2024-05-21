@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  UseGuards,
+} from "@nestjs/common";
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -188,7 +200,7 @@ export class AuthController {
   @ApiParam({ name: "id", type: "string" })
   async postCreateWorkspacesCheckoutSession(
     @User() user: SupabaseAuthUser,
-    @Param("id") workspaceId: string
+    @Param("id", ParseUUIDPipe) workspaceId: string
   ): Promise<{ sessionId: string }> {
     const customerId = await this.customerService.findByIdOrCreate(user);
 

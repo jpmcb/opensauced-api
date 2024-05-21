@@ -1,4 +1,4 @@
-import { Controller, Get, Header, Param, Query } from "@nestjs/common";
+import { Controller, Get, Header, Param, ParseUUIDPipe, Query } from "@nestjs/common";
 import {
   ApiOperation,
   ApiOkResponse,
@@ -39,7 +39,7 @@ export class UserListStatsController {
   @ApiParam({ name: "id", type: "string" })
   @Header("Cache-Control", "private, max-age=600")
   async getMostActiveContributorsV2(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Query() pageOptionsDto: MostActiveContributorsDto
   ): Promise<PageDto<DbContributorStat>> {
     return this.userListEventsStatsService.findAllListContributorStats(pageOptionsDto, id);
@@ -56,7 +56,7 @@ export class UserListStatsController {
   @ApiParam({ name: "id", type: "string" })
   @Header("Cache-Control", "private, max-age=600")
   async getContributionsByTimeFrame(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Query() options: ContributionsTimeframeDto
   ): Promise<DbContributionStatTimeframe[]> {
     return this.userListEventsStatsService.findContributionsInTimeFrame(options, id);
@@ -74,7 +74,7 @@ export class UserListStatsController {
   @ApiQuery({ name: "range", type: "integer", required: false })
   @Header("Cache-Control", "private, max-age=600")
   async getContributionsByProject(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Query() options: ContributionsByProjectDto
   ): Promise<DbContributionsProjects[]> {
     return this.userListEventsStatsService.findContributionsByProject(options, id);
@@ -91,7 +91,7 @@ export class UserListStatsController {
   @ApiParam({ name: "id", type: "string" })
   @Header("Cache-Control", "private, max-age=600")
   async getContributorContributionsByProject(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Query() options: TopProjectsDto
   ): Promise<DbContributorStat[]> {
     return this.userListEventsStatsService.findTopContributorsByProject(options, id);
@@ -108,7 +108,7 @@ export class UserListStatsController {
   @ApiParam({ name: "id", type: "string" })
   @Header("Cache-Control", "private, max-age=600")
   async getContributionsByTimeframe(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Query() options: ContributionsTimeframeDto
   ): Promise<DbContributorCategoryTimeframe[]> {
     return this.userListEventsStatsService.findContributorCategoriesByTimeframe(options, id);
