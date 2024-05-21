@@ -6,6 +6,7 @@ import {
   Get,
   Header,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -110,7 +111,7 @@ export class UserCollaborationController {
   @ApiBadRequestResponse({ description: "Invalid request" })
   @ApiBody({ type: UpdateUserCollaborationDto })
   async updateUserCollaboration(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @UserId() userId: number,
     @Body() updateUserCollaborationDto: UpdateUserCollaborationDto
   ): Promise<DbUserCollaboration> {
@@ -136,7 +137,7 @@ export class UserCollaborationController {
   @UseGuards(SupabaseGuard)
   @ApiNotFoundResponse({ description: "Unable to remove user collaboration" })
   @ApiBadRequestResponse({ description: "Invalid request" })
-  async removeUserCollaborationById(@Param("id") id: string, @UserId() userId: number): Promise<void> {
+  async removeUserCollaborationById(@Param("id", ParseUUIDPipe) id: string, @UserId() userId: number): Promise<void> {
     const userCollaboration = await this.userCollaborationService.findOneById(id);
 
     if (userCollaboration.user_id !== userId) {

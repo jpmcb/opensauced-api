@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common";
 import {
   ApiOperation,
   ApiOkResponse,
@@ -46,7 +46,7 @@ export class WorkspaceRepoController {
   @ApiNotFoundResponse({ description: "Unable to get user workspace repos" })
   @ApiBadRequestResponse({ description: "Invalid request" })
   async getWorkspaceReposForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @OptionalUserId() userId: number | undefined,
     @Query() pageOptionsDto: PageOptionsDto
   ): Promise<PageDto<DbWorkspaceRepo>> {
@@ -64,7 +64,7 @@ export class WorkspaceRepoController {
   @ApiNotFoundResponse({ description: "Unable to get user workspace repo prs" })
   @ApiBadRequestResponse({ description: "Invalid request" })
   async getWorkspaceRepoPrsForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @OptionalUserId() userId: number | undefined,
     @Query() pageOptionsDto: WorkspaceRepoPullRequestPageOptionsDto
   ): Promise<PageDto<DbPullRequestGitHubEvents>> {
@@ -82,7 +82,7 @@ export class WorkspaceRepoController {
   @ApiNotFoundResponse({ description: "Unable to get user workspace repo issues" })
   @ApiBadRequestResponse({ description: "Invalid request" })
   async getWorkspaceRepoIssuesForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @OptionalUserId() userId: number | undefined,
     @Query() pageOptionsDto: WorkspaceRepoIssuePageOptionsDto
   ): Promise<PageDto<DbIssuesGitHubEvents>> {
@@ -100,7 +100,7 @@ export class WorkspaceRepoController {
   @ApiOkResponse({ type: DbRepoWithStats })
   @ApiParam({ name: "id", type: "string" })
   async findAllWorkspaceReposWithFilters(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @OptionalUserId() userId: number | undefined,
     @Query() pageOptionsDto: RepoSearchOptionsDto
   ): Promise<PageDto<DbRepoWithStats>> {
@@ -120,7 +120,7 @@ export class WorkspaceRepoController {
   @ApiBody({ type: UpdateWorkspaceReposDto })
   @ApiParam({ name: "id", type: "string" })
   async addWorkspaceReposForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() updateWorkspaceReposDto: UpdateWorkspaceReposDto,
     @UserId() userId: number
   ): Promise<DbWorkspace> {
@@ -141,7 +141,7 @@ export class WorkspaceRepoController {
   @ApiParam({ name: "owner", type: "string" })
   @ApiParam({ name: "repo", type: "string" })
   async addOneWorkspaceReposForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Param("owner") owner: string,
     @Param("repo") repo: string,
     @UserId() userId: number
@@ -161,7 +161,7 @@ export class WorkspaceRepoController {
   @ApiBody({ type: DeleteWorkspaceReposDto })
   @ApiParam({ name: "id", type: "string" })
   async deleteWorkspaceReposForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() deleteWorkspaceReposDto: DeleteWorkspaceReposDto,
     @UserId() userId: number
   ) {
@@ -181,7 +181,7 @@ export class WorkspaceRepoController {
   @ApiParam({ name: "owner", type: "string" })
   @ApiParam({ name: "repo", type: "string" })
   async deleteOneWorkspaceRepoForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Param("owner") owner: string,
     @Param("repo") repo: string,
     @UserId() userId: number

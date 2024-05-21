@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import {
   ApiOperation,
   ApiOkResponse,
@@ -39,7 +39,7 @@ export class WorkspaceMemberController {
   @ApiNotFoundResponse({ description: "Unable to get user workspace members" })
   @ApiBadRequestResponse({ description: "Invalid request" })
   async getWorkspaceMembersForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @OptionalUserId() userId: undefined,
     @Query() pageOptionsDto: PageOptionsDto
   ): Promise<PageDto<DbWorkspaceMember>> {
@@ -59,7 +59,7 @@ export class WorkspaceMemberController {
   @ApiBody({ type: UpdateWorkspaceMembersDto })
   @ApiParam({ name: "id", type: "string" })
   async updateWorkspaceMembersForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() updateWorkspaceMembersDto: UpdateWorkspaceMembersDto,
     @UserId() userId: number
   ): Promise<DbWorkspace> {
@@ -80,8 +80,8 @@ export class WorkspaceMemberController {
   @ApiParam({ name: "id", type: "string" })
   @ApiParam({ name: "memberId", type: "string" })
   async updateWorkspaceMemberForUser(
-    @Param("id") id: string,
-    @Param("memberId") memberId: string,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("memberId", ParseUUIDPipe) memberId: string,
     @Body() updateWorkspaceMemberDto: UpdateWorkspaceMemberDto,
     @UserId() userId: number
   ): Promise<DbWorkspace> {
@@ -100,7 +100,7 @@ export class WorkspaceMemberController {
   @ApiBody({ type: DeleteWorkspaceMembersDto })
   @ApiParam({ name: "id", type: "string" })
   async deleteWorkspaceMembersForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() deleteWorkspaceMembersDto: DeleteWorkspaceMembersDto,
     @UserId() userId: number
   ) {
@@ -119,8 +119,8 @@ export class WorkspaceMemberController {
   @ApiParam({ name: "id", type: "string" })
   @ApiParam({ name: "memberId", type: "string" })
   async deleteOneWorkspaceMemberForUser(
-    @Param("id") id: string,
-    @Param("memberId") memberId: string,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("memberId", ParseUUIDPipe) memberId: string,
     @UserId() userId: number
   ) {
     return this.workspaceMemberService.deleteOneWorkspaceMember(id, memberId, userId);

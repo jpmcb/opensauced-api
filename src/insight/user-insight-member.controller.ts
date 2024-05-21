@@ -6,6 +6,7 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -139,7 +140,7 @@ export class UserInsightMemberController {
   @ApiParam({ name: "id", type: "integer" })
   async updateInsightMember(
     @Param("id", ParseIntPipe) id: number,
-    @Param("memberId") memberId: string,
+    @Param("memberId", ParseUUIDPipe) memberId: string,
     @UserId() userId: number,
     @Body() updateInsightMemberDto: UpdateInsightMemberDto
   ): Promise<DbInsightMember> {
@@ -177,7 +178,7 @@ export class UserInsightMemberController {
   @ApiParam({ name: "id", type: "integer" })
   async removeInsightMemberById(
     @Param("id", ParseIntPipe) id: number,
-    @Param("memberId") memberId: string,
+    @Param("memberId", ParseUUIDPipe) memberId: string,
     @UserId() userId: number
   ): Promise<void> {
     const insight = await this.insightsService.findOneById(id);

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import {
   ApiOperation,
   ApiOkResponse,
@@ -47,7 +47,7 @@ export class WorkspaceUserListsController {
   @ApiNotFoundResponse({ description: "Unable to get user workspace user lists" })
   @ApiBadRequestResponse({ description: "Invalid request" })
   async getWorkspaceUserListsForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @OptionalUserId() userId: number | undefined,
     @Query() pageOptionsDto: PageOptionsDto
   ): Promise<PageDto<DbUserList>> {
@@ -66,8 +66,8 @@ export class WorkspaceUserListsController {
   @ApiParam({ name: "id", type: "string" })
   @ApiParam({ name: "userListId", type: "string" })
   async getOneWorkspaceUserListForUser(
-    @Param("id") id: string,
-    @Param("userListId") userListId: string,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("userListId", ParseUUIDPipe) userListId: string,
     @OptionalUserId() userId: number | undefined
   ): Promise<DbUserList> {
     return this.workspaceUserListsService.findOneUserListByWorkspaceeIdForUserId(id, userListId, userId);
@@ -86,7 +86,7 @@ export class WorkspaceUserListsController {
   @ApiBody({ type: CreateUserListDto })
   @ApiParam({ name: "id", type: "string" })
   async addWorkspaceUserListForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() createWorkspaceUserListDto: CreateUserListDto,
     @UserId() userId: number
   ): Promise<DbWorkspaceUserLists> {
@@ -107,8 +107,8 @@ export class WorkspaceUserListsController {
   @ApiParam({ name: "id", type: "string" })
   @ApiParam({ name: "newWorkspaceId", type: "string" })
   async moveWorkspaceUserListForUser(
-    @Param("id") id: string,
-    @Param("newWorkspaceId") newWorkspaceId: string,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("newWorkspaceId", ParseUUIDPipe) newWorkspaceId: string,
     @Body() moveWorkspaceUserListDto: MoveWorkspaceUserListDto,
     @UserId() userId: number
   ): Promise<DbWorkspaceUserLists> {
@@ -129,8 +129,8 @@ export class WorkspaceUserListsController {
   @ApiParam({ name: "id", type: "string" })
   @ApiParam({ name: "listId", type: "string" })
   async updateWorkspaceUserListForUser(
-    @Param("id") id: string,
-    @Param("listId") listId: string,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("listId", ParseUUIDPipe) listId: string,
     @Body() updateListDto: UpdateUserListDto,
     @UserId() userId: number
   ): Promise<DbUserList> {
@@ -149,8 +149,8 @@ export class WorkspaceUserListsController {
   @ApiParam({ name: "id", type: "string" })
   @ApiParam({ name: "userListId", type: "string" })
   async deleteOneWorkspaceContributorForUser(
-    @Param("id") id: string,
-    @Param("userListId") userListId: string,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("userListId", ParseUUIDPipe) userListId: string,
     @UserId() userId: number
   ) {
     return this.workspaceUserListsService.deleteWorkspaceUserList(id, userListId, userId);
@@ -170,8 +170,8 @@ export class WorkspaceUserListsController {
   @ApiParam({ name: "id", type: "string" })
   @ApiParam({ name: "userListId", type: "string" })
   async getWorkspaceUserListContributors(
-    @Param("id") id: string,
-    @Param("userListId") userListId: string,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("userListId", ParseUUIDPipe) userListId: string,
     @OptionalUserId() userId: number | undefined,
     @Query() pageOptionsDto: FilterListContributorsDto
   ): Promise<PageDto<DbUserListContributor>> {
@@ -192,8 +192,8 @@ export class WorkspaceUserListsController {
   @ApiParam({ name: "id", type: "string" })
   @ApiParam({ name: "userListId", type: "string" })
   async getWorkspaceUserListContributorHighlights(
-    @Param("id") id: string,
-    @Param("userListId") userListId: string,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("userListId", ParseUUIDPipe) userListId: string,
     @OptionalUserId() userId: number | undefined,
     @Query() pageOptionsDto: HighlightOptionsDto
   ): Promise<PageDto<DbUserHighlight>> {
@@ -219,8 +219,8 @@ export class WorkspaceUserListsController {
   @ApiParam({ name: "id", type: "string" })
   @ApiParam({ name: "userListId", type: "string" })
   async getUserListContributorHighlightedRepos(
-    @Param("id") id: string,
-    @Param("userListId") userListId: string,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("userListId", ParseUUIDPipe) userListId: string,
     @OptionalUserId() userId: number | undefined,
     @Query() pageOptionsDto: PageOptionsDto
   ): Promise<PageDto<DbUserHighlightRepo>> {
@@ -244,8 +244,8 @@ export class WorkspaceUserListsController {
   @ApiParam({ name: "id", type: "string" })
   @ApiParam({ name: "userListId", type: "string" })
   async postWorkspaceUserListContributors(
-    @Param("id") id: string,
-    @Param("userListId") userListId: string,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("userListId", ParseUUIDPipe) userListId: string,
     @UserId() userId: number,
     @Body() updateCollaboratorsDto: CollaboratorsDto
   ): Promise<DbUserListContributor[]> {
@@ -270,9 +270,9 @@ export class WorkspaceUserListsController {
   @ApiParam({ name: "userListId", type: "string" })
   @ApiParam({ name: "userListContributorId", type: "string" })
   async deleteUserListContributors(
-    @Param("id") id: string,
-    @Param("userListId") userListId: string,
-    @Param("userListContributorId") userListContributorId: string,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("userListId", ParseUUIDPipe) userListId: string,
+    @Param("userListContributorId", ParseUUIDPipe) userListContributorId: string,
     @UserId() userId: number
   ): Promise<void> {
     await this.workspaceUserListsService.deleteWorkspaceUserListContributor(

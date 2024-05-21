@@ -1,4 +1,4 @@
-import { Controller, Get, Header, Param, Query, UseGuards } from "@nestjs/common";
+import { Controller, Get, Header, Param, ParseUUIDPipe, Query, UseGuards } from "@nestjs/common";
 import {
   ApiOperation,
   ApiOkResponse,
@@ -38,7 +38,7 @@ export class WorkspaceStatsController {
   @ApiParam({ name: "id", type: "string" })
   @Header("Cache-Control", "private, max-age=600")
   async getWorkspaceStatsForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @OptionalUserId() userId: number | undefined,
     @Query() workspaceStatsOptionsDto: WorkspaceStatsOptionsDto
   ): Promise<DbWorkspaceStats> {
@@ -58,7 +58,7 @@ export class WorkspaceStatsController {
   @ApiParam({ name: "id", type: "string" })
   @Header("Cache-Control", "private, max-age=600")
   async getWorkspaceRossIndex(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @OptionalUserId() userId: number | undefined,
     @Query() workspaceStatsOptionsDto: WorkspaceStatsOptionsDto
   ): Promise<DbWorkspaceRossIndex> {
@@ -78,7 +78,7 @@ export class WorkspaceStatsController {
   @ApiParam({ name: "id", type: "string" })
   @Header("Cache-Control", "private, max-age=600")
   async getWorkspaceMostActiveContributors(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @OptionalUserId() userId: number | undefined,
     @Query() mostActiveContributorsDto: MostActiveContributorsDto
   ): Promise<PageDto<DbContributorStat>> {
