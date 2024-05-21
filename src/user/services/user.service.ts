@@ -225,6 +225,7 @@ export class UserService {
     queryBuilder
       .select(["users.login as login", "users.name as full_name"])
       .where(`LOWER(users.login) LIKE :username`)
+      .andWhere("users.type = 'User'")
       .setParameters({ username: `%${username.toLowerCase()}%` })
       .limit(limit);
 
