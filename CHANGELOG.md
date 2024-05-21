@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.30.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.30.0-beta.1...v2.30.0-beta.2) (2024-05-21)
+
+
+### 🐛 Bug Fixes
+
+* exclude organizations from user search ([#823](https://github.com/open-sauced/api.opensauced.pizza/issues/823)) ([b378bee](https://github.com/open-sauced/api.opensauced.pizza/commit/b378bee06d21c57f3ca2a5665370905e00e82acc))
+
 ## [2.30.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.29.0...v2.30.0-beta.1) (2024-05-21)
 
 
