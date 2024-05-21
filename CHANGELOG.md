@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.29.0-beta.7](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.29.0-beta.6...v2.29.0-beta.7) (2024-05-21)
+
+
+### 🍕 Features
+
+* Pipe validators for UUIDs ([ad4cf2e](https://github.com/open-sauced/api.opensauced.pizza/commit/ad4cf2e4a1d9371cf41f606a12c0fb408048501e))
+
 ## [2.29.0-beta.6](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.29.0-beta.5...v2.29.0-beta.6) (2024-05-21)
 
 
