@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.30.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.29.0...v2.30.0-beta.1) (2024-05-21)
+
+
+### 🍕 Features
+
+* Introduces a strongly typed, defined data object for StarSearch ([#818](https://github.com/open-sauced/api.opensauced.pizza/issues/818)) ([a4a75a7](https://github.com/open-sauced/api.opensauced.pizza/commit/a4a75a73d21d9760ff15b3446fb0917896ddf246))
+* Pipe validators for UUIDs ([ad4cf2e](https://github.com/open-sauced/api.opensauced.pizza/commit/ad4cf2e4a1d9371cf41f606a12c0fb408048501e))
 
 ## [2.29.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.28.0...v2.29.0) (2024-05-20)
 
