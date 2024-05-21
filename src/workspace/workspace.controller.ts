@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import {
   ApiOperation,
   ApiOkResponse,
@@ -62,7 +62,7 @@ export class WorkspaceController {
   @ApiBadRequestResponse({ description: "Invalid request" })
   @ApiParam({ name: "id", type: "string" })
   async getWorkspaceByIdForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @OptionalUserId() userId: number | undefined
   ): Promise<DbWorkspace> {
     const workspace = await this.workspaceService.findOneByIdGuarded(id, userId);
@@ -124,7 +124,7 @@ export class WorkspaceController {
   @ApiBody({ type: UpdateWorkspaceDto })
   @ApiParam({ name: "id", type: "string" })
   async updateWorkspaceForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() updateWorkspaceDto: UpdateWorkspaceDto,
     @UserId() userId: number
   ): Promise<DbWorkspace> {
@@ -141,7 +141,7 @@ export class WorkspaceController {
   @ApiNotFoundResponse({ description: "Unable to delete workspace" })
   @ApiBadRequestResponse({ description: "Invalid request" })
   @ApiParam({ name: "id", type: "string" })
-  async deleteWorkspaceForUser(@Param("id") id: string, @UserId() userId: number) {
+  async deleteWorkspaceForUser(@Param("id", ParseUUIDPipe) id: string, @UserId() userId: number) {
     return this.workspaceService.deleteWorkspace(id, userId);
   }
 }

@@ -7,6 +7,7 @@ import {
   Header,
   Param,
   ParseIntPipe,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -155,7 +156,7 @@ export class UserHighlightsController {
   @ApiParam({ name: "id", type: "integer" })
   async addHighlightReactionForUser(
     @Param("id", ParseIntPipe) highlightId: number,
-    @Param("emojiId") emojiId: string,
+    @Param("emojiId", ParseUUIDPipe) emojiId: string,
     @UserId() userId: number
   ): Promise<void> {
     const highlight = await this.userHighlightsService.findOneById(highlightId);
@@ -180,7 +181,7 @@ export class UserHighlightsController {
   async deleteHighlightReactionForUser(
     @UserId() userId: number,
     @Param("id", ParseIntPipe) highlightId: number,
-    @Param("emojiId") emojiId: string
+    @Param("emojiId", ParseUUIDPipe) emojiId: string
   ): Promise<void> {
     const userHighlightReaction = await this.userHighlightsService.findOneUserHighlightReaction(
       highlightId,

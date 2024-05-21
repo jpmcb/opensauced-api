@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common";
 import {
   ApiOperation,
   ApiOkResponse,
@@ -39,7 +39,7 @@ export class WorkspaceContributorController {
   @ApiNotFoundResponse({ description: "Unable to get user workspace contributors" })
   @ApiBadRequestResponse({ description: "Invalid request" })
   async getWorkspaceContributorsForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @OptionalUserId() userId: number | undefined,
     @Query() pageOptionsDto: PageOptionsDto
   ): Promise<PageDto<DbWorkspaceContributor>> {
@@ -59,7 +59,7 @@ export class WorkspaceContributorController {
   @ApiBody({ type: UpdateWorkspaceContributorsDto })
   @ApiParam({ name: "id", type: "string" })
   async addWorkspaceContributorsForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() updateWorkspaceContributorsDto: UpdateWorkspaceContributorsDto,
     @UserId() userId: number
   ): Promise<DbWorkspace> {
@@ -79,7 +79,7 @@ export class WorkspaceContributorController {
   @ApiParam({ name: "id", type: "string" })
   @ApiParam({ name: "contributorId", type: "string" })
   async addOneWorkspaceContributorForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Param("contributorId") contributorId: number,
     @UserId() userId: number
   ): Promise<DbWorkspace> {
@@ -99,7 +99,7 @@ export class WorkspaceContributorController {
   @ApiParam({ name: "id", type: "string" })
   @ApiParam({ name: "contributorLogin", type: "string" })
   async addOneWorkspaceContributorByLoginForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Param("contributorLogin") contributorLogin: string,
     @UserId() userId: number
   ): Promise<DbWorkspace> {
@@ -118,7 +118,7 @@ export class WorkspaceContributorController {
   @ApiBody({ type: DeleteWorkspaceContributorsDto })
   @ApiParam({ name: "id", type: "string" })
   async deleteWorkspaceContributorsForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() deleteWorkspaceContributorsDto: DeleteWorkspaceContributorsDto,
     @UserId() userId: number
   ) {
@@ -137,7 +137,7 @@ export class WorkspaceContributorController {
   @ApiParam({ name: "id", type: "string" })
   @ApiParam({ name: "contributorId", type: "number" })
   async deleteOneWorkspaceContributorForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Param("contributorId") contributorId: number,
     @UserId() userId: number
   ) {
@@ -156,7 +156,7 @@ export class WorkspaceContributorController {
   @ApiParam({ name: "id", type: "string" })
   @ApiParam({ name: "contributorLogin", type: "string" })
   async deleteOneWorkspaceContributorByLoginForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Param("contributorLogin") contributorLogin: string,
     @UserId() userId: number
   ) {

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common";
 import {
   ApiOperation,
   ApiOkResponse,
@@ -39,7 +39,7 @@ export class WorkspaceOrgController {
   @ApiNotFoundResponse({ description: "Unable to get user workspace orgs" })
   @ApiBadRequestResponse({ description: "Invalid request" })
   async getWorkspaceOrgsForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @OptionalUserId() userId: number | undefined,
     @Query() pageOptionsDto: PageOptionsDto
   ): Promise<PageDto<DbWorkspaceOrg>> {
@@ -59,7 +59,7 @@ export class WorkspaceOrgController {
   @ApiBody({ type: UpdateWorkspaceOrgsDto })
   @ApiParam({ name: "id", type: "string" })
   async addWorkspaceOrgsForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() updateWorkspaceOrgsDto: UpdateWorkspaceOrgsDto,
     @UserId() userId: number
   ): Promise<DbWorkspace> {
@@ -79,7 +79,7 @@ export class WorkspaceOrgController {
   @ApiParam({ name: "id", type: "string" })
   @ApiParam({ name: "orgUserId", type: "number" })
   async addOneWorkspaceOrgForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Param("orgUserId") orgUserId: number,
     @UserId() userId: number
   ): Promise<DbWorkspace> {
@@ -98,7 +98,7 @@ export class WorkspaceOrgController {
   @ApiBody({ type: DeleteWorkspaceOrgsDto })
   @ApiParam({ name: "id", type: "string" })
   async deleteWorkspaceOrgsForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() deleteWorkspaceOrgsDto: DeleteWorkspaceOrgsDto,
     @UserId() userId: number
   ) {
@@ -117,7 +117,7 @@ export class WorkspaceOrgController {
   @ApiParam({ name: "id", type: "string" })
   @ApiParam({ name: "orgUserId", type: "number" })
   async deleteOneWorkspaceOrgForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Param("orgUserId") orgUserId: number,
     @UserId() userId: number
   ) {

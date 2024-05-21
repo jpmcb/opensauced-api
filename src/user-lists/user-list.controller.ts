@@ -5,6 +5,7 @@ import {
   Get,
   Header,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -111,7 +112,7 @@ export class UserListController {
   @ApiNotFoundResponse({ description: "Unable to get user list" })
   @ApiBadRequestResponse({ description: "Invalid request" })
   @ApiParam({ name: "id", type: "string" })
-  async getUserList(@Param("id") id: string): Promise<DbUserList> {
+  async getUserList(@Param("id", ParseUUIDPipe) id: string): Promise<DbUserList> {
     return this.userListService.findPublicOneById(id);
   }
 
@@ -131,7 +132,7 @@ export class UserListController {
   async updateListForUser(
     @Body() updateListDto: CreateUserListDto,
     @UserId() userId: number,
-    @Param("id") listId: string
+    @Param("id", ParseUUIDPipe) listId: string
   ): Promise<DbUserList> {
     const list = await this.userListService.findOneById(listId, userId);
 
@@ -154,7 +155,7 @@ export class UserListController {
   @ApiNotFoundResponse({ description: "Unable to delete user list" })
   @ApiBadRequestResponse({ description: "Invalid request" })
   @ApiParam({ name: "id", type: "string" })
-  async deleteListForUser(@UserId() userId: number, @Param("id") listId: string): Promise<void> {
+  async deleteListForUser(@UserId() userId: number, @Param("id", ParseUUIDPipe) listId: string): Promise<void> {
     const list = await this.userListService.findOneById(listId, userId);
 
     await this.userListService.deleteUserList(list.id);
@@ -190,7 +191,7 @@ export class UserListController {
   @ApiParam({ name: "id", type: "string" })
   async getUserListContributors(
     @Query() pageOptionsDto: FilterListContributorsDto,
-    @Param("id") id: string
+    @Param("id", ParseUUIDPipe) id: string
   ): Promise<PageDto<DbUserListContributor>> {
     return this.userListService.findContributorsByListId(pageOptionsDto, id);
   }
@@ -208,7 +209,7 @@ export class UserListController {
   @ApiParam({ name: "id", type: "string" })
   async postUserListContributors(
     @Body() updateCollaboratorsDto: CollaboratorsDto,
-    @Param("id") id: string
+    @Param("id", ParseUUIDPipe) id: string
   ): Promise<DbUserListContributor[]> {
     const contributors = updateCollaboratorsDto.contributors.map(async (contributor) =>
       this.userListService.addUserListContributor(id, contributor.id, contributor.login)
@@ -230,8 +231,8 @@ export class UserListController {
   @ApiParam({ name: "id", type: "string" })
   @ApiParam({ name: "userListContributorId", type: "string" })
   async deleteUserListContributors(
-    @Param("id") id: string,
-    @Param("userListContributorId") userListContributorId: string
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("userListContributorId", ParseUUIDPipe) userListContributorId: string
   ): Promise<void> {
     await this.userListService.deleteUserListContributor(id, userListContributorId);
   }
@@ -249,7 +250,7 @@ export class UserListController {
   @ApiParam({ name: "id", type: "string" })
   async getUserListContributorHighlights(
     @Query() pageOptionsDto: HighlightOptionsDto,
-    @Param("id") id: string
+    @Param("id", ParseUUIDPipe) id: string
   ): Promise<PageDto<DbUserHighlight>> {
     return this.userListService.findListContributorsHighlights(pageOptionsDto, id);
   }
@@ -267,7 +268,7 @@ export class UserListController {
   @ApiParam({ name: "id", type: "string" })
   async getUserListContributorHighlightedRepos(
     @Query() pageOptionsDto: PageOptionsDto,
-    @Param("id") id: string
+    @Param("id", ParseUUIDPipe) id: string
   ): Promise<PageDto<DbUserHighlightRepo>> {
     return this.userListService.findListContributorsHighlightedRepos(pageOptionsDto, id);
   }

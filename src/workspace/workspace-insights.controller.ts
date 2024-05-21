@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import {
   ApiOperation,
   ApiOkResponse,
@@ -40,7 +40,7 @@ export class WorkspaceInsightsController {
   @ApiNotFoundResponse({ description: "Unable to get user workspace insights" })
   @ApiBadRequestResponse({ description: "Invalid request" })
   async getWorkspaceInsightsForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @OptionalUserId() userId: number | undefined,
     @Query() pageOptionsDto: PageOptionsDto
   ): Promise<PageDto<DbInsight>> {
@@ -60,7 +60,7 @@ export class WorkspaceInsightsController {
   @ApiBody({ type: CreateInsightDto })
   @ApiParam({ name: "id", type: "string" })
   async addWorkspaceInsightForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() createWorkspaceInsightDto: CreateInsightDto,
     @UserId() userId: number
   ): Promise<DbWorkspaceInsight> {
@@ -81,8 +81,8 @@ export class WorkspaceInsightsController {
   @ApiParam({ name: "id", type: "string" })
   @ApiParam({ name: "newWorkspaceId", type: "string" })
   async moveWorkspaceInsightForUser(
-    @Param("id") id: string,
-    @Param("newWorkspaceId") newWorkspaceId: string,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("newWorkspaceId", ParseUUIDPipe) newWorkspaceId: string,
     @Body() moveWorkspaceInsightDto: MoveWorkspaceInsightDto,
     @UserId() userId: number
   ): Promise<DbWorkspaceInsight> {
@@ -100,7 +100,7 @@ export class WorkspaceInsightsController {
   @ApiNotFoundResponse({ description: "Unable to get user workspace insight" })
   @ApiBadRequestResponse({ description: "Invalid request" })
   async getOneWorkspaceInsightForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Param("insightId") insightId: number,
     @OptionalUserId() userId: number | undefined
   ): Promise<DbInsight> {
@@ -121,7 +121,7 @@ export class WorkspaceInsightsController {
   @ApiBody({ type: UpdateInsightDto })
   @ApiParam({ name: "id", type: "string" })
   async updateWorkspaceInsightForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Param("insightId") insightId: number,
     @Body() createWorkspaceInsightDto: CreateInsightDto,
     @UserId() userId: number
@@ -141,7 +141,7 @@ export class WorkspaceInsightsController {
   @ApiParam({ name: "id", type: "string" })
   @ApiParam({ name: "insightId", type: "number" })
   async deleteOneWorkspaceContributorForUser(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Param("insightId") insightId: number,
     @UserId() userId: number
   ) {

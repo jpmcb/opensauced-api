@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Query, UseGuards, Headers } from "@nestjs/common";
+import { Controller, Get, Post, Body, Param, Delete, Query, UseGuards, Headers, ParseUUIDPipe } from "@nestjs/common";
 import { ApiBody, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { PageOptionsDto } from "../common/dtos/page-options.dto";
@@ -93,7 +93,7 @@ export class EndorsementController {
   })
   @ApiOkResponse({ type: DbEndorsement })
   @ApiNotFoundResponse({ description: "Endorsement not found" })
-  async findEndorsementById(@Param("id") id: string) {
+  async findEndorsementById(@Param("id", ParseUUIDPipe) id: string) {
     return this.endorsementService.findOneById(id);
   }
 
@@ -135,7 +135,7 @@ export class EndorsementController {
     summary: "Finds ands deletes the endorsement by ID",
   })
   @ApiNotFoundResponse({ description: "Endorsement not found" })
-  async deleteEndoresementById(@Param("id") id: string) {
+  async deleteEndoresementById(@Param("id", ParseUUIDPipe) id: string) {
     return this.endorsementService.remove(id);
   }
 }
