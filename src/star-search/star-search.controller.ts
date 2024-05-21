@@ -7,17 +7,10 @@ import { StarSearchStreamDto } from "./dtos/create-star-search.dto";
 import { StarSearchToolsService } from "./star-search-tools.service";
 import { PreProcessorAgent } from "./agents/pre-processor.agent";
 import { isPreProcessorError } from "./schemas/pre-processor.schema";
-
-enum StarSearchObservableEventTypeEnum {
-  content = "content",
-  function_call = "function_call",
-}
+import { StarSearchEventTypeEnum, StarSearchPayload, StarSearchPayloadStatusEnum } from "./types/star-search.type";
 
 interface StarSearchObservable {
-  data: string | object;
-  id?: string;
-  type?: StarSearchObservableEventTypeEnum;
-  retry?: number;
+  data: StarSearchPayload;
 }
 
 @Controller("star-search")
@@ -49,20 +42,43 @@ export class StarSearchController {
 
     const stream = this.starSearchToolsService.runTools(preProcessResults.prompt);
 
+    let message = "";
+
     return new Observable<StarSearchObservable>((observer) => {
       stream
         .on("content", (delta) => {
+          message += delta;
+
           observer.next({
-            type: StarSearchObservableEventTypeEnum.content,
-            data: delta,
+            data: {
+              id: "123-abc",
+              author: "manager",
+              iso_time: new Date().toISOString(),
+              content: {
+                type: StarSearchEventTypeEnum.content,
+                parts: [message],
+              },
+              status: StarSearchPayloadStatusEnum.in_progress,
+              error: null,
+            },
           });
         })
         .on("message", (msg) => console.log("manager msg", msg))
         .on("functionCall", (functionCall: ChatCompletionMessage.FunctionCall) => {
           console.log("manager functionCall", functionCall);
+
           observer.next({
-            type: StarSearchObservableEventTypeEnum.function_call,
-            data: JSON.stringify(functionCall),
+            data: {
+              id: "789-xyz",
+              author: "manager",
+              iso_time: new Date().toISOString(),
+              content: {
+                type: StarSearchEventTypeEnum.function_call,
+                parts: [JSON.stringify(functionCall)],
+              },
+              status: StarSearchPayloadStatusEnum.in_progress,
+              error: null,
+            },
           });
         })
         .on("functionCallResult", (functionCallResult) =>
@@ -71,7 +87,23 @@ export class StarSearchController {
 
       stream
         .finalChatCompletion()
-        .then(() => observer.complete())
+        .then(() => {
+          observer.next({
+            data: {
+              id: "final-id",
+              author: "manager",
+              iso_time: new Date().toISOString(),
+              content: {
+                type: StarSearchEventTypeEnum.final,
+                parts: [message],
+              },
+              status: StarSearchPayloadStatusEnum.done,
+              error: null,
+            },
+          });
+
+          return observer.complete();
+        })
         .catch(() => observer.complete());
 
       return () => stream.abort();
