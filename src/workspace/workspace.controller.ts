@@ -17,6 +17,8 @@ import { OptionalUserId, UserId } from "../auth/supabase.user.decorator";
 import { SupabaseGuard } from "../auth/supabase.guard";
 
 import { PassthroughSupabaseGuard } from "../auth/passthrough-supabase.guard";
+import { DbInsight } from "../insight/entities/insight.entity";
+import { DbUserList } from "../user-lists/entities/user-list.entity";
 import { WorkspaceService } from "./workspace.service";
 import { DbWorkspace } from "./entities/workspace.entity";
 import { CreateWorkspaceDto } from "./dtos/create-workspace.dto";
@@ -82,10 +84,11 @@ export class WorkspaceController {
       );
 
       const overRepoLimit = !!repositoryInsights.data.find(
-        (repoInsight) => repoInsight.repos && repoInsight.repos.length > 100
+        (repoInsight?: DbInsight) => repoInsight?.repos && repoInsight.repos.length > 100
       );
       const overContributorLimit = !!contributorInsights.data.find(
-        (contributorInsight) => contributorInsight.contributors && contributorInsight.contributors.length > 10
+        (contributorInsight?: DbUserList) =>
+          contributorInsight?.contributors && contributorInsight.contributors.length > 10
       );
 
       if (overRepoLimit || overContributorLimit) {
