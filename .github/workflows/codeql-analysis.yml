@@ -1,13 +1,15 @@
-name: CodeQL
+# Disabling the code scanning until we have enabled GitHub advanced security
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-  schedule:
-    - cron: "56 5 * * 1"
+#name: CodeQL
 
-jobs:
-  analyze:
-    uses: open-sauced/hot/.github/workflows/codeql-analysis.yml@main
+#on:
+  #push:
+    #branches:
+      #- main
+  #pull_request:
+  #schedule:
+    #- cron: "56 5 * * 1"
+
+#jobs:
+  #analyze:
+    #uses: open-sauced/hot/.github/workflows/codeql-analysis.yml@main
