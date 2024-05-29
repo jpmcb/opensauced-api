@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.31.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.30.1-beta.1...v2.31.0-beta.1) (2024-05-29)
+
+
+### 🍕 Features
+
+* Disable code scanning github action [skip-ci] ([#834](https://github.com/open-sauced/api.opensauced.pizza/issues/834)) ([f10b44b](https://github.com/open-sauced/api.opensauced.pizza/commit/f10b44bdf6e473c04fbfbaeb36938685af3d0f0e))
+
 ### [2.30.1-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.30.0...v2.30.1-beta.1) (2024-05-29)
 
 
