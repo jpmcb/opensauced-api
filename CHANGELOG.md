@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.31.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.31.0-beta.1...v2.31.0-beta.2) (2024-05-31)
+
+
+### 🐛 Bug Fixes
+
+* Parameterize SQL for stars histogram ([#838](https://github.com/open-sauced/api.opensauced.pizza/issues/838)) ([b5af3b8](https://github.com/open-sauced/api.opensauced.pizza/commit/b5af3b88b1cf3dadbc7cc8d235cf71af7ceb5bad))
+
 ## [2.31.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.30.1-beta.1...v2.31.0-beta.1) (2024-05-29)
 
 
