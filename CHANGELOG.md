@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.31.0-beta.3](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.31.0-beta.2...v2.31.0-beta.3) (2024-06-03)
+
+
+### 🐛 Bug Fixes
+
+* Parameterize missing user queries ([#840](https://github.com/open-sauced/api.opensauced.pizza/issues/840)) ([dbb3ccb](https://github.com/open-sauced/api.opensauced.pizza/commit/dbb3ccb45a85e286dfe5c33805d725945190464b))
+
 ## [2.31.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.31.0-beta.1...v2.31.0-beta.2) (2024-05-31)
 
 
