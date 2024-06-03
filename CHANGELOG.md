@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.31.0-beta.4](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.31.0-beta.3...v2.31.0-beta.4) (2024-06-03)
+
+
+### 🐛 Bug Fixes
+
+* Parameterize SQL for repos service ([#839](https://github.com/open-sauced/api.opensauced.pizza/issues/839)) ([29505a0](https://github.com/open-sauced/api.opensauced.pizza/commit/29505a0639ca1732c4a9a4aac6f8ad26a419c983))
+
 ## [2.31.0-beta.3](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.31.0-beta.2...v2.31.0-beta.3) (2024-06-03)
 
 
