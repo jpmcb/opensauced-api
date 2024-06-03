@@ -124,8 +124,11 @@ export class UserHighlightsService {
       `,
         "reactions"
       )
-      .where(`'${startDate}'::TIMESTAMP >= user_highlights.created_at`)
-      .andWhere(`'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= user_highlights.created_at`)
+      .where(":start_date::TIMESTAMP >= user_highlights.created_at", { start_date: startDate })
+      .andWhere(":start_date::TIMESTAMP - :range_interval::INTERVAL <= user_highlights.created_at", {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      })
       .limit(10)
       .orderBy("reactions", "DESC");
 
