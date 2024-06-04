@@ -40,8 +40,8 @@ export class PullRequestReviewCommentGithubEventsService {
       .createQueryBuilder()
       .select("COALESCE(COUNT(*), 0) AS pr_review_comments")
       .from("pull_request_review_comment_github_events", "pull_request_review_comment_github_events")
-      .where(`LOWER(actor_login) = '${username}'`)
-      .andWhere(`now() - INTERVAL '${range} days' <= event_time`)
+      .where("LOWER(actor_login) = :username", { username })
+      .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .groupBy("LOWER(actor_login)");
 
     if (repos && repos.length > 0) {
@@ -62,8 +62,8 @@ export class PullRequestReviewCommentGithubEventsService {
     repos?: string[]
   ): Promise<DbPullRequestReviewCommentGitHubEvents[]> {
     const queryBuilder = this.baseQueryBuilder()
-      .where(`LOWER(actor_login) = '${username}'`)
-      .andWhere(`event_time > NOW() - INTERVAL '${range} days'`);
+      .where("LOWER(actor_login) = :username", { username })
+      .andWhere("event_time > NOW() - :range_interval::INTERVAL", { range_interval: `${range} days` });
 
     if (repos && repos.length > 0) {
       queryBuilder.andWhere(`LOWER(repo_name) IN (:...repos)`, { repos });
@@ -86,7 +86,7 @@ export class PullRequestReviewCommentGithubEventsService {
 
     const queryBuilder = this.pullRequestReviewCommentGitHubEventsRepository.manager
       .createQueryBuilder()
-      .select(`time_bucket('${width} day', event_time)`, "bucket")
+      .select("time_bucket(:width_interval::INTERVAL, event_time)", "bucket")
       .addSelect("count(CASE WHEN LOWER(pr_review_comment_action) = 'created' THEN 1 END)", "all_review_comments")
       .addSelect(
         "count(CASE WHEN LOWER(review_comment_author_association) = 'collaborator' THEN 1 END)",
@@ -109,12 +109,19 @@ export class PullRequestReviewCommentGithubEventsService {
         "owner_associated_review_comments"
       )
       .from("pull_request_review_comment_github_events", "pull_request_review_comment_github_events")
-      .where(`'${startDate}':: TIMESTAMP >= "pull_request_review_comment_github_events"."event_time"`)
+      .where(`:start_date::TIMESTAMP >= "pull_request_review_comment_github_events"."event_time"`, {
+        start_date: startDate,
+      })
       .andWhere(
-        `'${startDate}':: TIMESTAMP - INTERVAL '${range} days' <= "pull_request_review_comment_github_events"."event_time"`
+        `:start_date::TIMESTAMP - :range_interval::INTERVAL <= "pull_request_review_comment_github_events"."event_time"`,
+        {
+          start_date: startDate,
+          range_interval: `${range} days`,
+        }
       )
       .groupBy("bucket")
-      .orderBy("bucket", order);
+      .orderBy("bucket", order)
+      .setParameter("width_interval", `${width} days`);
 
     /* filter on the provided pull request review author */
     if (options.contributor) {
@@ -128,16 +135,14 @@ export class PullRequestReviewCommentGithubEventsService {
 
     /* filter on the provided repo names */
     if (options.repo) {
-      queryBuilder
-        .andWhere(`LOWER("pull_request_review_comment_github_events"."repo_name") IN (:...repoNames)`)
-        .setParameters({
-          repoNames: options.repo.toLowerCase().split(","),
-        });
+      queryBuilder.andWhere(`LOWER("pull_request_review_comment_github_events"."repo_name") IN (:...repoNames)`, {
+        repoNames: options.repo.toLowerCase().split(","),
+      });
     }
 
     /* filter on the provided repo ids */
     if (options.repoIds) {
-      queryBuilder.andWhere(`"pull_request_review_comment_github_events"."repo_id" IN (:...repoIds)`).setParameters({
+      queryBuilder.andWhere(`"pull_request_review_comment_github_events"."repo_id" IN (:...repoIds)`, {
         repoIds: options.repoIds.split(","),
       });
     }

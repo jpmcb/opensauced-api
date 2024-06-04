@@ -42,10 +42,14 @@ export class PullRequestGithubEventsVectorService {
     const startDate = GetPrevDateISOString(prevDaysStartDate);
     const queryBuilder = this.pullRequestGithubEventsRepository
       .createQueryBuilder("pull_request_github_events")
-      .where(`'${startDate}'::TIMESTAMP >= "pull_request_github_events"."event_time"`)
-      .andWhere(`'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "pull_request_github_events"."event_time"`)
+      .where(`:start_date::TIMESTAMP >= "pull_request_github_events"."event_time"`, { start_date: startDate })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "pull_request_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      })
       .andWhere("LOWER(pr_author_login) NOT LIKE '%[bot]%'")
-      .orderBy(`pull_request_github_events.embedding <=> '[${embedding.join(",")}]'::vector`)
+      .orderBy(`pull_request_github_events.embedding <=> :vector_embedding::vector`)
+      .setParameters({ vector_embedding: `[${embedding.join(",")}]` })
       .limit(5);
 
     if (author) {

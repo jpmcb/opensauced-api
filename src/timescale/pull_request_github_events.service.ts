@@ -67,8 +67,11 @@ export class PullRequestGithubEventsService {
       .select("*")
       .addSelect(`ROW_NUMBER() OVER (PARTITION BY pr_number, repo_name ORDER BY event_time DESC) AS row_num`)
       .where(`LOWER("pull_request_github_events"."pr_author_login") = LOWER(:author)`, { author: author.toLowerCase() })
-      .andWhere(`'${startDate}'::TIMESTAMP >= "pull_request_github_events"."event_time"`)
-      .andWhere(`'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "pull_request_github_events"."event_time"`);
+      .andWhere(`:start_date::TIMESTAMP >= "pull_request_github_events"."event_time"`, { start_date: startDate })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "pull_request_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      });
 
     return cteBuilder;
   }
@@ -85,8 +88,11 @@ export class PullRequestGithubEventsService {
       .select("*")
       .addSelect(`ROW_NUMBER() OVER (PARTITION BY pr_number, repo_name ORDER BY event_time DESC) AS row_num`)
       .where(`LOWER("pull_request_github_events"."repo_name") = LOWER(:repo_name)`, { repo_name: repo.toLowerCase() })
-      .andWhere(`'${startDate}'::TIMESTAMP >= "pull_request_github_events"."event_time"`)
-      .andWhere(`'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "pull_request_github_events"."event_time"`);
+      .andWhere(`:start_date::TIMESTAMP >= "pull_request_github_events"."event_time"`)
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "pull_request_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      });
 
     return cteBuilder;
   }
@@ -191,8 +197,11 @@ export class PullRequestGithubEventsService {
     const queryBuilder = this.pullRequestGithubEventsRepository
       .createQueryBuilder("pull_request_github_events")
       .select("COUNT(DISTINCT pr_number)", "count")
-      .where(`'${startDate}'::TIMESTAMP >= "pull_request_github_events"."event_time"`)
-      .andWhere(`'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "pull_request_github_events"."event_time"`);
+      .where(`:start_date::TIMESTAMP >= "pull_request_github_events"."event_time"`, { start_date: startDate })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "pull_request_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      });
 
     return queryBuilder;
   }
@@ -207,7 +216,7 @@ export class PullRequestGithubEventsService {
       .createQueryBuilder()
       .select("COALESCE(COUNT(*), 0) AS prs_created")
       .from("pull_request_github_events", "pull_request_github_events")
-      .where(`LOWER(actor_login) = '${username}'`)
+      .where("LOWER(actor_login) = :username", { username })
       .andWhere("pr_action = 'opened'")
       .groupBy("LOWER(actor_login)");
 
@@ -262,8 +271,11 @@ export class PullRequestGithubEventsService {
       .createQueryBuilder("pull_request_github_events")
       .select("pr_author_login", "contributor")
       .addSelect("count(*)", "count")
-      .where(`'${startDate}'::TIMESTAMP >= "pull_request_github_events"."event_time"`)
-      .andWhere(`'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "pull_request_github_events"."event_time"`)
+      .where(`:start_date::TIMESTAMP >= "pull_request_github_events"."event_time"`, { start_date: startDate })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "pull_request_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      })
       .andWhere(`"pull_request_github_events"."pr_action" = 'opened'`)
       .andWhere(`LOWER("pull_request_github_events"."repo_name") IN (:...repoNames)`, {
         repoNames,
@@ -319,9 +331,9 @@ export class PullRequestGithubEventsService {
     repos?: string[]
   ): Promise<DbPullRequestGitHubEvents[]> {
     const queryBuilder = this.baseQueryBuilder()
-      .where(`LOWER(actor_login) = '${username}'`)
+      .where("LOWER(actor_login) = :username", { username })
       .andWhere("pr_action = 'opened'")
-      .andWhere(`event_time > NOW() - INTERVAL '${range} days'`);
+      .andWhere("event_time > NOW() - :range_interval::INTERVAL", { range_interval: `${range} days` });
 
     if (repos && repos.length > 0) {
       queryBuilder.andWhere(`LOWER(repo_name) IN (:...repos)`, { repos });
@@ -348,8 +360,11 @@ export class PullRequestGithubEventsService {
       .select("*")
       .addSelect(`ROW_NUMBER() OVER (PARTITION BY pr_number, repo_name ORDER BY event_time ${order}) AS row_num`)
       .where(`LOWER("pull_request_github_events"."pr_author_login") = LOWER(:author)`, { author: author.toLowerCase() })
-      .andWhere(`'${startDate}'::TIMESTAMP >= "pull_request_github_events"."event_time"`)
-      .andWhere(`'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "pull_request_github_events"."event_time"`)
+      .andWhere(`:start_date::TIMESTAMP >= "pull_request_github_events"."event_time"`, { start_date: startDate })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "pull_request_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      })
       .orderBy("event_time", order);
 
     if (repos && repos.length > 0) {
@@ -388,8 +403,11 @@ export class PullRequestGithubEventsService {
 
     cteBuilder
       .orderBy("event_time", order)
-      .where(`'${startDate}'::TIMESTAMP >= "pull_request_github_events"."event_time"`)
-      .andWhere(`'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "pull_request_github_events"."event_time"`);
+      .where(`:start_date::TIMESTAMP >= "pull_request_github_events"."event_time"`, { start_date: startDate })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "pull_request_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      });
 
     /* filter on PR author / contributor */
     if (pageOptionsDto.contributor) {
@@ -482,8 +500,11 @@ export class PullRequestGithubEventsService {
       )
       .from("pull_request_github_events", "pull_request_github_events")
       .where(`LOWER("pull_request_github_events"."repo_name") = LOWER(:repo_name)`, { repo_name: repo.toLowerCase() })
-      .andWhere(`'${startDate}'::TIMESTAMP >= "pull_request_github_events"."event_time"`)
-      .andWhere(`'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "pull_request_github_events"."event_time"`);
+      .andWhere(`:start_date::TIMESTAMP >= "pull_request_github_events"."event_time"`, { start_date: startDate })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "pull_request_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      });
 
     const result: DbPullRequestGitHubEventsHistogram | undefined = await queryBuilder.getRawOne();
 
@@ -504,8 +525,8 @@ export class PullRequestGithubEventsService {
       .from("pull_request_github_events", "pull_request_github_events")
       .where("pr_author_association = 'NONE'")
       .andWhere("pr_is_merged = TRUE")
-      .andWhere(`LOWER(repo_name) IN (:...sanitizedRepos)`, { sanitizedRepos })
-      .andWhere(`now() - INTERVAL '${range} days' <= event_time`)
+      .andWhere("LOWER(repo_name) IN (:...sanitizedRepos)", { sanitizedRepos })
+      .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .groupBy("bucket");
 
     const totalContribPrsCte = this.pullRequestGithubEventsRepository.manager
@@ -513,8 +534,8 @@ export class PullRequestGithubEventsService {
       .select(`time_bucket('7 day', event_time)`, "bucket")
       .addSelect("COALESCE(COUNT(DISTINCT pr_number), 0) AS weekly_prs")
       .from("pull_request_github_events", "pull_request_github_events")
-      .andWhere(`LOWER(repo_name) IN (:...sanitizedRepos)`, { sanitizedRepos })
-      .andWhere(`now() - INTERVAL '${range} days' <= event_time`)
+      .andWhere("LOWER(repo_name) IN (:...sanitizedRepos)", { sanitizedRepos })
+      .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .groupBy("bucket");
 
     const entityQb = this.pullRequestGithubEventsRepository.manager
@@ -542,8 +563,8 @@ export class PullRequestGithubEventsService {
       .from("pull_request_github_events", "pull_request_github_events")
       .where("pr_author_association = 'NONE'")
       .andWhere("pr_is_merged = TRUE")
-      .andWhere(`LOWER(repo_name) IN (:...sanitizedRepos)`, { sanitizedRepos })
-      .andWhere(`now() - INTERVAL '${range} days' <= event_time`)
+      .andWhere("LOWER(repo_name) IN (:...sanitizedRepos)", { sanitizedRepos })
+      .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .groupBy("bucket");
 
     const returningContribsCte = this.pullRequestGithubEventsRepository.manager
@@ -553,8 +574,8 @@ export class PullRequestGithubEventsService {
       .from("pull_request_github_events", "pull_request_github_events")
       .where("pr_author_association = 'CONTRIBUTOR'")
       .andWhere("pr_is_merged = TRUE")
-      .andWhere(`LOWER(repo_name) IN (:...sanitizedRepos)`, { sanitizedRepos })
-      .andWhere(`now() - INTERVAL '${range} days' <= event_time`)
+      .andWhere("LOWER(repo_name) IN (:...sanitizedRepos)", { sanitizedRepos })
+      .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .groupBy("bucket");
 
     const orgContribsCte = this.pullRequestGithubEventsRepository.manager
@@ -564,8 +585,8 @@ export class PullRequestGithubEventsService {
       .from("pull_request_github_events", "pull_request_github_events")
       .where("pr_author_association = 'MEMBER'")
       .andWhere("pr_is_merged = TRUE")
-      .andWhere(`LOWER(repo_name) IN (:...sanitizedRepos)`, { sanitizedRepos })
-      .andWhere(`now() - INTERVAL '${range} days' <= event_time`)
+      .andWhere("LOWER(repo_name) IN (:...sanitizedRepos)", { sanitizedRepos })
+      .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .groupBy("bucket");
 
     const entityQb = this.pullRequestGithubEventsRepository.manager
@@ -607,8 +628,11 @@ export class PullRequestGithubEventsService {
       .select("*")
       .addSelect(`ROW_NUMBER() OVER (PARTITION BY pr_number, repo_name ORDER BY event_time ${order}) AS row_num`)
       .orderBy("event_time", order)
-      .where(`'${startDate}'::TIMESTAMP >= "pull_request_github_events"."event_time"`)
-      .andWhere(`'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "pull_request_github_events"."event_time"`);
+      .where(`:start_date::TIMESTAMP >= "pull_request_github_events"."event_time"`, { start_date: startDate })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "pull_request_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      });
 
     /* filter on PR author / contributor */
     if (options.contributor) {
@@ -657,7 +681,7 @@ export class PullRequestGithubEventsService {
       .createQueryBuilder()
       .addCommonTableExpression(cteBuilder, "CTE")
       .setParameters(cteBuilder.getParameters())
-      .select(`time_bucket('${width} day', event_time)`, "bucket")
+      .select(`time_bucket(:width_interval::INTERVAL, event_time)`, "bucket")
       .addSelect("count(*)", "prs_count")
       .addSelect(
         "count(CASE WHEN LOWER(pr_author_association) = 'collaborator' THEN 1 END)",
@@ -676,12 +700,13 @@ export class PullRequestGithubEventsService {
       .addSelect("count(CASE WHEN LOWER(pr_action) = 'opened' THEN 1 END)", "active_prs")
       .addSelect("count(CASE WHEN pr_active_lock_reason = 'spam' THEN 1 END)", "spam_prs")
       .addSelect(
-        `COALESCE(AVG(CASE WHEN pr_is_merged = true THEN pr_merged_at::DATE - pr_created_at::DATE END), 0)::INTEGER AS pr_velocity`
+        "COALESCE(AVG(CASE WHEN pr_is_merged = true THEN pr_merged_at::DATE - pr_created_at::DATE END), 0)::INTEGER AS pr_velocity"
       )
       .from("CTE", "CTE")
       .where("row_num = 1")
       .groupBy("bucket")
-      .orderBy("bucket", order);
+      .orderBy("bucket", order)
+      .setParameter("width_interval", `${width} days`);
 
     return queryBuilder.getRawMany<DbPullRequestGitHubEventsHistogram>();
   }
@@ -698,13 +723,17 @@ export class PullRequestGithubEventsService {
 
     const queryBuilder = this.pullRequestGithubEventsRepository
       .createQueryBuilder("pull_request_github_events")
-      .select(`time_bucket('${width} day', event_time)`, "bucket")
+      .select("time_bucket(:width_interval::INTERVAL, event_time)", "bucket")
       .addSelect(`count(distinct "pull_request_github_events"."pr_author_login")`, "contributor_count")
-      .where(`'${startDate}'::TIMESTAMP >= "pull_request_github_events"."event_time"`)
-      .andWhere(`'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "pull_request_github_events"."event_time"`)
+      .where(`:start_date::TIMESTAMP >= "pull_request_github_events"."event_time"`, { start_date: startDate })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "pull_request_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      })
       .andWhere(`"pull_request_github_events"."pr_action" = 'opened'`)
       .groupBy("bucket")
-      .orderBy("bucket", order);
+      .orderBy("bucket", order)
+      .setParameter("width_interval", `${width} days`);
 
     /* apply user provided repo name filters */
     if (options.repo) {
@@ -748,8 +777,11 @@ export class PullRequestGithubEventsService {
         `ROW_NUMBER() OVER (PARTITION BY pull_request_github_events.pr_author_login ORDER BY pull_request_github_events.event_time ${order}) AS row_num`
       )
       .orderBy("event_time", order)
-      .where(`'${startDate}'::TIMESTAMP >= "pull_request_github_events"."event_time"`)
-      .andWhere(`'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "pull_request_github_events"."event_time"`);
+      .where(`:start_date::TIMESTAMP >= "pull_request_github_events"."event_time"`, { start_date: startDate })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "pull_request_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      });
 
     /*
      * apply repo specific filters (topics, top 100, etc.) - this captures a few
@@ -851,10 +883,11 @@ export class PullRequestGithubEventsService {
       case "active":
         /* capture pr authors in current range window */
         cteBuilder
-          .where(`'${startDate}'::TIMESTAMP >= "pull_request_github_events"."event_time"`)
-          .andWhere(
-            `'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "pull_request_github_events"."event_time"`
-          );
+          .where(`:start_date::TIMESTAMP >= "pull_request_github_events"."event_time"`, { start_date: startDate })
+          .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "pull_request_github_events"."event_time"`, {
+            start_date: startDate,
+            range_interval: `${range} days`,
+          });
 
         this.applyActiveContributorsFilter(cteBuilder, repos, startDate, range);
         break;
@@ -862,10 +895,11 @@ export class PullRequestGithubEventsService {
       case "new":
         /* capture pr authors in current range window */
         cteBuilder
-          .where(`'${startDate}'::TIMESTAMP >= "pull_request_github_events"."event_time"`)
-          .andWhere(
-            `'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "pull_request_github_events"."event_time"`
-          );
+          .where(`:start_date::TIMESTAMP >= "pull_request_github_events"."event_time"`, { start_date: startDate })
+          .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "pull_request_github_events"."event_time"`, {
+            start_date: startDate,
+            range_interval: `${range} days`,
+          });
 
         this.applyNewContributorsFilter(cteBuilder, repos, startDate, range);
         break;
@@ -873,9 +907,13 @@ export class PullRequestGithubEventsService {
       case "alumni": {
         /* capture pr authors in previous range window */
         cteBuilder
-          .where(`'${startDate}'::TIMESTAMP >= "pull_request_github_events"."event_time"`)
+          .where(`:start_date::TIMESTAMP >= "pull_request_github_events"."event_time"`, { start_date: startDate })
           .andWhere(
-            `'${startDate}'::TIMESTAMP - INTERVAL '${range + range} days' <= "pull_request_github_events"."event_time"`
+            `:start_date::TIMESTAMP - :double_range_interval::INTERVAL <= "pull_request_github_events"."event_time"`,
+            {
+              start_date: startDate,
+              double_range_interval: `${range + range} days`,
+            }
           );
 
         this.applyAlumniContributorsFilter(cteBuilder, repos, startDate, range);
@@ -885,10 +923,13 @@ export class PullRequestGithubEventsService {
       default:
         /* capture pr authors in current range window */
         cteBuilder
-          .where(`'${startDate}'::TIMESTAMP >= "pull_request_github_events"."event_time"`)
-          .andWhere(
-            `'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "pull_request_github_events"."event_time"`
-          );
+          .where(`:start_date::TIMESTAMP >= "pull_request_github_events"."event_time"`, {
+            start_date: startDate,
+          })
+          .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "pull_request_github_events"."event_time"`, {
+            start_date: startDate,
+            range_interval: `${range} days`,
+          });
         break;
     }
 
@@ -933,47 +974,77 @@ export class PullRequestGithubEventsService {
     return new PageDto(entities, pageMetaDto);
   }
 
+  private leftJoinCurrentMonthPrs(
+    queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>,
+    repos = "",
+    startDate: string,
+    range = 30
+  ): SelectQueryBuilder<DbPullRequestGitHubEvents> {
+    queryBuilder.leftJoin(
+      (qb: SelectQueryBuilder<DbPullRequestGitHubEvents>) =>
+        qb
+          .select("SELECT DISTINCT LOWER(pr_author_login)", "pr_author_login")
+          .from("pull_request_github_events", "pull_request_github_events")
+          .where("LOWER(repo_name) IN (...repoNames)", {
+            repoNames: repos.toLowerCase().split(","),
+          })
+          .andWhere(
+            "event_time BETWEEN :start_date::TIMESTAMP - :range_interval::INTERVAL AND :start_date::TIMESTAMP",
+            {
+              start_date: startDate,
+              range_interval: `${range} days`,
+            }
+          ),
+      "current_month_prs",
+      "pull_request_github_events.pr_author_login = current_month_prs.pr_author_login"
+    );
+
+    return queryBuilder;
+  }
+
+  private leftJoinPreviousMonthPrs(
+    queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>,
+    repos = "",
+    startDate: string,
+    range = 30
+  ): SelectQueryBuilder<DbPullRequestGitHubEvents> {
+    queryBuilder.leftJoin(
+      (qb: SelectQueryBuilder<DbPullRequestGitHubEvents>) =>
+        qb
+          .select("SELECT DISTINCT LOWER(pr_author_login)", "pr_author_login")
+          .from("pull_request_github_events", "pull_request_github_events")
+          .where("LOWER(repo_name) IN (...repoNames)", {
+            repoNames: repos.toLowerCase().split(","),
+          })
+          .andWhere(
+            "event_time BETWEEN :start_date::TIMESTAMP - :double_range_interval::INTERVAL AND :start_date::TIMESTAMP - :range_interval::INTERVAL",
+            {
+              start_date: startDate,
+              range_interval: `${range} days`,
+              double_range_interval: `${range + range} days`,
+            }
+          ),
+      "previous_month_prs",
+      "pull_request_github_events.pr_author_login = current_month_prs.pr_author_login"
+    );
+
+    return queryBuilder;
+  }
+
   applyActiveContributorsFilter(
     queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>,
     repos = "",
     startDate: string,
     range = 30
-  ) {
+  ): SelectQueryBuilder<DbPullRequestGitHubEvents> {
+    this.leftJoinCurrentMonthPrs(queryBuilder, repos, startDate, range);
+    this.leftJoinPreviousMonthPrs(queryBuilder, repos, startDate, range);
+
     queryBuilder
-      .leftJoin(
-        `(
-          SELECT DISTINCT LOWER("pr_author_login") pr_author_login
-          FROM "pull_request_github_events"
-            WHERE LOWER(repo_name) IN (${repos
-              .toLowerCase()
-              .split(",")
-              .map((repo) => `'${repo}'`)
-              .join(", ")})
-              AND "pull_request_github_events"."event_time" BETWEEN '${startDate}':: TIMESTAMP - INTERVAL '${range} days'
-              AND '${startDate}':: TIMESTAMP
-        )`,
-        "current_month_prs",
-        `pull_request_github_events.pr_author_login = current_month_prs.pr_author_login`
-      )
-      .leftJoin(
-        `(
-          SELECT DISTINCT LOWER("pr_author_login") pr_author_login
-            FROM "pull_request_github_events"
-            WHERE LOWER(repo_name) IN (${repos
-              .toLowerCase()
-              .split(",")
-              .map((repo) => `'${repo}'`)
-              .join(", ")})
-              AND "pull_request_github_events"."event_time" BETWEEN '${startDate}':: TIMESTAMP - INTERVAL '${
-          range + range
-        } days'
-              AND '${startDate}':: TIMESTAMP - INTERVAL '${range} days'
-        )`,
-        "previous_month_prs",
-        `pull_request_github_events.pr_author_login = current_month_prs.pr_author_login`
-      )
       .andWhere(`"previous_month_prs"."pr_author_login" IS NOT NULL`)
       .andWhere(`"current_month_prs"."pr_author_login" IS NOT NULL`);
+
+    return queryBuilder;
   }
 
   applyNewContributorsFilter(
@@ -981,42 +1052,15 @@ export class PullRequestGithubEventsService {
     repos = "",
     startDate: string,
     range = 30
-  ) {
+  ): SelectQueryBuilder<DbPullRequestGitHubEvents> {
+    this.leftJoinCurrentMonthPrs(queryBuilder, repos, startDate, range);
+    this.leftJoinPreviousMonthPrs(queryBuilder, repos, startDate, range);
+
     queryBuilder
-      .leftJoin(
-        `(
-          SELECT DISTINCT LOWER("pr_author_login") pr_author_login
-          FROM "pull_request_github_events"
-            WHERE LOWER(repo_name) IN (${repos
-              .toLowerCase()
-              .split(",")
-              .map((repo) => `'${repo}'`)
-              .join(", ")})
-              AND "pull_request_github_events"."event_time" BETWEEN '${startDate}':: TIMESTAMP - INTERVAL '${range} days'
-              AND '${startDate}':: TIMESTAMP
-        )`,
-        "current_month_prs",
-        `pull_request_github_events.pr_author_login = current_month_prs.pr_author_login`
-      )
-      .leftJoin(
-        `(
-          SELECT DISTINCT LOWER("pr_author_login") pr_author_login
-            FROM "pull_request_github_events"
-            WHERE LOWER(repo_name) IN (${repos
-              .toLowerCase()
-              .split(",")
-              .map((repo) => `'${repo}'`)
-              .join(", ")})
-              AND "pull_request_github_events"."event_time" BETWEEN '${startDate}':: TIMESTAMP - INTERVAL '${
-          range + range
-        } days'
-              AND '${startDate}':: TIMESTAMP - INTERVAL '${range} days'
-        )`,
-        "previous_month_prs",
-        `pull_request_github_events.pr_author_login = previous_month_prs.pr_author_login`
-      )
       .andWhere(`"previous_month_prs"."pr_author_login" IS NULL`)
       .andWhere(`"current_month_prs"."pr_author_login" IS NOT NULL`);
+
+    return queryBuilder;
   }
 
   applyAlumniContributorsFilter(
@@ -1024,41 +1068,14 @@ export class PullRequestGithubEventsService {
     repos = "",
     startDate: string,
     range = 30
-  ) {
+  ): SelectQueryBuilder<DbPullRequestGitHubEvents> {
+    this.leftJoinCurrentMonthPrs(queryBuilder, repos, startDate, range);
+    this.leftJoinPreviousMonthPrs(queryBuilder, repos, startDate, range);
+
     queryBuilder
-      .leftJoin(
-        `(
-          SELECT DISTINCT LOWER("pr_author_login") pr_author_login
-          FROM "pull_request_github_events"
-            WHERE LOWER(repo_name) IN (${repos
-              .toLowerCase()
-              .split(",")
-              .map((repo) => `'${repo}'`)
-              .join(", ")})
-              AND "pull_request_github_events"."event_time" BETWEEN '${startDate}':: TIMESTAMP - INTERVAL '${range} days'
-              AND '${startDate}':: TIMESTAMP
-        )`,
-        "current_month_prs",
-        `pull_request_github_events.pr_author_login = current_month_prs.pr_author_login`
-      )
-      .leftJoin(
-        `(
-          SELECT DISTINCT LOWER("pr_author_login") pr_author_login
-            FROM "pull_request_github_events"
-            WHERE LOWER(repo_name) IN (${repos
-              .toLowerCase()
-              .split(",")
-              .map((repo) => `'${repo}'`)
-              .join(", ")})
-              AND "pull_request_github_events"."event_time" BETWEEN '${startDate}':: TIMESTAMP - INTERVAL '${
-          range + range
-        } days'
-              AND '${startDate}':: TIMESTAMP - INTERVAL '${range} days'
-        )`,
-        "previous_month_prs",
-        `pull_request_github_events.pr_author_login = previous_month_prs.pr_author_login`
-      )
       .andWhere(`"previous_month_prs"."pr_author_login" IS NOT NULL`)
       .andWhere(`"current_month_prs"."pr_author_login" IS NULL`);
+
+    return queryBuilder;
   }
 }

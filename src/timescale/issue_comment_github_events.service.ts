@@ -46,11 +46,11 @@ export class IssueCommentGithubEventsService {
     repos?: string[]
   ): Promise<DbIssueCommentGitHubEvents[]> {
     const queryBuilder = this.baseQueryBuilder()
-      .where(`LOWER(actor_login) = '${username}'`)
-      .andWhere(`event_time > NOW() - INTERVAL '${range} days'`);
+      .where("LOWER(actor_login) = :username", { username })
+      .andWhere("event_time > NOW() - :range_interval::INTERVAL", { range_interval: `${range} days` });
 
     if (repos && repos.length > 0) {
-      queryBuilder.andWhere(`LOWER(repo_name) IN (:...repos)`, { repos });
+      queryBuilder.andWhere("LOWER(repo_name) IN (:...repos)", { repos });
     }
 
     return queryBuilder.getMany();
@@ -66,7 +66,7 @@ export class IssueCommentGithubEventsService {
       .createQueryBuilder()
       .select("COALESCE(COUNT(*), 0) AS issue_comments")
       .from("issue_comment_github_events", "issue_comment_github_events")
-      .where(`LOWER(actor_login) = '${username}'`)
+      .where("LOWER(actor_login) = :username", { username })
       .groupBy("LOWER(actor_login)");
 
     if (repos && repos.length > 0) {
@@ -93,7 +93,7 @@ export class IssueCommentGithubEventsService {
 
     const queryBuilder = this.issueCommentGitHubEventsRepository.manager
       .createQueryBuilder()
-      .select(`time_bucket('${width} day', event_time)`, "bucket")
+      .select(`time_bucket(:width_interval::INTERVAL, event_time)`, "bucket")
       .addSelect("count(CASE WHEN LOWER(issue_comment_action) = 'created' THEN 1 END)", "all_comments")
       .addSelect(
         "count(CASE WHEN LOWER(comment_author_association) = 'collaborator' THEN 1 END)",
@@ -112,10 +112,14 @@ export class IssueCommentGithubEventsService {
       .addSelect("count(CASE WHEN issue_is_pr = TRUE THEN 1 END)", "pr_comments")
       .addSelect("count(CASE WHEN issue_is_pr = FALSE THEN 1 END)", "issue_comments")
       .from("issue_comment_github_events", "issue_comment_github_events")
-      .where(`'${startDate}':: TIMESTAMP >= "issue_comment_github_events"."event_time"`)
-      .andWhere(`'${startDate}':: TIMESTAMP - INTERVAL '${range} days' <= "issue_comment_github_events"."event_time"`)
+      .where(`:start_date::TIMESTAMP >= "issue_comment_github_events"."event_time"`, { start_date: startDate })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "issue_comment_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      })
       .groupBy("bucket")
-      .orderBy("bucket", order);
+      .orderBy("bucket", order)
+      .setParameter("width_interval", `${width} days`);
 
     /* filter on the provided issue comment author */
     if (options.contributor) {
@@ -126,14 +130,14 @@ export class IssueCommentGithubEventsService {
 
     /* filter on the provided repo names */
     if (options.repo) {
-      queryBuilder.andWhere(`LOWER("issue_comment_github_events"."repo_name") IN (:...repoNames)`).setParameters({
+      queryBuilder.andWhere(`LOWER("issue_comment_github_events"."repo_name") IN (:...repoNames)`, {
         repoNames: options.repo.toLowerCase().split(","),
       });
     }
 
     /* filter on the provided repo ids */
     if (options.repoIds) {
-      queryBuilder.andWhere(`"issue_comment_github_events"."repo_id" IN (:...repoIds)`).setParameters({
+      queryBuilder.andWhere(`"issue_comment_github_events"."repo_id" IN (:...repoIds)`, {
         repoIds: options.repoIds.split(","),
       });
     }

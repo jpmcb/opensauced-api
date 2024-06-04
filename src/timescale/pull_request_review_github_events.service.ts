@@ -109,12 +109,12 @@ export class PullRequestReviewGithubEventsService {
     repos?: string[]
   ): Promise<DbPullRequestReviewGitHubEvents[]> {
     const queryBuilder = this.baseQueryBuilder()
-      .where(`LOWER(actor_login) = '${username}'`)
+      .where("LOWER(actor_login) = :username", { username })
       .andWhere("pr_review_action = 'opened'")
-      .andWhere(`event_time > NOW() - INTERVAL '${range} days'`);
+      .andWhere("event_time > NOW() - :range_interval::INTERVAL", { range_interval: `${range} days` });
 
     if (repos && repos.length > 0) {
-      queryBuilder.andWhere(`LOWER(repo_name) IN (:...repos)`, { repos });
+      queryBuilder.andWhere("LOWER(repo_name) IN (:...repos)", { repos });
     }
 
     return queryBuilder.getMany();
@@ -134,9 +134,13 @@ export class PullRequestReviewGithubEventsService {
       .orderBy("event_time", order);
 
     cteBuilder
-      .where(`'${startDate}'::TIMESTAMP >= "pull_request_review_github_events"."event_time"`)
+      .where(`:start_date::TIMESTAMP >= "pull_request_review_github_events"."event_time"`, { start_date: startDate })
       .andWhere(
-        `'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "pull_request_review_github_events"."event_time"`
+        `:start_date::TIMESTAMP - :range_interval::INTERVAL <= "pull_request_review_github_events"."event_time"`,
+        {
+          start_date: startDate,
+          range_interval: `${range} days`,
+        }
       );
 
     /* filter on PR author / contributor */
@@ -219,7 +223,7 @@ export class PullRequestReviewGithubEventsService {
       .createQueryBuilder()
       .select("COALESCE(COUNT(*), 0) AS prs_reviewed")
       .from("pull_request_review_github_events", "pull_request_review_github_events")
-      .where(`LOWER(actor_login) = '${username}'`)
+      .where("LOWER(actor_login) = :username", { username })
       .andWhere("pr_review_action = 'created'")
       .groupBy("LOWER(actor_login)");
 
@@ -250,7 +254,7 @@ export class PullRequestReviewGithubEventsService {
     const queryBuilder = this.pullRequestReviewGithubEventsRepository.manager.createQueryBuilder();
 
     queryBuilder
-      .select(`time_bucket('${width} day', event_time)`, "bucket")
+      .select("time_bucket(:width_interval::INTERVAL, event_time)", "bucket")
       .addSelect("count(CASE WHEN LOWER(pr_review_action) = 'created' THEN 1 END)", "all_reviews")
       .addSelect(
         "count(CASE WHEN LOWER(pr_review_author_association) = 'contributor' THEN 1 END)",
@@ -276,12 +280,17 @@ export class PullRequestReviewGithubEventsService {
         "changes_requested_reviews"
       )
       .from("pull_request_review_github_events", "pull_request_review_github_events")
-      .where(`'${startDate}':: TIMESTAMP >= "pull_request_review_github_events"."event_time"`)
+      .where(`:start_date::TIMESTAMP >= "pull_request_review_github_events"."event_time"`, { start_date: startDate })
       .andWhere(
-        `'${startDate}':: TIMESTAMP - INTERVAL '${range} days' <= "pull_request_review_github_events"."event_time"`
+        `:start_date::TIMESTAMP - :range_interval::INTERVAL <= "pull_request_review_github_events"."event_time"`,
+        {
+          start_date: startDate,
+          range_interval: `${range} days`,
+        }
       )
       .groupBy("bucket")
-      .orderBy("bucket", order);
+      .orderBy("bucket", order)
+      .setParameter("width_interval", `${width} days`);
 
     /* filter on the provided pull req review author */
     if (options.contributor) {
@@ -292,14 +301,14 @@ export class PullRequestReviewGithubEventsService {
 
     /* apply consumer provided repo name filters */
     if (options.repo) {
-      queryBuilder.andWhere(`LOWER("pull_request_review_github_events"."repo_name") IN (:...repoNames)`).setParameters({
+      queryBuilder.andWhere(`LOWER("pull_request_review_github_events"."repo_name") IN (:...repoNames)`, {
         repoNames: options.repo.toLowerCase().split(","),
       });
     }
 
     /* apply filters for consumer provided repo ids */
     if (options.repoIds) {
-      queryBuilder.andWhere(`"pull_request_review_github_events"."repo_id" IN (:...repoIds)`).setParameters({
+      queryBuilder.andWhere(`"pull_request_review_github_events"."repo_id" IN (:...repoIds)`, {
         repoIds: options.repoIds.split(","),
       });
     }

@@ -44,7 +44,7 @@ export class WatchGithubEventsService {
     const queryBuilder = this.baseQueryBuilder();
 
     queryBuilder
-      .select(`time_bucket(:width_interval::INTERVAL, event_time)`, "bucket")
+      .select("time_bucket(:width_interval::INTERVAL, event_time)", "bucket")
       .addSelect("count(*)", "star_count")
       .from("watch_github_events", "watch_github_events")
       .where(`:start_date:: TIMESTAMP >= "watch_github_events"."event_time"`, { start_date: startDate })
@@ -54,7 +54,7 @@ export class WatchGithubEventsService {
       })
       .groupBy("bucket")
       .orderBy("bucket", order)
-      .setParameter("width_interval", `${width.toString()} days`);
+      .setParameter("width_interval", `${width} days`);
 
     /* filter on the provided star-er username */
     if (options.contributor) {
