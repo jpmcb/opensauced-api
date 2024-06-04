@@ -42,10 +42,14 @@ export class IssuesGithubEventsVectorService {
     const startDate = GetPrevDateISOString(prevDaysStartDate);
     const queryBuilder = this.issuesGithubEventsRepository
       .createQueryBuilder("issues_github_events")
-      .where(`'${startDate}'::TIMESTAMP >= "issues_github_events"."event_time"`)
-      .andWhere(`'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "issues_github_events"."event_time"`)
+      .where(`:start_date::TIMESTAMP >= "issues_github_events"."event_time"`, { start_date: startDate })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "issues_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      })
       .andWhere("LOWER(issue_author_login) NOT LIKE '%[bot]%'")
-      .orderBy(`issues_github_events.embedding <=> '[${embedding.join(",")}]'::vector`)
+      .orderBy(`issues_github_events.embedding <=> :vector_embedding::vector`)
+      .setParameters({ vector_embedding: `[${embedding.join(",")}]` })
       .limit(5);
 
     if (author) {

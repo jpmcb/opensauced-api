@@ -43,13 +43,17 @@ export class ForkGithubEventsService {
     const queryBuilder = this.baseQueryBuilder();
 
     queryBuilder
-      .select(`time_bucket('${width} day', event_time)`, "bucket")
+      .select("time_bucket(:width_interval::INTERVAL, event_time)", "bucket")
       .addSelect("count(*)", "forks_count")
       .from("fork_github_events", "fork_github_events")
-      .where(`'${startDate}':: TIMESTAMP >= "fork_github_events"."event_time"`)
-      .andWhere(`'${startDate}':: TIMESTAMP - INTERVAL '${range} days' <= "fork_github_events"."event_time"`)
+      .where(`:start_date::TIMESTAMP >= "fork_github_events"."event_time"`, { start_date: startDate })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "fork_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      })
       .groupBy("bucket")
-      .orderBy("bucket", order);
+      .orderBy("bucket", order)
+      .setParameter("width_interval", `${width} days`);
 
     /* filter on the provided forker username */
     if (options.contributor) {
@@ -60,14 +64,14 @@ export class ForkGithubEventsService {
 
     /* filter on the provided repo names */
     if (options.repo) {
-      queryBuilder.andWhere(`LOWER("fork_github_events"."repo_name") IN (:...repoNames)`).setParameters({
+      queryBuilder.andWhere(`LOWER("fork_github_events"."repo_name") IN (:...repoNames)`, {
         repoNames: options.repo.toLowerCase().split(","),
       });
     }
 
     /* filter on the provided repo ids */
     if (options.repoIds) {
-      queryBuilder.andWhere(`"fork_github_events"."repo_id" IN (:...repoIds)`).setParameters({
+      queryBuilder.andWhere(`"fork_github_events"."repo_id" IN (:...repoIds)`, {
         repoIds: options.repoIds.split(","),
       });
     }

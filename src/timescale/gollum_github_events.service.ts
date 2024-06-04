@@ -41,14 +41,18 @@ export class GollumGithubEventsService {
     const queryBuilder = this.baseQueryBuilder();
 
     queryBuilder
-      .select(`time_bucket('${width} day', event_time)`, "bucket")
+      .select("time_bucket(:width_interval::INTERVAL, event_time)", "bucket")
       .addSelect("count(CASE WHEN LOWER(pages_action) = 'created' THEN 1 END)", "created_pages")
       .addSelect("count(CASE WHEN LOWER(pages_action) = 'edited' THEN 1 END)", "edited_pages")
       .from("gollum_github_events", "gollum_github_events")
-      .where(`'${startDate}':: TIMESTAMP >= "gollum_github_events"."event_time"`)
-      .andWhere(`'${startDate}':: TIMESTAMP - INTERVAL '${range} days' <= "gollum_github_events"."event_time"`)
+      .where(`:start_date::TIMESTAMP >= "gollum_github_events"."event_time"`, { start_date: startDate })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "gollum_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      })
       .groupBy("bucket")
-      .orderBy("bucket", order);
+      .orderBy("bucket", order)
+      .setParameter("width_interval", `${width} days`);
 
     /* filter on the provided wiki editor/creator username */
     if (options.contributor) {
@@ -59,14 +63,14 @@ export class GollumGithubEventsService {
 
     /* filter on the provided repo names */
     if (options.repo) {
-      queryBuilder.andWhere(`LOWER("gollum_github_events"."repo_name") IN (:...repoNames)`).setParameters({
+      queryBuilder.andWhere(`LOWER("gollum_github_events"."repo_name") IN (:...repoNames)`, {
         repoNames: options.repo.toLowerCase().split(","),
       });
     }
 
     /* filter on the provided repo ids */
     if (options.repoIds) {
-      queryBuilder.andWhere(`"gollum_github_events"."repo_id" IN (:...repoIds)`).setParameters({
+      queryBuilder.andWhere(`"gollum_github_events"."repo_id" IN (:...repoIds)`, {
         repoIds: options.repoIds.split(","),
       });
     }

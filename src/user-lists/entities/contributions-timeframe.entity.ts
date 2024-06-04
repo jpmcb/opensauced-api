@@ -1,6 +1,16 @@
 import { ApiModelProperty } from "@nestjs/swagger/dist/decorators/api-model-property.decorator";
 import { Column, Entity } from "typeorm";
 
+export enum contributionTypeEnum {
+  commit = "commit",
+  pr = "pr",
+  pr_review = "pr_review",
+  issue = "issue",
+  commit_comment = "commit_comment",
+  issue_comment = "issue_comment",
+  pr_review_comment = "pr_review_comment",
+}
+
 @Entity({ name: "user_list_contributors" })
 export class DbContributionStatTimeframe {
   @ApiModelProperty({

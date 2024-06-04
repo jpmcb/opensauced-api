@@ -25,6 +25,7 @@ import { CreateWorkspaceDto } from "./dtos/create-workspace.dto";
 import { UpdateWorkspaceDto } from "./dtos/update-workspace.dto";
 import { WorkspaceInsightsService } from "./workspace-insights.service";
 import { WorkspaceUserListsService } from "./workspace-user-lists.service";
+import { WorkspaceReposService } from "./workspace-repos.service";
 
 @Controller("workspaces")
 @ApiTags("Workspaces service")
@@ -32,7 +33,8 @@ export class WorkspaceController {
   constructor(
     private readonly workspaceService: WorkspaceService,
     private readonly workspaceInsightsService: WorkspaceInsightsService,
-    private readonly workspaceListsService: WorkspaceUserListsService
+    private readonly workspaceListsService: WorkspaceUserListsService,
+    private readonly workspaceReposService: WorkspaceReposService
   ) {}
 
   @Get("/")
@@ -72,6 +74,7 @@ export class WorkspaceController {
     let overLimit = false;
 
     if (!workspace.payee_user_id) {
+      const repositories = await this.workspaceReposService.findAllReposByWorkspaceIdForUserId({ skip: 0 }, id, userId);
       const repositoryInsights = await this.workspaceInsightsService.findAllInsightsByWorkspaceIdForUserId(
         { skip: 0 },
         id,
@@ -83,15 +86,16 @@ export class WorkspaceController {
         userId
       );
 
+      const overWorkspaceRepoLimit = repositories.meta.itemCount > 100;
       const overRepoLimit = !!repositoryInsights.data.find(
-        (repoInsight?: DbInsight) => repoInsight?.repos && repoInsight.repos.length > 100
+        (repoInsight?: DbInsight) => repoInsight?.repos && repoInsight.repos.length > 20
       );
       const overContributorLimit = !!contributorInsights.data.find(
         (contributorInsight?: DbUserList) =>
           contributorInsight?.contributors && contributorInsight.contributors.length > 10
       );
 
-      if (overRepoLimit || overContributorLimit) {
+      if (overRepoLimit || overContributorLimit || overWorkspaceRepoLimit) {
         overLimit = true;
       }
     }

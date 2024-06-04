@@ -34,9 +34,9 @@ export class PushGithubEventsService {
 
   async getPushEventsAllForLogin(username: string, range: number, repos?: string[]): Promise<DbPushGitHubEvents[]> {
     const queryBuilder = this.baseQueryBuilder()
-      .where(`LOWER(actor_login) = '${username}'`)
+      .where("LOWER(actor_login) = :username", { username })
       .andWhere("push_ref IN ('refs/heads/main', 'refs/heads/master')")
-      .andWhere(`event_time > NOW() - INTERVAL '${range} days'`);
+      .andWhere("event_time > NOW() - :range_interval::INTERVAL", { range_interval: `${range} days` });
 
     if (repos && repos.length > 0) {
       queryBuilder.andWhere(`LOWER(repo_name) IN (:...repos)`, { repos });
@@ -55,7 +55,7 @@ export class PushGithubEventsService {
       .createQueryBuilder()
       .select("COALESCE(sum(push_num_commits), 0) AS commits")
       .from("push_github_events", "push_github_events")
-      .where(`LOWER(actor_login) = '${username}'`)
+      .where("LOWER(actor_login) = :username", { username })
       .andWhere("push_ref IN ('refs/heads/main', 'refs/heads/master')")
       .groupBy("LOWER(actor_login)");
 
@@ -83,14 +83,18 @@ export class PushGithubEventsService {
 
     const queryBuilder = this.pushGitHubEventsHistogramRepository.manager
       .createQueryBuilder()
-      .select(`time_bucket('${width} day', event_time)`, "bucket")
+      .select("time_bucket(:width_interval::INTERVAL, event_time)", "bucket")
       .addSelect("count(*)", "pushes_count")
       .addSelect("count(CASE WHEN LOWER(push_ref) SIMILAR TO '%(main|master)%' THEN 1 END)", "main_pushes")
       .from("push_github_events", "push_github_events")
-      .where(`'${startDate}':: TIMESTAMP >= "push_github_events"."event_time"`)
-      .andWhere(`'${startDate}':: TIMESTAMP - INTERVAL '${range} days' <= "push_github_events"."event_time"`)
+      .where(`:start_date::TIMESTAMP >= "push_github_events"."event_time"`, { start_date: startDate })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "push_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      })
       .groupBy("bucket")
-      .orderBy("bucket", order);
+      .orderBy("bucket", order)
+      .setParameter("width_interval", `${width} days`);
 
     /* filter on the provided pusher username */
     if (options.contributor) {
@@ -101,14 +105,14 @@ export class PushGithubEventsService {
 
     /* filter on the provided repo names */
     if (options.repo) {
-      queryBuilder.andWhere(`LOWER("push_github_events"."repo_name") IN (:...repoNames)`).setParameters({
+      queryBuilder.andWhere(`LOWER("push_github_events"."repo_name") IN (:...repoNames)`, {
         repoNames: options.repo.toLowerCase().split(","),
       });
     }
 
     /* filter on the provided repo ids */
     if (options.repoIds) {
-      queryBuilder.andWhere(`"push_github_events"."repo_id" IN (:...repoIds)`).setParameters({
+      queryBuilder.andWhere(`"push_github_events"."repo_id" IN (:...repoIds)`, {
         repoIds: options.repoIds.split(","),
       });
     }
@@ -123,8 +127,13 @@ export class PushGithubEventsService {
     const range = 30;
 
     const queryBuilder = this.baseQueryBuilder()
-      .where(`'${startDate}':: TIMESTAMP >= "push_github_events"."event_time"`)
-      .andWhere(`'${startDate}':: TIMESTAMP - INTERVAL '${range} days' <= "push_github_events"."event_time"`)
+      .where(`:start_date::TIMESTAMP >= "push_github_events"."event_time"`, {
+        start_date: startDate,
+      })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "push_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      })
       .andWhere(`LOWER("push_github_events"."repo_name") = '${repo}'`)
       .orderBy("event_time", OrderDirectionEnum.DESC);
 

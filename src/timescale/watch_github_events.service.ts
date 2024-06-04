@@ -44,13 +44,17 @@ export class WatchGithubEventsService {
     const queryBuilder = this.baseQueryBuilder();
 
     queryBuilder
-      .select(`time_bucket('${width} day', event_time)`, "bucket")
+      .select("time_bucket(:width_interval::INTERVAL, event_time)", "bucket")
       .addSelect("count(*)", "star_count")
       .from("watch_github_events", "watch_github_events")
-      .where(`'${startDate}':: TIMESTAMP >= "watch_github_events"."event_time"`)
-      .andWhere(`'${startDate}':: TIMESTAMP - INTERVAL '${range} days' <= "watch_github_events"."event_time"`)
+      .where(`:start_date:: TIMESTAMP >= "watch_github_events"."event_time"`, { start_date: startDate })
+      .andWhere(`:start_date:: TIMESTAMP - :range_interval::INTERVAL <= "watch_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      })
       .groupBy("bucket")
-      .orderBy("bucket", order);
+      .orderBy("bucket", order)
+      .setParameter("width_interval", `${width} days`);
 
     /* filter on the provided star-er username */
     if (options.contributor) {
@@ -61,14 +65,14 @@ export class WatchGithubEventsService {
 
     /* filter on the provided repo names */
     if (options.repo) {
-      queryBuilder.andWhere(`LOWER("watch_github_events"."repo_name") IN (:...repoNames)`).setParameters({
+      queryBuilder.andWhere(`LOWER("watch_github_events"."repo_name") IN (:...repoNames)`, {
         repoNames: options.repo.toLowerCase().split(","),
       });
     }
 
     /* filter on the provided repo ids */
     if (options.repoIds) {
-      queryBuilder.andWhere(`"watch_github_events"."repo_id" IN (:...repoIds)`).setParameters({
+      queryBuilder.andWhere(`"watch_github_events"."repo_id" IN (:...repoIds)`, {
         repoIds: options.repoIds.split(","),
       });
     }

@@ -63,8 +63,8 @@ export class RepoDevstatsService {
       .select("time_bucket('1 day', event_time)", "day")
       .addSelect("repo_name")
       .addSelect("COUNT(DISTINCT LOWER(actor_login))", "contributors")
-      .where(`LOWER(repo_name) = LOWER(:repoName)`, { repoName })
-      .andWhere(`now() - INTERVAL '${range} days' <= event_time`)
+      .where("LOWER(repo_name) = LOWER(:repoName)", { repoName })
+      .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .groupBy("day")
       .addGroupBy("repo_name");
 
@@ -74,8 +74,8 @@ export class RepoDevstatsService {
       .select("time_bucket('1 day', event_time)", "day")
       .addSelect("repo_name")
       .addSelect("SUM(issue_comments)", "daily_comments")
-      .where(`LOWER(repo_name) = LOWER(:repoName)`, { repoName })
-      .andWhere(`now() - INTERVAL '${range} days' <= event_time`)
+      .where("LOWER(repo_name) = LOWER(:repoName)", { repoName })
+      .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .groupBy("day")
       .addGroupBy("repo_name");
 
@@ -85,8 +85,8 @@ export class RepoDevstatsService {
       .select("time_bucket('1 day', event_time)", "day")
       .addSelect("repo_name")
       .addSelect("SUM(pr_commits)", "daily_pr_commits")
-      .where(`LOWER(repo_name) = LOWER(:repoName)`, { repoName })
-      .andWhere(`now() - INTERVAL '${range} days' <= event_time`)
+      .where("LOWER(repo_name) = LOWER(:repoName)", { repoName })
+      .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .groupBy("day")
       .addGroupBy("repo_name");
 
@@ -129,7 +129,7 @@ export class RepoDevstatsService {
       .select("DISTINCT LOWER(actor_login) as login")
       .from("watch_github_events", "watch_github_events")
       .where("LOWER(repo_name) = LOWER(:repoName)", { repoName })
-      .andWhere(`now() - INTERVAL '${range} days' <= event_time`);
+      .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` });
 
     const allStarGazers = await starGazersQuery.getRawMany<{ login: string }>();
 
@@ -149,19 +149,27 @@ export class RepoDevstatsService {
       .createQueryBuilder()
       .select("count(DISTINCT repo_name) as contributing_repos")
       .addSelect("pr_author_login")
+      .addSelect(`STRING_AGG(DISTINCT repo_name, ',')`, "repo_names")
       .from("pull_request_github_events", "pull_request_github_events")
       .where("LOWER(pr_author_login) IN (:...logins)", { logins: starGazers })
-      .andWhere(`now() - INTERVAL '${range} days' <= event_time`)
+      .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .groupBy("pr_author_login");
 
     const starGazersContributingReposCount = await starGazersContributingReposQuery.getRawMany<{
       contributing_repos: number;
       pr_author_login: string;
+      repo_names: string;
     }>();
 
     starGazersContributingReposCount.forEach((repoCount) => {
-      if (repoCount.contributing_repos > 1) {
-        result += 0.1;
+      const foundContribution = repoCount.repo_names.split(",").includes(repoName);
+
+      if (foundContribution) {
+        // someone made a contribution within the time window they starred the repo
+        result += 1;
+      } else if (repoCount.contributing_repos > 1) {
+        // starring a repo is weighted less than forking
+        result += 0.5;
       }
     });
 
@@ -177,7 +185,7 @@ export class RepoDevstatsService {
       .select("DISTINCT LOWER(actor_login) as login")
       .from("fork_github_events", "fork_github_events")
       .where("LOWER(repo_name) = LOWER(:repoName)", { repoName })
-      .andWhere(`now() - INTERVAL '${range} days' <= event_time`);
+      .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` });
 
     const allForkers = await forkerQuery.getRawMany<{ login: string }>();
 
@@ -197,20 +205,27 @@ export class RepoDevstatsService {
       .createQueryBuilder()
       .select("count(DISTINCT repo_name) as contributing_repos")
       .addSelect("pr_author_login")
+      .addSelect(`STRING_AGG(DISTINCT repo_name, ',')`, "repo_names")
       .from("pull_request_github_events", "pull_request_github_events")
       .where("LOWER(pr_author_login) IN (:...logins)", { logins: forkers })
-      .andWhere(`now() - INTERVAL '${range} days' <= event_time`)
+      .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .groupBy("pr_author_login");
 
     const forkerContributingReposCount = await forkerContributingReposQuery.getRawMany<{
       contributing_repos: number;
       pr_author_login: string;
+      repo_names: string;
     }>();
 
     forkerContributingReposCount.forEach((repoCount) => {
-      if (repoCount.contributing_repos > 1) {
+      const foundContribution = repoCount.repo_names.split(",").includes(repoName);
+
+      if (foundContribution) {
+        // someone made a contribution within the time window they forked the repo
+        result += 1;
+      } else if (repoCount.contributing_repos > 1) {
         // forking is weighted slightly higher than simply watching a repo
-        result += 0.5;
+        result += 0.75;
       }
     });
 
@@ -221,7 +236,7 @@ export class RepoDevstatsService {
    * this is a proof of concept metric called the "Contributor Confidence".
    *
    * the confidence score is a percentage metric that determines if certain activity on a
-   * repository (staring, forking, etc.) may result in a meaningful contribution. This can be
+   * repository (starring, forking, etc.) may result in a meaningful contribution. This can be
    * used to determine how likely "fly by" contributors who've contributed meaningfully elsewhere
    * within a given time range, are to contribute meaningfully back to the project in question
    *
@@ -234,15 +249,19 @@ export class RepoDevstatsService {
    * Truncate range down to max 90 days
    *
    * For all stargazers over the time range:
-   *   Check if those users have more than one contribution to 2 or more projects:
-   *     Add 0.1 to score
+   *   If they made a contribution to the repo in question:
+   *     Add 1 to score
+   *   Else check if that user has more than one contribution to 2 or more projects:
+   *     Add 0.5 to score
    *
    * For all forkers over the time range:
-   *   Check if those users have more than one contribution to 2 or more projects:
-   *     Add 0.5 to score (forks weight slightly higher)
+   *   If they made a contribution to the repo in question:
+   *     Add 1 to score
+   *   Else check if that user has more than one contribution to 2 or more projects:
+   *     Add 0.75 to score (forks weight slightly higher)
    *
    * Finally, calculate:
-   *   score / (# stargazers + forkers) within time range
+   *   score / (# stargazers + # forkers) within time range
    *     = confidence score as a percentage
    */
   async calculateContributorConfidence(repoName: string, range: number): Promise<number> {
@@ -284,8 +303,8 @@ export class RepoDevstatsService {
       .select("DISTINCT LOWER(actor_login) as login")
       .from("pull_request_github_events", "pull_request_github_events")
       .where("LOWER(repo_name) = LOWER(:repoName)", { repoName })
-      .andWhere(`now() - INTERVAL '${range} days' <= event_time`)
-      .groupBy(`login`);
+      .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
+      .groupBy("login");
 
     const allUsers = await usersQuery.getRawMany<{ login: string }>();
 
@@ -303,19 +322,19 @@ export class RepoDevstatsService {
       .createQueryBuilder()
       .select("DISTINCT LOWER(actor_login) as login")
       .from("pull_request_github_events", "pull_request_github_events")
-      .where(`LOWER(actor_login) IN (:...users)`, { users })
+      .where("LOWER(actor_login) IN (:...users)", { users })
       .andWhere("LOWER(repo_name) = LOWER(:repoName)", { repoName })
-      .andWhere(`now() - INTERVAL '${range} days' <= event_time`)
-      .groupBy(`login`);
+      .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
+      .groupBy("login");
 
     const commitsCte = this.pullRequestGithubEventsRepository.manager
       .createQueryBuilder()
       .select("LOWER(actor_login)", "actor_login")
       .addSelect("COALESCE(sum(push_num_commits), 0) AS commits")
       .from("push_github_events", "push_github_events")
-      .where(`LOWER(actor_login) IN (:...users)`, { users })
+      .where("LOWER(actor_login) IN (:...users)", { users })
       .andWhere("push_ref IN ('refs/heads/main', 'refs/heads/master')")
-      .andWhere(`now() - INTERVAL '${range} days' <= event_time`)
+      .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .andWhere("LOWER(repo_name) = LOWER(:repoName)", { repoName })
       .groupBy("LOWER(actor_login)");
 
@@ -324,9 +343,9 @@ export class RepoDevstatsService {
       .select("LOWER(actor_login)", "actor_login")
       .addSelect("COALESCE(COUNT(*), 0) AS prs_created")
       .from("pull_request_github_events", "pull_request_github_events")
-      .where(`LOWER(actor_login) IN (:...users)`, { users })
+      .where("LOWER(actor_login) IN (:...users)", { users })
       .andWhere("pr_action = 'opened'")
-      .andWhere(`now() - INTERVAL '${range} days' <= event_time`)
+      .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .andWhere("LOWER(repo_name) = LOWER(:repoName)", { repoName })
       .groupBy("LOWER(actor_login)");
 
@@ -335,9 +354,9 @@ export class RepoDevstatsService {
       .select("LOWER(actor_login)", "actor_login")
       .addSelect("COALESCE(COUNT(*), 0) AS prs_reviewed")
       .from("pull_request_review_github_events", "pull_request_review_github_events")
-      .where(`LOWER(actor_login) IN (:...users)`, { users })
+      .where("LOWER(actor_login) IN (:...users)", { users })
       .andWhere("pr_review_action = 'created'")
-      .andWhere(`now() - INTERVAL '${range} days' <= event_time`)
+      .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .andWhere("LOWER(repo_name) = LOWER(:repoName)", { repoName })
       .groupBy("LOWER(actor_login)");
 
@@ -346,9 +365,9 @@ export class RepoDevstatsService {
       .select("LOWER(actor_login)", "actor_login")
       .addSelect("COALESCE(COUNT(*), 0) AS issues_created")
       .from("issues_github_events", "issues_github_events")
-      .where(`LOWER(actor_login) IN (:...users)`, { users })
+      .where("LOWER(actor_login) IN (:...users)", { users })
       .andWhere("issue_action = 'opened'")
-      .andWhere(`now() - INTERVAL '${range} days' <= event_time`)
+      .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .andWhere("LOWER(repo_name) = LOWER(:repoName)", { repoName })
       .groupBy("LOWER(actor_login)");
 
@@ -357,8 +376,8 @@ export class RepoDevstatsService {
       .select("LOWER(actor_login)", "actor_login")
       .addSelect("COALESCE(COUNT(*), 0) AS commit_comments")
       .from("commit_comment_github_events", "commit_comment_github_events")
-      .where(`LOWER(actor_login) IN (:...users)`, { users })
-      .andWhere(`now() - INTERVAL '${range} days' <= event_time`)
+      .where("LOWER(actor_login) IN (:...users)", { users })
+      .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .andWhere("LOWER(repo_name) = LOWER(:repoName)", { repoName })
       .groupBy("LOWER(actor_login)");
 
@@ -367,8 +386,8 @@ export class RepoDevstatsService {
       .select("LOWER(actor_login)", "actor_login")
       .addSelect("COALESCE(COUNT(*), 0) AS issue_comments")
       .from("issue_comment_github_events", "issue_comment_github_events")
-      .where(`LOWER(actor_login) IN (:...users)`, { users })
-      .andWhere(`now() - INTERVAL '${range} days' <= event_time`)
+      .where("LOWER(actor_login) IN (:...users)", { users })
+      .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .andWhere("LOWER(repo_name) = LOWER(:repoName)", { repoName })
       .groupBy("LOWER(actor_login)");
 
@@ -377,8 +396,8 @@ export class RepoDevstatsService {
       .select("LOWER(actor_login)", "actor_login")
       .addSelect("COALESCE(COUNT(*), 0) AS pr_review_comments")
       .from("pull_request_review_comment_github_events", "pull_request_review_comment_github_events")
-      .where(`LOWER(actor_login) IN (:...users)`, { users })
-      .andWhere(`now() - INTERVAL '${range} days' <= event_time`)
+      .where("LOWER(actor_login) IN (:...users)", { users })
+      .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .andWhere("LOWER(repo_name) = LOWER(:repoName)", { repoName })
       .groupBy("LOWER(actor_login)");
 
@@ -424,7 +443,7 @@ export class RepoDevstatsService {
       .leftJoin("issue_comments_agg", "issue_comments_agg", "commits_agg.actor_login = issue_comments_agg.actor_login")
       .leftJoin("pr_review_comments_agg", "pr_review_comments_agg", "users.login = pr_review_comments_agg.actor_login");
 
-    const cteCounter = entityQb.clone().select(`COUNT(*) as count`);
+    const cteCounter = entityQb.clone().select("COUNT(*) as count");
 
     const cteCounterResult = await cteCounter.getRawOne<{ count: number }>();
     const itemCount = parseInt(`${cteCounterResult?.count ?? "0"}`, 10);
