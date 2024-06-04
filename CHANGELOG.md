@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.31.0-beta.6](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.31.0-beta.5...v2.31.0-beta.6) (2024-06-04)
+
+
+### 🐛 Bug Fixes
+
+* Fixes up sql / TypeORM params for user-lists ([#843](https://github.com/open-sauced/api.opensauced.pizza/issues/843)) ([458cb4c](https://github.com/open-sauced/api.opensauced.pizza/commit/458cb4cb81531f863a190d9c00e603817143f259))
+
 ## [2.31.0-beta.5](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.31.0-beta.4...v2.31.0-beta.5) (2024-06-04)
 
 
