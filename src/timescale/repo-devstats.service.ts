@@ -149,6 +149,7 @@ export class RepoDevstatsService {
       .createQueryBuilder()
       .select("count(DISTINCT repo_name) as contributing_repos")
       .addSelect("pr_author_login")
+      .addSelect(`STRING_AGG(DISTINCT repo_name, ',')`, "repo_names")
       .from("pull_request_github_events", "pull_request_github_events")
       .where("LOWER(pr_author_login) IN (:...logins)", { logins: starGazers })
       .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
@@ -157,11 +158,18 @@ export class RepoDevstatsService {
     const starGazersContributingReposCount = await starGazersContributingReposQuery.getRawMany<{
       contributing_repos: number;
       pr_author_login: string;
+      repo_names: string;
     }>();
 
     starGazersContributingReposCount.forEach((repoCount) => {
-      if (repoCount.contributing_repos > 1) {
-        result += 0.1;
+      const foundContribution = repoCount.repo_names.split(",").includes(repoName);
+
+      if (foundContribution) {
+        // someone made a contribution within the time window they starred the repo
+        result += 1;
+      } else if (repoCount.contributing_repos > 1) {
+        // starring a repo is weighted less than forking
+        result += 0.5;
       }
     });
 
@@ -197,6 +205,7 @@ export class RepoDevstatsService {
       .createQueryBuilder()
       .select("count(DISTINCT repo_name) as contributing_repos")
       .addSelect("pr_author_login")
+      .addSelect(`STRING_AGG(DISTINCT repo_name, ',')`, "repo_names")
       .from("pull_request_github_events", "pull_request_github_events")
       .where("LOWER(pr_author_login) IN (:...logins)", { logins: forkers })
       .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
@@ -205,12 +214,18 @@ export class RepoDevstatsService {
     const forkerContributingReposCount = await forkerContributingReposQuery.getRawMany<{
       contributing_repos: number;
       pr_author_login: string;
+      repo_names: string;
     }>();
 
     forkerContributingReposCount.forEach((repoCount) => {
-      if (repoCount.contributing_repos > 1) {
+      const foundContribution = repoCount.repo_names.split(",").includes(repoName);
+
+      if (foundContribution) {
+        // someone made a contribution within the time window they forked the repo
+        result += 1;
+      } else if (repoCount.contributing_repos > 1) {
         // forking is weighted slightly higher than simply watching a repo
-        result += 0.5;
+        result += 0.75;
       }
     });
 
@@ -221,7 +236,7 @@ export class RepoDevstatsService {
    * this is a proof of concept metric called the "Contributor Confidence".
    *
    * the confidence score is a percentage metric that determines if certain activity on a
-   * repository (staring, forking, etc.) may result in a meaningful contribution. This can be
+   * repository (starring, forking, etc.) may result in a meaningful contribution. This can be
    * used to determine how likely "fly by" contributors who've contributed meaningfully elsewhere
    * within a given time range, are to contribute meaningfully back to the project in question
    *
@@ -234,15 +249,19 @@ export class RepoDevstatsService {
    * Truncate range down to max 90 days
    *
    * For all stargazers over the time range:
-   *   Check if those users have more than one contribution to 2 or more projects:
-   *     Add 0.1 to score
+   *   If they made a contribution to the repo in question:
+   *     Add 1 to score
+   *   Else check if that user has more than one contribution to 2 or more projects:
+   *     Add 0.5 to score
    *
    * For all forkers over the time range:
-   *   Check if those users have more than one contribution to 2 or more projects:
-   *     Add 0.5 to score (forks weight slightly higher)
+   *   If they made a contribution to the repo in question:
+   *     Add 1 to score
+   *   Else check if that user has more than one contribution to 2 or more projects:
+   *     Add 0.75 to score (forks weight slightly higher)
    *
    * Finally, calculate:
-   *   score / (# stargazers + forkers) within time range
+   *   score / (# stargazers + # forkers) within time range
    *     = confidence score as a percentage
    */
   async calculateContributorConfidence(repoName: string, range: number): Promise<number> {
