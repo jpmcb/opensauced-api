@@ -110,7 +110,7 @@ export class PullRequestReviewGithubEventsService {
   ): Promise<DbPullRequestReviewGitHubEvents[]> {
     const queryBuilder = this.baseQueryBuilder()
       .where("LOWER(actor_login) = :username", { username })
-      .andWhere("pr_review_action = 'opened'")
+      .andWhere("pr_review_action = 'created'")
       .andWhere("event_time > NOW() - :range_interval::INTERVAL", { range_interval: `${range} days` });
 
     if (repos && repos.length > 0) {

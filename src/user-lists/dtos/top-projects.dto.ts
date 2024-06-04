@@ -15,20 +15,11 @@ export class TopProjectsDto {
   readonly range?: number = 30;
 
   @ApiProperty({
-    description: "Repo full name",
-    type: String,
-    example: "open-sauced/api",
-  })
-  @IsString()
-  repo_name: string;
-
-  @ApiPropertyOptional({
     description: "Repo, comma delimited names",
     type: "string",
     example: "open-sauced/app",
   })
   @Type(() => String)
   @IsString()
-  @IsOptional()
-  readonly repos?: string;
+  readonly repos: string;
 }

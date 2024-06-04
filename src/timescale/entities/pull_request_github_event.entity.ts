@@ -14,6 +14,16 @@ export class DbPullRequestGitHubEvents extends BaseEntity {
   @PrimaryColumn("integer")
   event_id: number;
 
+  @ApiModelPropertyOptional({
+    description: "Timestamp representing time of pull request event",
+    example: "2022-08-28 22:04:29.000000",
+  })
+  @CreateDateColumn({
+    type: "timestamp without time zone",
+    default: () => "now()",
+  })
+  public event_time: Date;
+
   @ApiModelProperty({
     description: "Pull request number",
     example: 612,

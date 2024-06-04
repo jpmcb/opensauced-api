@@ -303,15 +303,19 @@ export class UserListService {
       .addSelect("users.name", "user_highlights_name")
       .addSelect("users.login", "user_highlights_login")
       .where("user_list_contributors.list_id = :listId", { listId })
-      .andWhere(`'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "user_highlights"."updated_at"`);
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "user_highlights"."updated_at"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      });
 
     if (pageOptionsDto.repo) {
       queryBuilder.andWhere(
         `EXISTS (
         SELECT 1
         FROM unnest(user_highlights.tagged_repos) AS repos
-        WHERE repos LIKE '%${pageOptionsDto.repo}%'
-      )`
+        WHERE repos LIKE :repo_search
+      )`,
+        { repo_search: `%${pageOptionsDto.repo}%` }
       );
     }
 
@@ -349,7 +353,10 @@ export class UserListService {
         "user_list_contributors.user_id = user_highlights.user_id"
       )
       .where("user_list_contributors.list_id = :listId", { listId })
-      .andWhere(`'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "user_highlights"."updated_at"`);
+      .andWhere(`:start_date::TIMESTAMP - :range_interval <= "user_highlights"."updated_at"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      });
     queryBuilder.orderBy("full_name", orderBy);
     queryBuilder.offset(pageOptionsDto.skip).limit(pageOptionsDto.limit);
 
