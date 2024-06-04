@@ -5,6 +5,12 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.31.0-beta.7](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.31.0-beta.6...v2.31.0-beta.7) (2024-06-04)
+
+
+### 🐛 Bug Fixes
+
+* add workspace repositories to workspace upgrade limit check ([#842](https://github.com/open-sauced/api.opensauced.pizza/issues/842)) ([835da44](https://github.com/open-sauced/api.opensauced.pizza/commit/835da441ae43dd8a7dd6b7195d82b7c1c5f22635))
 
 ### [2.30.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.30.0...v2.30.1) (2024-05-29)
 
