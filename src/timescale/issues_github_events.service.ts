@@ -58,8 +58,11 @@ export class IssuesGithubEventsService {
       .select("*")
       .addSelect(`ROW_NUMBER() OVER (PARTITION BY issue_number, repo_name ORDER BY event_time DESC) AS row_num`)
       .where(`LOWER("issues_github_events"."repo_name") = LOWER(:repo_name)`, { repo_name: repo.toLowerCase() })
-      .andWhere(`'${startDate}'::TIMESTAMP >= "issues_github_events"."event_time"`)
-      .andWhere(`'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "issues_github_events"."event_time"`);
+      .andWhere(`:start_date::TIMESTAMP >= "issues_github_events"."event_time"`, { start_date: startDate })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "issues_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      });
 
     return cteBuilder;
   }
@@ -99,12 +102,12 @@ export class IssuesGithubEventsService {
     repos?: string[]
   ): Promise<DbIssuesGitHubEvents[]> {
     const queryBuilder = this.baseQueryBuilder()
-      .where(`LOWER(actor_login) = '${username}'`)
+      .where("LOWER(actor_login) = :username", { username })
       .andWhere("issue_action = 'opened'")
-      .andWhere(`event_time > NOW() - INTERVAL '${range} days'`);
+      .andWhere("event_time > NOW() - :range_interval::INTERVAL", { range_interval: `${range} days` });
 
     if (repos && repos.length > 0) {
-      queryBuilder.andWhere(`LOWER(repo_name) IN (:...repos)`, { repos });
+      queryBuilder.andWhere("LOWER(repo_name) IN (:...repos)", { repos });
     }
 
     return queryBuilder.getMany();
@@ -120,7 +123,7 @@ export class IssuesGithubEventsService {
       .createQueryBuilder()
       .select("COALESCE(COUNT(*), 0) AS issues_created")
       .from("issues_github_events", "issues_github_events")
-      .where(`LOWER(actor_login) = '${username}'`)
+      .where("LOWER(actor_login) = :username", { username })
       .andWhere("issue_action = 'opened'")
       .groupBy("LOWER(actor_login)");
 
@@ -148,7 +151,7 @@ export class IssuesGithubEventsService {
 
     const queryBuilder = this.issueGitHubEventsRepository.manager
       .createQueryBuilder()
-      .select(`time_bucket('${width} day', event_time)`, "bucket")
+      .select(`time_bucket(:width_interval::INTERVAL, event_time)`, "bucket")
       .addSelect(
         "count(CASE WHEN LOWER(issue_author_association) = 'collaborator' THEN 1 END)",
         "collaborator_associated_issues"
@@ -168,10 +171,14 @@ export class IssuesGithubEventsService {
         `COALESCE(AVG(CASE WHEN issue_state = 'closed' THEN issue_closed_at::DATE - issue_created_at::DATE END), 0)::INTEGER AS issue_velocity`
       )
       .from("issues_github_events", "issues_github_events")
-      .where(`'${startDate}':: TIMESTAMP >= "issues_github_events"."event_time"`)
-      .andWhere(`'${startDate}':: TIMESTAMP - INTERVAL '${range} days' <= "issues_github_events"."event_time"`)
+      .where(`:start_date::TIMESTAMP >= "issues_github_events"."event_time"`, { start_date: startDate })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "issues_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      })
       .groupBy("bucket")
-      .orderBy("bucket", order);
+      .orderBy("bucket", order)
+      .setParameter("width_interval", `${width} days`);
 
     /* filter on the provided issue author */
     if (options.contributor) {
@@ -182,14 +189,14 @@ export class IssuesGithubEventsService {
 
     /* filter on the provided repo names */
     if (options.repo) {
-      queryBuilder.andWhere(`LOWER("issues_github_events"."repo_name") IN (:...repoNames)`).setParameters({
+      queryBuilder.andWhere(`LOWER("issues_github_events"."repo_name") IN (:...repoNames)`, {
         repoNames: options.repo.toLowerCase().split(","),
       });
     }
 
     /* filter on the provided repo ids */
     if (options.repoIds) {
-      queryBuilder.andWhere(`"issues_github_events"."repo_id" IN (:...repoIds)`).setParameters({
+      queryBuilder.andWhere(`"issues_github_events"."repo_id" IN (:...repoIds)`, {
         repoIds: options.repoIds.split(","),
       });
     }
@@ -280,8 +287,11 @@ export class IssuesGithubEventsService {
 
     cteBuilder
       .orderBy("event_time", order)
-      .where(`'${startDate}'::TIMESTAMP >= "issues_github_events"."event_time"`)
-      .andWhere(`'${startDate}'::TIMESTAMP - INTERVAL '${range} days' <= "issues_github_events"."event_time"`);
+      .where(`:start_date::TIMESTAMP >= "issues_github_events"."event_time"`, { start_date: startDate })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "issues_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      });
 
     /* filter on PR author / contributor */
     if (pageOptionsDto.contributor) {

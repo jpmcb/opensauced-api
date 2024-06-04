@@ -65,8 +65,11 @@ export class ReleaseGithubEventsService {
       .addSelect("release_is_pre_release", "is_pre_release")
       .addSelect("actor_login", "releaser_login")
       .from("release_github_events", "release_github_events")
-      .where(`'${startDate}':: TIMESTAMP >= "release_github_events"."event_time"`)
-      .andWhere(`'${startDate}':: TIMESTAMP - INTERVAL '${range} days' <= "release_github_events"."event_time"`)
+      .where(`:start_date::TIMESTAMP >= "release_github_events"."event_time"`, { start_date: startDate })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "release_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      })
       .orderBy("event_time", order);
 
     /* filter on the provided releaser username */
@@ -85,14 +88,14 @@ export class ReleaseGithubEventsService {
 
     /* filter on the provided repo names */
     if (repos) {
-      queryBuilder.andWhere(`LOWER("release_github_events"."repo_name") IN (:...repoNames)`).setParameters({
+      queryBuilder.andWhere(`LOWER("release_github_events"."repo_name") IN (:...repoNames)`, {
         repoNames: repos.toLowerCase().split(","),
       });
     }
 
     /* filter on the provided repo ids */
     if (repoIds) {
-      queryBuilder.andWhere(`"release_github_events"."repo_id" IN (:...repoIds)`).setParameters({
+      queryBuilder.andWhere(`"release_github_events"."repo_id" IN (:...repoIds)`, {
         repoIds: repoIds.split(","),
       });
     }
@@ -164,16 +167,20 @@ export class ReleaseGithubEventsService {
     const queryBuilder = this.baseQueryBuilder();
 
     queryBuilder
-      .select(`time_bucket('${width} day', event_time)`, "bucket")
+      .select("time_bucket(:width_interval::INTERVAL, event_time)", "bucket")
       .addSelect("count(*)", "all_releases")
       .addSelect("count(CASE WHEN release_is_draft = FALSE AND release_is_pre_release = FALSE THEN 1 END)", "releases")
       .addSelect("count(CASE WHEN release_is_draft = TRUE THEN 1 END)", "draft_releases")
       .addSelect("count(CASE WHEN release_is_pre_release = TRUE THEN 1 END)", "pre_releases")
       .from("release_github_events", "release_github_events")
-      .where(`'${startDate}':: TIMESTAMP >= "release_github_events"."event_time"`)
-      .andWhere(`'${startDate}':: TIMESTAMP - INTERVAL '${range} days' <= "release_github_events"."event_time"`)
+      .where(`:start_date::TIMESTAMP >= "release_github_events"."event_time"`, { start_date: startDate })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "release_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      })
       .groupBy("bucket")
-      .orderBy("bucket", order);
+      .orderBy("bucket", order)
+      .setParameter("width_interval", `${width} days`);
 
     /* filter on the provided releaser username */
     if (options.contributor) {
@@ -184,14 +191,14 @@ export class ReleaseGithubEventsService {
 
     /* filter on the provided repo names */
     if (options.repo) {
-      queryBuilder.andWhere(`LOWER("release_github_events"."repo_name") IN (:...repoNames)`).setParameters({
+      queryBuilder.andWhere(`LOWER("release_github_events"."repo_name") IN (:...repoNames)`, {
         repoNames: options.repo.toLowerCase().split(","),
       });
     }
 
     /* filter on the provided repo ids */
     if (options.repoIds) {
-      queryBuilder.andWhere(`"release_github_events"."repo_id" IN (:...repoIds)`).setParameters({
+      queryBuilder.andWhere(`"release_github_events"."repo_id" IN (:...repoIds)`, {
         repoIds: options.repoIds.split(","),
       });
     }

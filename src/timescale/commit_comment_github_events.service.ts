@@ -40,7 +40,7 @@ export class CommitCommentGithubEventsService {
       .createQueryBuilder()
       .select("COALESCE(COUNT(*), 0) AS commit_comments")
       .from("commit_comment_github_events", "commit_comment_github_events")
-      .where(`LOWER(actor_login) = '${username}'`)
+      .where("LOWER(actor_login) = :username", { username })
       .groupBy("LOWER(actor_login)");
 
     if (repos && repos.length > 0) {
@@ -61,8 +61,8 @@ export class CommitCommentGithubEventsService {
     repos?: string[]
   ): Promise<DbCommitCommentGitHubEvents[]> {
     const queryBuilder = this.baseQueryBuilder()
-      .where(`LOWER(actor_login) = '${username}'`)
-      .andWhere(`event_time > NOW() - INTERVAL '${range} days'`);
+      .where("LOWER(actor_login) = :username", { username })
+      .andWhere("event_time > NOW() - :range_interval::INTERVAL", { range_interval: `${range} days` });
 
     if (repos && repos.length > 0) {
       queryBuilder.andWhere(`LOWER(repo_name) IN (:...repos)`, { repos });
@@ -85,13 +85,19 @@ export class CommitCommentGithubEventsService {
 
     const queryBuilder = this.commitCommentGitHubEventsRepository.manager
       .createQueryBuilder()
-      .select(`time_bucket('${width} day', event_time)`, "bucket")
+      .select("time_bucket(:width_interval::INTERVAL, event_time)", "bucket")
       .addSelect("count(*)", "all_commit_comments")
       .from("commit_comment_github_events", "commit_comment_github_events")
-      .where(`'${startDate}':: TIMESTAMP >= "commit_comment_github_events"."event_time"`)
-      .andWhere(`'${startDate}':: TIMESTAMP - INTERVAL '${range} days' <= "commit_comment_github_events"."event_time"`)
+      .where(`:start_date::TIMESTAMP >= "commit_comment_github_events"."event_time"`, {
+        start_date: startDate,
+      })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "commit_comment_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      })
       .groupBy("bucket")
-      .orderBy("bucket", order);
+      .orderBy("bucket", order)
+      .setParameter("width_interval", `${width} days`);
 
     /* filter on the provided commit comment author */
     if (options.contributor) {
@@ -102,14 +108,14 @@ export class CommitCommentGithubEventsService {
 
     /* filter on the provided repo names */
     if (options.repo) {
-      queryBuilder.andWhere(`LOWER("commit_comment_github_events"."repo_name") IN (:...repoNames)`).setParameters({
+      queryBuilder.andWhere(`LOWER("commit_comment_github_events"."repo_name") IN (:...repoNames)`, {
         repoNames: options.repo.toLowerCase().split(","),
       });
     }
 
     /* filter on the provided repo ids */
     if (options.repoIds) {
-      queryBuilder.andWhere(`"commit_comment_github_events"."repo_id" IN (:...repoIds)`).setParameters({
+      queryBuilder.andWhere(`"commit_comment_github_events"."repo_id" IN (:...repoIds)`, {
         repoIds: options.repoIds.split(","),
       });
     }

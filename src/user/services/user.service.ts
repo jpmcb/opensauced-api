@@ -78,11 +78,10 @@ export class UserService {
       .where("reactions.deleted_at IS NULL");
 
     if (userId) {
-      queryBuilder
-        .andWhere(
-          "users.id NOT IN (SELECT following_user_id FROM users_to_users_followers WHERE user_id = :userId AND deleted_at IS NULL)"
-        )
-        .setParameters({ userId });
+      queryBuilder.andWhere(
+        "users.id NOT IN (SELECT following_user_id FROM users_to_users_followers WHERE user_id = :userId AND deleted_at IS NULL)",
+        { userId }
+      );
     }
 
     queryBuilder.groupBy("users.login").orderBy("COUNT(reactions.user_id)", "DESC");
@@ -173,8 +172,7 @@ export class UserService {
       )::INTEGER`,
         "users_followers_count"
       )
-      .where("LOWER(login) = :username", { username: username.toLowerCase() })
-      .setParameters({ username: username.toLowerCase() });
+      .where("LOWER(login) = :username", { username: username.toLowerCase() });
 
     const item: DbUser | null = await queryBuilder.getOne();
 

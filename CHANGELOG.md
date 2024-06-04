@@ -5,12 +5,49 @@
 
 > All notable changes to this project will be documented in this file
 
+
 ### [2.30.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.30.0...v2.30.1) (2024-05-29)
 
 
 ### 🐛 Bug Fixes
 
 * add check for repo and contributor insight record when checking workspace limit ([#831](https://github.com/open-sauced/api.opensauced.pizza/issues/831)) ([988f3e7](https://github.com/open-sauced/api.opensauced.pizza/commit/988f3e7078f61437fa0bd4cf24907cec00167df7))
+* Fixes up sql / TypeORM params for user-lists ([#843](https://github.com/open-sauced/api.opensauced.pizza/issues/843)) ([458cb4c](https://github.com/open-sauced/api.opensauced.pizza/commit/458cb4cb81531f863a190d9c00e603817143f259))
+
+## [2.31.0-beta.5](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.31.0-beta.4...v2.31.0-beta.5) (2024-06-04)
+
+
+### 🐛 Bug Fixes
+
+* Uses SQL params in queries within the src/timescale/ package ([#841](https://github.com/open-sauced/api.opensauced.pizza/issues/841)) ([d7dbed0](https://github.com/open-sauced/api.opensauced.pizza/commit/d7dbed0b16c6e998534aeb6bb05fa45aba22b433))
+
+## [2.31.0-beta.4](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.31.0-beta.3...v2.31.0-beta.4) (2024-06-03)
+
+
+### 🐛 Bug Fixes
+
+* Parameterize SQL for repos service ([#839](https://github.com/open-sauced/api.opensauced.pizza/issues/839)) ([29505a0](https://github.com/open-sauced/api.opensauced.pizza/commit/29505a0639ca1732c4a9a4aac6f8ad26a419c983))
+
+## [2.31.0-beta.3](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.31.0-beta.2...v2.31.0-beta.3) (2024-06-03)
+
+
+### 🐛 Bug Fixes
+
+* Parameterize missing user queries ([#840](https://github.com/open-sauced/api.opensauced.pizza/issues/840)) ([dbb3ccb](https://github.com/open-sauced/api.opensauced.pizza/commit/dbb3ccb45a85e286dfe5c33805d725945190464b))
+
+## [2.31.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.31.0-beta.1...v2.31.0-beta.2) (2024-05-31)
+
+
+### 🐛 Bug Fixes
+
+* Parameterize SQL for stars histogram ([#838](https://github.com/open-sauced/api.opensauced.pizza/issues/838)) ([b5af3b8](https://github.com/open-sauced/api.opensauced.pizza/commit/b5af3b88b1cf3dadbc7cc8d235cf71af7ceb5bad))
+
+## [2.31.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.30.1-beta.1...v2.31.0-beta.1) (2024-05-29)
+
+
+### 🍕 Features
+
+* Disable code scanning github action [skip-ci] ([#834](https://github.com/open-sauced/api.opensauced.pizza/issues/834)) ([f10b44b](https://github.com/open-sauced/api.opensauced.pizza/commit/f10b44bdf6e473c04fbfbaeb36938685af3d0f0e))
 
 ### [2.30.1-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.30.0...v2.30.1-beta.1) (2024-05-29)
 

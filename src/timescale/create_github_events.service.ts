@@ -39,14 +39,18 @@ export class CreateGithubEventsService {
     const queryBuilder = this.baseQueryBuilder();
 
     queryBuilder
-      .select(`time_bucket('${width} day', event_time)`, "bucket")
+      .select("time_bucket(:width_interval::INTERVAL, event_time)", "bucket")
       .addSelect("count(CASE WHEN LOWER(create_ref_type) = 'tag' THEN 1 END)", "tags_created")
       .addSelect("count(CASE WHEN LOWER(create_ref_type) = 'branch' THEN 1 END)", "branches_created")
       .from("create_github_events", "create_github_events")
-      .where(`'${startDate}':: TIMESTAMP >= "create_github_events"."event_time"`)
-      .andWhere(`'${startDate}':: TIMESTAMP - INTERVAL '${range} days' <= "create_github_events"."event_time"`)
+      .where(`:start_date::TIMESTAMP >= "create_github_events"."event_time"`, { start_date: startDate })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "create_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      })
       .groupBy("bucket")
-      .orderBy("bucket", order);
+      .orderBy("bucket", order)
+      .setParameter("width_interval", `${width} days`);
 
     /* filter on the provided creator actor username */
     if (options.contributor) {
@@ -57,14 +61,14 @@ export class CreateGithubEventsService {
 
     /* filter on the provided repo names */
     if (options.repo) {
-      queryBuilder.andWhere(`LOWER("create_github_events"."repo_name") IN (:...repoNames)`).setParameters({
+      queryBuilder.andWhere(`LOWER("create_github_events"."repo_name") IN (:...repoNames)`, {
         repoNames: options.repo.toLowerCase().split(","),
       });
     }
 
     /* filter on the provided repo ids */
     if (options.repoIds) {
-      queryBuilder.andWhere(`"create_github_events"."repo_id" IN (:...repoIds)`).setParameters({
+      queryBuilder.andWhere(`"create_github_events"."repo_id" IN (:...repoIds)`, {
         repoIds: options.repoIds.split(","),
       });
     }

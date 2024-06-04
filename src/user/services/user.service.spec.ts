@@ -267,7 +267,6 @@ describe("UserService", () => {
     const createQueryBuilderMock = {
       addSelect: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
-      setParameters: jest.fn().mockReturnThis(),
       getOne: jest.fn().mockResolvedValue(user),
     };
 
@@ -280,7 +279,6 @@ describe("UserService", () => {
       expect(createQueryBuilderMock.where).toHaveBeenCalledWith("LOWER(login) = :username", {
         username: username.toLowerCase(),
       });
-      expect(createQueryBuilderMock.setParameters).toHaveBeenCalledWith({ username: username.toLowerCase() });
       expect(createQueryBuilderMock.getOne).toHaveBeenCalled();
       expect(result).toEqual(user);
     });
