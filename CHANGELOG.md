@@ -5,6 +5,24 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.31.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.30.1...v2.31.0) (2024-06-04)
+
+
+### 🐛 Bug Fixes
+
+* add workspace repositories to workspace upgrade limit check ([#842](https://github.com/open-sauced/api.opensauced.pizza/issues/842)) ([835da44](https://github.com/open-sauced/api.opensauced.pizza/commit/835da441ae43dd8a7dd6b7195d82b7c1c5f22635))
+* Fixes up sql / TypeORM params for user-lists ([#843](https://github.com/open-sauced/api.opensauced.pizza/issues/843)) ([458cb4c](https://github.com/open-sauced/api.opensauced.pizza/commit/458cb4cb81531f863a190d9c00e603817143f259))
+* Parameterize missing user queries ([#840](https://github.com/open-sauced/api.opensauced.pizza/issues/840)) ([dbb3ccb](https://github.com/open-sauced/api.opensauced.pizza/commit/dbb3ccb45a85e286dfe5c33805d725945190464b))
+* Parameterize SQL for repos service ([#839](https://github.com/open-sauced/api.opensauced.pizza/issues/839)) ([29505a0](https://github.com/open-sauced/api.opensauced.pizza/commit/29505a0639ca1732c4a9a4aac6f8ad26a419c983))
+* Parameterize SQL for stars histogram ([#838](https://github.com/open-sauced/api.opensauced.pizza/issues/838)) ([b5af3b8](https://github.com/open-sauced/api.opensauced.pizza/commit/b5af3b88b1cf3dadbc7cc8d235cf71af7ceb5bad))
+* Uses SQL params in queries within the src/timescale/ package ([#841](https://github.com/open-sauced/api.opensauced.pizza/issues/841)) ([d7dbed0](https://github.com/open-sauced/api.opensauced.pizza/commit/d7dbed0b16c6e998534aeb6bb05fa45aba22b433))
+
+
+### 🍕 Features
+
+* Disable code scanning github action [skip-ci] ([#834](https://github.com/open-sauced/api.opensauced.pizza/issues/834)) ([f10b44b](https://github.com/open-sauced/api.opensauced.pizza/commit/f10b44bdf6e473c04fbfbaeb36938685af3d0f0e))
+* Updates contributor confidence to include repo in question ([#844](https://github.com/open-sauced/api.opensauced.pizza/issues/844)) ([4ef3dee](https://github.com/open-sauced/api.opensauced.pizza/commit/4ef3deebac7e2ab122dd5e8dfb665da1406eecfb))
+
 ## [2.31.0-beta.8](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.31.0-beta.7...v2.31.0-beta.8) (2024-06-04)
 
 
