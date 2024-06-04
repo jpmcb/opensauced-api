@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.31.0-beta.5](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.31.0-beta.4...v2.31.0-beta.5) (2024-06-04)
+
+
+### 🐛 Bug Fixes
+
+* Uses SQL params in queries within the src/timescale/ package ([#841](https://github.com/open-sauced/api.opensauced.pizza/issues/841)) ([d7dbed0](https://github.com/open-sauced/api.opensauced.pizza/commit/d7dbed0b16c6e998534aeb6bb05fa45aba22b433))
+
 ## [2.31.0-beta.4](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.31.0-beta.3...v2.31.0-beta.4) (2024-06-03)
 
 
