@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.31.0-beta.8](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.31.0-beta.7...v2.31.0-beta.8) (2024-06-04)
+
+
+### 🍕 Features
+
+* Updates contributor confidence to include repo in question ([#844](https://github.com/open-sauced/api.opensauced.pizza/issues/844)) ([4ef3dee](https://github.com/open-sauced/api.opensauced.pizza/commit/4ef3deebac7e2ab122dd5e8dfb665da1406eecfb))
+
 ## [2.31.0-beta.7](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.31.0-beta.6...v2.31.0-beta.7) (2024-06-04)
 
 
