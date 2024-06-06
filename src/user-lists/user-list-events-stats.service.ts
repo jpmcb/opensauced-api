@@ -10,6 +10,7 @@ import { ContributionsPageDto } from "../timescale/dtos/contrib-page.dto";
 import { ContributionPageMetaDto } from "../timescale/dtos/contrib-page-meta.dto";
 import { ContributorDevstatsService } from "../timescale/contrib-stats.service";
 import { ContributorStatsTypeEnum, MostActiveContributorsDto } from "../timescale/dtos/most-active-contrib.dto";
+import { PullRequestGithubEventsService } from "../timescale/pull_request_github_events.service";
 import { DbUserListContributor } from "./entities/user-list-contributor.entity";
 import { ContributionsTimeframeDto } from "./dtos/contributions-timeframe.dto";
 import { DbContributionStatTimeframe } from "./entities/contributions-timeframe.entity";
@@ -25,7 +26,8 @@ export class UserListEventsStatsService {
     private pullRequestGithubEventsRepository: Repository<DbPullRequestGitHubEvents>,
     @InjectRepository(DbUserListContributor, "ApiConnection")
     private userListContributorRepository: Repository<DbUserListContributor>,
-    private contributorDevstatsService: ContributorDevstatsService
+    private contributorDevstatsService: ContributorDevstatsService,
+    private pullRequestGithubEventsService: PullRequestGithubEventsService
   ) {}
 
   baseQueryBuilder(): SelectQueryBuilder<DbPullRequestGitHubEvents> {
@@ -91,15 +93,15 @@ export class UserListEventsStatsService {
         break;
 
       case ContributorStatsTypeEnum.active:
-        this.applyActiveContributorsFilter(userListQueryBuilder, now, range);
+        this.pullRequestGithubEventsService.applyActiveContributorsFilter(userListQueryBuilder, "", now, range);
         break;
 
       case ContributorStatsTypeEnum.new:
-        this.applyNewContributorsFilter(userListQueryBuilder, now, range);
+        this.pullRequestGithubEventsService.applyNewContributorsFilter(userListQueryBuilder, "", now, range);
         break;
 
       case ContributorStatsTypeEnum.alumni: {
-        this.applyAlumniContributorsFilter(userListQueryBuilder, now, range);
+        this.pullRequestGithubEventsService.applyAlumniContributorsFilter(userListQueryBuilder, "", now, range);
         break;
       }
 
@@ -763,106 +765,5 @@ export class UserListEventsStatsService {
     const entities: DbContributorCategoryTimeframe[] = await entityQb.getRawMany();
 
     return entities;
-  }
-
-  private applyActiveContributorsFilter(
-    queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>,
-    startDate: string,
-    range = 30
-  ) {
-    queryBuilder
-      .leftJoin(
-        `(
-          SELECT DISTINCT LOWER("actor_login") actor_login
-          FROM "pull_request_github_events"
-            WHERE "pull_request_github_events"."event_time" BETWEEN '${startDate}':: TIMESTAMP - INTERVAL '${range} days'
-              AND '${startDate}':: TIMESTAMP
-              AND LOWER(actor_login) IN (:...users)
-        )`,
-        "current_month_prs",
-        `"users"."login" = "current_month_prs"."actor_login"`
-      )
-      .leftJoin(
-        `(
-          SELECT DISTINCT LOWER("actor_login") actor_login
-            FROM "pull_request_github_events"
-            WHERE "pull_request_github_events"."event_time" BETWEEN '${startDate}':: TIMESTAMP - INTERVAL '${
-          range + range
-        } days'
-              AND '${startDate}':: TIMESTAMP - INTERVAL '${range} days'
-              AND LOWER(actor_login) IN (:...users)
-        )`,
-        "previous_month_prs",
-        `"users"."login" = "previous_month_prs"."actor_login"`
-      )
-      .where(`"previous_month_prs"."actor_login" IS NOT NULL`)
-      .andWhere(`"current_month_prs"."actor_login" IS NOT NULL`);
-  }
-
-  private applyNewContributorsFilter(
-    queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>,
-    startDate: string,
-    range = 30
-  ) {
-    queryBuilder
-      .leftJoin(
-        `(
-          SELECT DISTINCT LOWER("actor_login") actor_login
-            FROM "pull_request_github_events"
-            WHERE "pull_request_github_events"."event_time" BETWEEN NOW() - INTERVAL '${range} days'
-              AND '${startDate}':: TIMESTAMP
-              AND LOWER(actor_login) IN (:...users)
-
-        )`,
-        "current_month_prs",
-        `"users"."login" = "current_month_prs"."actor_login"`
-      )
-      .leftJoin(
-        `(
-          SELECT DISTINCT LOWER("actor_login") actor_login
-            FROM "pull_request_github_events"
-            WHERE "pull_request_github_events"."event_time" BETWEEN NOW() - INTERVAL '${range + range} days'
-              AND '${startDate}':: TIMESTAMP - INTERVAL '${range} days'
-              AND LOWER(actor_login) IN (:...users)
-        )`,
-        "previous_month_prs",
-        `"users"."login" = "previous_month_prs"."actor_login"`
-      )
-      .where(`"previous_month_prs"."actor_login" IS NULL`)
-      .andWhere(`"current_month_prs"."actor_login" IS NOT NULL`);
-  }
-
-  private applyAlumniContributorsFilter(
-    queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>,
-    startDate: string,
-    range = 30
-  ) {
-    queryBuilder
-      .leftJoin(
-        `(
-          SELECT DISTINCT LOWER("actor_login") actor_login
-            FROM "pull_request_github_events"
-            WHERE "pull_request_github_events"."event_time" BETWEEN '${startDate}':: TIMESTAMP - INTERVAL '${range} days'
-              AND '${startDate}':: TIMESTAMP
-              AND LOWER(actor_login) IN (:...users)
-        )`,
-        "current_month_prs",
-        `"users"."login" = "current_month_prs"."actor_login"`
-      )
-      .leftJoin(
-        `(
-          SELECT DISTINCT LOWER("actor_login") actor_login
-            FROM "pull_request_github_events"
-            WHERE "pull_request_github_events"."event_time" BETWEEN '${startDate}':: TIMESTAMP - INTERVAL '${
-          range + range
-        } days'
-              AND '${startDate}':: TIMESTAMP - INTERVAL '${range} days'
-              AND LOWER(actor_login) IN (:...users)
-        )`,
-        "previous_month_prs",
-        `"users"."login" = "previous_month_prs"."actor_login"`
-      )
-      .where(`"previous_month_prs"."actor_login" IS NOT NULL`)
-      .andWhere(`"current_month_prs"."actor_login" IS NULL`);
   }
 }
