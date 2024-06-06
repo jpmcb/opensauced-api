@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+### [2.31.1-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.31.0...v2.31.1-beta.1) (2024-06-06)
+
+
+### 🐛 Bug Fixes
+
+* Remove duplicate alumn/new/active contrib filters ([#847](https://github.com/open-sauced/api.opensauced.pizza/issues/847)) ([e3cb7d4](https://github.com/open-sauced/api.opensauced.pizza/commit/e3cb7d4068aa6c77528bb741f07b80ed96c1539e))
+
 ## [2.31.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.30.1...v2.31.0) (2024-06-04)
 
 
