@@ -10,7 +10,6 @@ import { ContributionsPageDto } from "../timescale/dtos/contrib-page.dto";
 import { ContributionPageMetaDto } from "../timescale/dtos/contrib-page-meta.dto";
 import { ContributorDevstatsService } from "../timescale/contrib-stats.service";
 import { ContributorStatsTypeEnum, MostActiveContributorsDto } from "../timescale/dtos/most-active-contrib.dto";
-import { PullRequestGithubEventsService } from "../timescale/pull_request_github_events.service";
 import { DbUserListContributor } from "./entities/user-list-contributor.entity";
 import { ContributionsTimeframeDto } from "./dtos/contributions-timeframe.dto";
 import { DbContributionStatTimeframe } from "./entities/contributions-timeframe.entity";
@@ -26,8 +25,7 @@ export class UserListEventsStatsService {
     private pullRequestGithubEventsRepository: Repository<DbPullRequestGitHubEvents>,
     @InjectRepository(DbUserListContributor, "ApiConnection")
     private userListContributorRepository: Repository<DbUserListContributor>,
-    private contributorDevstatsService: ContributorDevstatsService,
-    private pullRequestGithubEventsService: PullRequestGithubEventsService
+    private contributorDevstatsService: ContributorDevstatsService
   ) {}
 
   baseQueryBuilder(): SelectQueryBuilder<DbPullRequestGitHubEvents> {
@@ -93,15 +91,15 @@ export class UserListEventsStatsService {
         break;
 
       case ContributorStatsTypeEnum.active:
-        this.pullRequestGithubEventsService.applyActiveContributorsFilter(userListQueryBuilder, "", now, range);
+        this.applyActiveContributorsFilter(userListQueryBuilder, now, range);
         break;
 
       case ContributorStatsTypeEnum.new:
-        this.pullRequestGithubEventsService.applyNewContributorsFilter(userListQueryBuilder, "", now, range);
+        this.applyNewContributorsFilter(userListQueryBuilder, now, range);
         break;
 
       case ContributorStatsTypeEnum.alumni: {
-        this.pullRequestGithubEventsService.applyAlumniContributorsFilter(userListQueryBuilder, "", now, range);
+        this.applyAlumniContributorsFilter(userListQueryBuilder, now, range);
         break;
       }
 
@@ -765,5 +763,117 @@ export class UserListEventsStatsService {
     const entities: DbContributorCategoryTimeframe[] = await entityQb.getRawMany();
 
     return entities;
+  }
+
+  /*
+   * the following "apply filter" functions can be used on a table named "users"
+   * with a "login" column (likely derived from the pull_request_github_events table).
+   * these can be used to filter for users who are:
+   *
+   * - active: have made contributions in the previous time range
+   *   and the time range block before (i.e., the last 30 days and the 30 days before that)
+   *
+   * - new: have made a contribution in the last time range, but not the previous one:
+   *   (i.e., made a contribution in the last 30 days, but not he previous 30 days before that)
+   *
+   * - alumni: have not made a contribution in the last time range block
+   *   but did in the block before that (i.e., did not contribute in the last 30 days,
+   *   but did before that in the previous 30 day block)
+   *
+   */
+
+  private leftJoinCurrentMonthPrs(
+    queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>,
+    startDate: string,
+    range = 30
+  ): SelectQueryBuilder<DbPullRequestGitHubEvents> {
+    queryBuilder.leftJoin(
+      (qb: SelectQueryBuilder<DbPullRequestGitHubEvents>) => {
+        qb.select("DISTINCT LOWER(actor_login)", "actor_login")
+          .from("pull_request_github_events", "pull_request_github_events")
+          .where("event_time BETWEEN :start_date::TIMESTAMP - :range_interval::INTERVAL AND :start_date::TIMESTAMP", {
+            start_date: startDate,
+            range_interval: `${range} days`,
+          });
+
+        return qb;
+      },
+      "current_month_prs",
+      "users.login = current_month_prs.actor_login"
+    );
+
+    return queryBuilder;
+  }
+
+  private leftJoinPreviousMonthPrs(
+    queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>,
+    startDate: string,
+    range = 30
+  ): SelectQueryBuilder<DbPullRequestGitHubEvents> {
+    queryBuilder.leftJoin(
+      (qb: SelectQueryBuilder<DbPullRequestGitHubEvents>) => {
+        qb.select("DISTINCT LOWER(actor_login)", "actor_login")
+          .from("pull_request_github_events", "pull_request_github_events")
+          .where(
+            "event_time BETWEEN :start_date::TIMESTAMP - :double_range_interval::INTERVAL AND :start_date::TIMESTAMP - :range_interval::INTERVAL",
+            {
+              start_date: startDate,
+              range_interval: `${range} days`,
+              double_range_interval: `${range + range} days`,
+            }
+          );
+
+        return qb;
+      },
+      "previous_month_prs",
+      "users.login = previous_month_prs.actor_login"
+    );
+
+    return queryBuilder;
+  }
+
+  private applyActiveContributorsFilter(
+    queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>,
+    startDate: string,
+    range = 30
+  ): SelectQueryBuilder<DbPullRequestGitHubEvents> {
+    this.leftJoinCurrentMonthPrs(queryBuilder, startDate, range);
+    this.leftJoinPreviousMonthPrs(queryBuilder, startDate, range);
+
+    queryBuilder
+      .andWhere(`"previous_month_prs"."actor_login" IS NOT NULL`)
+      .andWhere(`"current_month_prs"."actor_login" IS NOT NULL`);
+
+    return queryBuilder;
+  }
+
+  private applyNewContributorsFilter(
+    queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>,
+    startDate: string,
+    range = 30
+  ): SelectQueryBuilder<DbPullRequestGitHubEvents> {
+    this.leftJoinCurrentMonthPrs(queryBuilder, startDate, range);
+    this.leftJoinPreviousMonthPrs(queryBuilder, startDate, range);
+
+    queryBuilder
+      .andWhere(`"previous_month_prs"."actor_login" IS NULL`)
+      .andWhere(`"current_month_prs"."actor_login" IS NOT NULL`);
+
+    return queryBuilder;
+  }
+
+  private applyAlumniContributorsFilter(
+    queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>,
+    startDate: string,
+    range = 30
+  ): SelectQueryBuilder<DbPullRequestGitHubEvents> {
+    this.leftJoinCurrentMonthPrs(queryBuilder, startDate, range);
+    this.leftJoinPreviousMonthPrs(queryBuilder, startDate, range);
+
+    queryBuilder
+      .andWhere(`"previous_month_prs"."actor_login" IS NOT NULL`)
+      .andWhere(`"current_month_prs"."actor_login" IS NULL`);
+
+    return queryBuilder;
   }
 }
