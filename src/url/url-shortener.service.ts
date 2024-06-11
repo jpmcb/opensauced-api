@@ -22,12 +22,15 @@ export class UrlShortenerService {
         throw new BadRequestException("Invalid URL");
       }
 
-      const response = await fetch(`${this.dubApiHost}/links?workspaceId=${this.dubWorkspaceId}&search=${url}`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${this.dubApiKey}`,
-        },
-      });
+      const response = await fetch(
+        `${this.dubApiHost}/links?workspaceId=${this.dubWorkspaceId}&search=${encodeURIComponent(url)}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${this.dubApiKey}`,
+          },
+        }
+      );
 
       if (response.ok) {
         const results = (await response.json()) as { shortLink: string }[];
