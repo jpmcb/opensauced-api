@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+### [2.32.1-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.32.0...v2.32.1-beta.1) (2024-06-11)
+
+
+### 🐛 Bug Fixes
+
+* encode URL before checking Dub API for existing shortened URL ([#872](https://github.com/open-sauced/api.opensauced.pizza/issues/872)) ([f169604](https://github.com/open-sauced/api.opensauced.pizza/commit/f1696046b264c7fdd6e80fe9296c6daef84321b7))
+
 ## [2.32.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.31.0...v2.32.0) (2024-06-06)
 
 
