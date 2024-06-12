@@ -19,6 +19,7 @@ import {
 import { DbRepoContributor } from "./entities/repo_contributors.entity";
 import { RepoReleaseDto } from "./dtos/repo-release.dto";
 import { DbLotteryFactor } from "./entities/lotto.entity";
+import { DbRepoRossIndex } from "./entities/ross.entity";
 
 @Controller("repos")
 @ApiTags("Repository service")
@@ -71,6 +72,22 @@ export class RepoController {
     @Param("repo") repo: string
   ): Promise<DbRepoWithStats> {
     return this.repoService.tryFindRepoOrMakeStub({ repoOwner: owner, repoName: repo, minimalInfo: true });
+  }
+
+  @Get("/:owner/:repo/ross")
+  @ApiOperation({
+    operationId: "getRepoRossIndex",
+    summary: "Gets repo ross index/stats",
+  })
+  @ApiOkResponse({ type: DbRepoRossIndex })
+  @ApiNotFoundResponse({ description: "Repository not found" })
+  @Header("Cache-Control", "private, max-age=600")
+  async getRepoRossIndex(
+    @Param("owner") owner: string,
+    @Param("repo") repo: string,
+    @Query() rangeOption: RepoRangeOnlyOptionDto
+  ): Promise<DbRepoRossIndex> {
+    return this.repoService.findRossIndex(owner, repo, rangeOption);
   }
 
   @Get("/lotto")

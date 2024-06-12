@@ -8,6 +8,8 @@ import { RepoService } from "../repo/repo.service";
 import { DbRepoWithStats } from "../repo/entities/repo.entity";
 import { DbPullRequestGitHubEvents } from "../timescale/entities/pull_request_github_event.entity";
 import { PullRequestGithubEventsService } from "../timescale/pull_request_github_events.service";
+import { IssueCommentGithubEventsService } from "../timescale/issue_comment_github_events.service";
+import { DbIssueCommentGitHubEvents } from "../timescale/entities/issue_comment_github_events.entity";
 import { DbUserHighlight } from "./entities/user-highlight.entity";
 import { UserHighlightsService } from "./user-highlights.service";
 import { DbUser } from "./user.entity";
@@ -29,7 +31,8 @@ export class UserController {
     private pullRequestGitHubEventsService: PullRequestGithubEventsService,
     private userHighlightsService: UserHighlightsService,
     private repoService: RepoService,
-    private userOrganizationService: UserOrganizationService
+    private userOrganizationService: UserOrganizationService,
+    private issueCommentGitHubEventsService: IssueCommentGithubEventsService
   ) {}
 
   @Get("/:username")
@@ -57,6 +60,22 @@ export class UserController {
     @Query() pageOptionsDto: UserPrsDto
   ): Promise<PageDto<DbPullRequestGitHubEvents>> {
     return this.pullRequestGitHubEventsService.findAllByPrAuthor(username, pageOptionsDto);
+  }
+
+  @Get("/:username/issue-comments")
+  @ApiOperation({
+    operationId: "findContributorIssueCommentsGitHubEvents",
+    summary: "Finds issue comments by :username",
+  })
+  @ApiPaginatedResponse(DbIssueCommentGitHubEvents)
+  @ApiOkResponse({ type: DbIssueCommentGitHubEvents })
+  @ApiNotFoundResponse({ description: "User not found" })
+  @Header("Cache-Control", "public, max-age=600")
+  async findContributorIssueCommentsGitHubEvents(
+    @Param("username") username: string,
+    @Query() pageOptionsDto: UserPrsDto
+  ): Promise<PageDto<DbIssueCommentGitHubEvents>> {
+    return this.issueCommentGitHubEventsService.findAllByIssueCommentAuthor(username, pageOptionsDto);
   }
 
   @Get("/:username/highlights")
