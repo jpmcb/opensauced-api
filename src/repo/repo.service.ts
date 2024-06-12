@@ -27,6 +27,7 @@ import {
 } from "./dtos/repo-search-options.dto";
 import { DbLotteryFactor } from "./entities/lotto.entity";
 import { calculateLottoFactor } from "./common/lotto";
+import { DbRepoRossIndex } from "./entities/ross.entity";
 
 @Injectable()
 export class RepoService {
@@ -336,6 +337,24 @@ export class RepoService {
     });
 
     return calculateLottoFactor(contribCounts, endOfGracePeriod);
+  }
+
+  async findRossIndex(owner: string, name: string, options: RepoRangeOnlyOptionDto): Promise<DbRepoRossIndex> {
+    const range = options.range!;
+    const repo = await this.findOneByOwnerAndRepo(owner, name, range, true);
+
+    const result = new DbRepoRossIndex();
+
+    const rossIndex = await this.pullRequestGithubEventsService.findRossIndexByRepos([repo.full_name], range);
+    const rossContributors = await this.pullRequestGithubEventsService.findRossContributorsByRepos(
+      [repo.full_name],
+      range
+    );
+
+    result.ross = rossIndex;
+    result.contributors = rossContributors;
+
+    return result;
   }
 
   async findAllWithFilters(pageOptionsDto: RepoSearchOptionsDto): Promise<PageDto<DbRepoWithStats>> {
