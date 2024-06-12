@@ -974,6 +974,23 @@ export class PullRequestGithubEventsService {
     return new PageDto(entities, pageMetaDto);
   }
 
+  /*
+   * the following "apply filter" functions can be used on a table named "pull_request_github_events"
+   * with a "pr_author_login" column (likely just the raw pull_request_github_events table in Timescale).
+   * these can be used to filter for users who are:
+   *
+   * - active: have made PRs in the previous time range
+   *   and the time range block before (i.e., the last 30 days and the 30 days before that)
+   *
+   * - new: have made a PR in the last time range, but not the previous one:
+   *   (i.e., made a PR in the last 30 days, but not he previous 30 days before that)
+   *
+   * - alumni: have not made a PR in the last time range block
+   *   but did in the block before that (i.e., did not contribute in the last 30 days,
+   *   but did before that in the previous 30 day block)
+   *
+   */
+
   private leftJoinCurrentMonthPrs(
     queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>,
     repos = "",
@@ -981,20 +998,22 @@ export class PullRequestGithubEventsService {
     range = 30
   ): SelectQueryBuilder<DbPullRequestGitHubEvents> {
     queryBuilder.leftJoin(
-      (qb: SelectQueryBuilder<DbPullRequestGitHubEvents>) =>
-        qb
-          .select("SELECT DISTINCT LOWER(pr_author_login)", "pr_author_login")
+      (qb: SelectQueryBuilder<DbPullRequestGitHubEvents>) => {
+        qb.select("DISTINCT LOWER(pr_author_login)", "pr_author_login")
           .from("pull_request_github_events", "pull_request_github_events")
-          .where("LOWER(repo_name) IN (...repoNames)", {
+          .where("event_time BETWEEN :start_date::TIMESTAMP - :range_interval::INTERVAL AND :start_date::TIMESTAMP", {
+            start_date: startDate,
+            range_interval: `${range} days`,
+          });
+
+        if (repos && repos.length > 0) {
+          qb.andWhere("LOWER(repo_name) IN (:...repoNames)", {
             repoNames: repos.toLowerCase().split(","),
-          })
-          .andWhere(
-            "event_time BETWEEN :start_date::TIMESTAMP - :range_interval::INTERVAL AND :start_date::TIMESTAMP",
-            {
-              start_date: startDate,
-              range_interval: `${range} days`,
-            }
-          ),
+          });
+        }
+
+        return qb;
+      },
       "current_month_prs",
       "pull_request_github_events.pr_author_login = current_month_prs.pr_author_login"
     );
@@ -1009,29 +1028,34 @@ export class PullRequestGithubEventsService {
     range = 30
   ): SelectQueryBuilder<DbPullRequestGitHubEvents> {
     queryBuilder.leftJoin(
-      (qb: SelectQueryBuilder<DbPullRequestGitHubEvents>) =>
-        qb
-          .select("SELECT DISTINCT LOWER(pr_author_login)", "pr_author_login")
+      (qb: SelectQueryBuilder<DbPullRequestGitHubEvents>) => {
+        qb.select("DISTINCT LOWER(pr_author_login)", "pr_author_login")
           .from("pull_request_github_events", "pull_request_github_events")
-          .where("LOWER(repo_name) IN (...repoNames)", {
-            repoNames: repos.toLowerCase().split(","),
-          })
-          .andWhere(
+          .where(
             "event_time BETWEEN :start_date::TIMESTAMP - :double_range_interval::INTERVAL AND :start_date::TIMESTAMP - :range_interval::INTERVAL",
             {
               start_date: startDate,
               range_interval: `${range} days`,
               double_range_interval: `${range + range} days`,
             }
-          ),
+          );
+
+        if (repos && repos.length > 0) {
+          qb.andWhere("LOWER(repo_name) IN (:...repoNames)", {
+            repoNames: repos.toLowerCase().split(","),
+          });
+        }
+
+        return qb;
+      },
       "previous_month_prs",
-      "pull_request_github_events.pr_author_login = current_month_prs.pr_author_login"
+      "pull_request_github_events.pr_author_login = previous_month_prs.pr_author_login"
     );
 
     return queryBuilder;
   }
 
-  applyActiveContributorsFilter(
+  private applyActiveContributorsFilter(
     queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>,
     repos = "",
     startDate: string,
@@ -1047,7 +1071,7 @@ export class PullRequestGithubEventsService {
     return queryBuilder;
   }
 
-  applyNewContributorsFilter(
+  private applyNewContributorsFilter(
     queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>,
     repos = "",
     startDate: string,
@@ -1063,7 +1087,7 @@ export class PullRequestGithubEventsService {
     return queryBuilder;
   }
 
-  applyAlumniContributorsFilter(
+  private applyAlumniContributorsFilter(
     queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>,
     repos = "",
     startDate: string,
