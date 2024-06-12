@@ -5,6 +5,20 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.33.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.32.0...v2.33.0) (2024-06-12)
+
+
+### 🍕 Features
+
+* add endpoint to get issue comments for individual users ([#870](https://github.com/open-sauced/api.opensauced.pizza/issues/870)) ([d64cd57](https://github.com/open-sauced/api.opensauced.pizza/commit/d64cd5771afea3ecc32315c2ed9e10be04e6140c))
+* Add ross index for sole repos ([#868](https://github.com/open-sauced/api.opensauced.pizza/issues/868)) ([bd59af8](https://github.com/open-sauced/api.opensauced.pizza/commit/bd59af8f251dd347a744fa3e44489eb41011e030))
+
+
+### 🐛 Bug Fixes
+
+* encode URL before checking Dub API for existing shortened URL ([#872](https://github.com/open-sauced/api.opensauced.pizza/issues/872)) ([f169604](https://github.com/open-sauced/api.opensauced.pizza/commit/f1696046b264c7fdd6e80fe9296c6daef84321b7))
+* Re-introduce user-list specific contrib type filters ([#866](https://github.com/open-sauced/api.opensauced.pizza/issues/866)) ([7e5074a](https://github.com/open-sauced/api.opensauced.pizza/commit/7e5074a8decbfcdb36852e9ee9e11114db38447e))
+
 ## [2.33.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.33.0-beta.1...v2.33.0-beta.2) (2024-06-12)
 
 
