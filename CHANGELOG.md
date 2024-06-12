@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.33.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.32.1-beta.1...v2.33.0-beta.1) (2024-06-12)
+
+
+### 🍕 Features
+
+* add endpoint to get issue comments for individual users ([#870](https://github.com/open-sauced/api.opensauced.pizza/issues/870)) ([d64cd57](https://github.com/open-sauced/api.opensauced.pizza/commit/d64cd5771afea3ecc32315c2ed9e10be04e6140c))
+
 ### [2.32.1-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.32.0...v2.32.1-beta.1) (2024-06-11)
 
 
