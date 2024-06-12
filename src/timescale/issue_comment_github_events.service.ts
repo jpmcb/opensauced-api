@@ -4,6 +4,9 @@ import { Repository } from "typeorm";
 import { IssueCommentsHistogramDto } from "../histogram/dtos/issue_comments.dto";
 import { GetPrevDateISOString } from "../common/util/datetimes";
 import { OrderDirectionEnum } from "../common/constants/order-direction.constant";
+import { PageDto } from "../common/dtos/page.dto";
+import { UserIssueCommentsDto } from "../user/dtos/user-issue-comments.dto";
+import { PageMetaDto } from "../common/dtos/page-meta.dto";
 import {
   DbIssueCommentGitHubEventsHistogram,
   DbTopCommentGitHubEventsHistogram,
@@ -34,8 +37,8 @@ export class IssueCommentGithubEventsService {
     private pullRequestReviewCommentGitHubEventsHistogramRepository: Repository<DbPullRequestReviewCommentGitHubEventsHistogram>
   ) {}
 
-  baseQueryBuilder() {
-    const builder = this.issueCommentGitHubEventsRepository.createQueryBuilder();
+  baseQueryBuilder(alias?: string) {
+    const builder = this.issueCommentGitHubEventsRepository.createQueryBuilder(alias);
 
     return builder;
   }
@@ -79,6 +82,40 @@ export class IssueCommentGithubEventsService {
     const parsedResult = parseFloat(`${result?.issue_comments ?? "0"}`);
 
     return parsedResult;
+  }
+
+  async findAllByIssueCommentAuthor(
+    username: string,
+    pageOptionsDto: UserIssueCommentsDto
+  ): Promise<PageDto<DbIssueCommentGitHubEvents>> {
+    const startDate = GetPrevDateISOString(pageOptionsDto.prev_days_start_date);
+    const range = pageOptionsDto.range!;
+    const repos = pageOptionsDto.repos ? pageOptionsDto.repos.toLowerCase().split(",") : undefined;
+
+    const queryBuilder = this.baseQueryBuilder("issue_comment_github_events")
+      .addSelect("comment_body", "issue_comment_github_events_comment_body")
+      .addSelect("comment_html_url", "issue_comment_github_events_comment_html_url")
+      .where("LOWER(actor_login) = :username", { username })
+      .andWhere("issue_comment_action = 'created'")
+      .andWhere(`:start_date::TIMESTAMP >= "issue_comment_github_events"."event_time"`, { start_date: startDate })
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "issue_comment_github_events"."event_time"`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      })
+      .orderBy("event_time", "DESC");
+
+    if (repos && repos.length > 0) {
+      queryBuilder.andWhere("LOWER(repo_name) IN (:...repos)", { repos });
+    }
+
+    queryBuilder.offset(pageOptionsDto.skip).limit(pageOptionsDto.limit);
+
+    const itemCount = await queryBuilder.getCount();
+    const entities = await queryBuilder.getMany();
+
+    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+
+    return new PageDto(entities, pageMetaDto);
   }
 
   async genIssueCommentHistogram(options: IssueCommentsHistogramDto): Promise<DbIssueCommentGitHubEventsHistogram[]> {

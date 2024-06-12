@@ -39,4 +39,24 @@ export class DbIssueCommentGitHubEvents extends BaseEntity {
     type: "text",
   })
   public repo_name: string;
+
+  @ApiModelProperty({
+    description: "Issue comment body",
+    example: "This is a comment on an issue.",
+  })
+  @Column({
+    type: "text",
+    select: false,
+  })
+  public comment_body: string;
+
+  @ApiModelProperty({
+    description: "Issue comment URL",
+    example: "https://github.com/open-sauced/insights/issues/1245#issuecomment-1583293314",
+  })
+  @Column({
+    type: "text",
+    select: false,
+  })
+  public comment_html_url: string;
 }
