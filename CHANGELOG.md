@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.34.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.33.0...v2.34.0-beta.1) (2024-06-13)
+
+
+### 🍕 Features
+
+* StarSearch threaded history ([#861](https://github.com/open-sauced/api.opensauced.pizza/issues/861)) ([549ab19](https://github.com/open-sauced/api.opensauced.pizza/commit/549ab192055db095ca16b85a43179d9438ae9489))
+
 ## [2.33.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.32.0...v2.33.0) (2024-06-12)
 
 
