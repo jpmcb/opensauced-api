@@ -5,6 +5,7 @@ import { User } from "@supabase/supabase-js";
 
 import { Octokit } from "@octokit/rest";
 import { ConfigService } from "@nestjs/config";
+import { DbStarSearchUserThread } from "../../star-search/entities/user-thread.entity";
 import { WaitlistedUsersDto } from "../../auth/dtos/waitlisted.dto";
 import { opensaucedEmailRegex, validEmailRegex } from "../../common/util/email";
 import { PullRequestGithubEventsService } from "../../timescale/pull_request_github_events.service";
@@ -44,6 +45,8 @@ export class UserService {
     private userCollaborationRepository: Repository<DbUserCollaboration>,
     @InjectRepository(DbUserList, "ApiConnection")
     private userListRepository: Repository<DbUserList>,
+    @InjectRepository(DbStarSearchUserThread, "ApiConnection")
+    private starSearchUserThreadRepository: Repository<DbStarSearchUserThread>,
     @InjectRepository(DbWorkspace, "ApiConnection")
     private workspaceRepository: Repository<DbWorkspace>,
     @InjectRepository(DbWorkspaceMember, "ApiConnection")
@@ -512,6 +515,7 @@ export class UserService {
           "request_collaborations",
           "from_user_notifications",
           "lists",
+          "starsearch_thread",
         ],
       });
 
@@ -555,6 +559,13 @@ export class UserService {
         Promise.all(
           userAndRelations.lists.map(async (list) => {
             await this.userListRepository.softDelete(list.id);
+          })
+        ),
+
+        // soft delete the user's StarSearch threads
+        Promise.all(
+          userAndRelations.starsearch_thread.map(async (thread) => {
+            await this.starSearchUserThreadRepository.softDelete(thread.id);
           })
         ),
       ]);

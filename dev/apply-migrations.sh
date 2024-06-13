@@ -13,7 +13,7 @@
 
 export PGHOST=${PGHOST:-localhost}
 export PGPORT=${PGPORT:-25060}
-export PGPASSWORD=${PGPASSWORD:-UCN2zrH2WGxKck7tT2JG4MY6wbHkeX9s}
+export PGPASSWORD=${PGPASSWORD:-woof}
 
 export PGDBNAME=${PGDBNAME:-defaultdb}
 export PGUSERNAME=${PGUSERNAME:-doadmin}

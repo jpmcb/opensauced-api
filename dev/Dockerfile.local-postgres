@@ -1,5 +1,5 @@
 # Use an official PostgreSQL runtime as a parent image
-FROM postgres:15
+FROM pgvector/pgvector:pg16
 
 # Set environment variables
 ENV POSTGRES_USER doadmin

@@ -97,6 +97,9 @@ import { StarSearchModule } from "./star-search/star-search.module";
 import { DbCommitCommentGitHubEvents } from "./timescale/entities/commit_comment_github_events.entity";
 import { DbPullRequestReviewCommentGitHubEvents } from "./timescale/entities/pull_request_review_comment_github_events.entity";
 import { DbIssueCommentGitHubEvents } from "./timescale/entities/issue_comment_github_events.entity";
+import { DbStarSearchThread } from "./star-search/entities/thread.entity";
+import { DbStarSearchThreadHistory } from "./star-search/entities/thread-history.entity";
+import { DbStarSearchUserThread } from "./star-search/entities/user-thread.entity";
 
 @Module({
   imports: [
@@ -180,6 +183,9 @@ import { DbIssueCommentGitHubEvents } from "./timescale/entities/issue_comment_g
             DbWorkspaceInsight,
             DbWorkspaceUserLists,
             DbWorkspaceContributor,
+            DbStarSearchThread,
+            DbStarSearchThreadHistory,
+            DbStarSearchUserThread,
           ],
           synchronize: false,
           logger: new DatabaseLoggerMiddleware("OS"),
