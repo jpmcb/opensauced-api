@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.34.0-beta.3](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.34.0-beta.2...v2.34.0-beta.3) (2024-06-17)
+
+
+### 🐛 Bug Fixes
+
+* Use lowercase names in "LOWER()" clause to user issue comments ([#882](https://github.com/open-sauced/api.opensauced.pizza/issues/882)) ([d524351](https://github.com/open-sauced/api.opensauced.pizza/commit/d524351b5f6c53e1996f6c914bbf9c6b25b6334d))
+
 ## [2.34.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.34.0-beta.1...v2.34.0-beta.2) (2024-06-17)
 
 
