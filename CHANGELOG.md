@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.34.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.34.0-beta.1...v2.34.0-beta.2) (2024-06-17)
+
+
+### 🐛 Bug Fixes
+
+* Make the query params in share links use "share_id" ([#880](https://github.com/open-sauced/api.opensauced.pizza/issues/880)) ([423fc51](https://github.com/open-sauced/api.opensauced.pizza/commit/423fc51bbbf6342ecf4085c717fce825242bb2f5))
+
 ## [2.34.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.33.0...v2.34.0-beta.1) (2024-06-13)
 
 
