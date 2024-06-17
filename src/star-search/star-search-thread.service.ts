@@ -208,19 +208,19 @@ export class StarSearchThreadService {
 
       switch (apiCodename) {
         case "api":
-          targetUrl = `https://app.opensauced.pizza/star-search?id=${id}`;
+          targetUrl = `https://app.opensauced.pizza/star-search?share_id=${id}`;
           shortUrl = await this.urlShortenerService.createShortLink(targetUrl);
           thread.public_link = shortUrl.shortUrl;
           break;
 
         case "api-beta":
-          targetUrl = `https://beta.app.opensauced.pizza/star-search?id=${id}`;
+          targetUrl = `https://beta.app.opensauced.pizza/star-search?share_id=${id}`;
           shortUrl = await this.urlShortenerService.createShortLink(targetUrl);
           thread.public_link = shortUrl.shortUrl;
           break;
 
         case "api-alpha":
-          targetUrl = `https://alpha.app.opensauced.pizza/star-search?id=${id}`;
+          targetUrl = `https://alpha.app.opensauced.pizza/star-search?share_id=${id}`;
           shortUrl = await this.urlShortenerService.createShortLink(targetUrl);
           thread.public_link = shortUrl.shortUrl;
           break;
