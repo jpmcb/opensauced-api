@@ -43,8 +43,30 @@ export class PreProcessorAgent {
       }),
     ];
 
-    const prompt = `Evaluate the following user prompt:
+    let prompt;
 
+    if (agentParams.lastMessage && agentParams.threadSummary) {
+      prompt = `Chat history summary:
+---
+${agentParams.threadSummary}
+
+Last message:
+---
+${agentParams.lastMessage}`;
+    } else {
+      prompt = `Chat history summary:
+---
+No chat history present.
+
+Last message:
+---
+No chat history present.`;
+    }
+
+    prompt += `
+
+Evaluate the following user prompt given the chat history and summary:
+---
 \`\`\`
 ${agentParams.prompt}
 \`\`\``;

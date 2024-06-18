@@ -5,6 +5,27 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.34.0-beta.3](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.34.0-beta.2...v2.34.0-beta.3) (2024-06-17)
+
+
+### 🐛 Bug Fixes
+
+* Use lowercase names in "LOWER()" clause to user issue comments ([#882](https://github.com/open-sauced/api.opensauced.pizza/issues/882)) ([d524351](https://github.com/open-sauced/api.opensauced.pizza/commit/d524351b5f6c53e1996f6c914bbf9c6b25b6334d))
+
+## [2.34.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.34.0-beta.1...v2.34.0-beta.2) (2024-06-17)
+
+
+### 🐛 Bug Fixes
+
+* Make the query params in share links use "share_id" ([#880](https://github.com/open-sauced/api.opensauced.pizza/issues/880)) ([423fc51](https://github.com/open-sauced/api.opensauced.pizza/commit/423fc51bbbf6342ecf4085c717fce825242bb2f5))
+
+## [2.34.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.33.0...v2.34.0-beta.1) (2024-06-13)
+
+
+### 🍕 Features
+
+* StarSearch threaded history ([#861](https://github.com/open-sauced/api.opensauced.pizza/issues/861)) ([549ab19](https://github.com/open-sauced/api.opensauced.pizza/commit/549ab192055db095ca16b85a43179d9438ae9489))
+
 ## [2.33.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.32.0...v2.33.0) (2024-06-12)
 
 

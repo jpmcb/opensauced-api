@@ -24,5 +24,7 @@ export function isPreProcessorError(obj: any): obj is PreProcessorError {
 
 export const PreProcessorAgentParams = z.object({
   prompt: z.string(),
+  threadSummary: z.string().nullable(),
+  lastMessage: z.string().nullable(),
 });
 export type PreProcessorAgentParams = z.infer<typeof PreProcessorAgentParams>;

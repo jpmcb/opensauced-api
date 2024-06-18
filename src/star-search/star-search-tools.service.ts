@@ -46,7 +46,15 @@ export class StarSearchToolsService {
     }
   }
 
-  runTools(question: string): ChatCompletionStreamingRunner {
+  runTools({
+    question,
+    lastMessage,
+    threadSummary,
+  }: {
+    question: string;
+    lastMessage?: string;
+    threadSummary?: string;
+  }): ChatCompletionStreamingRunner {
     const tools = [
       /*
        * ----------------------------------------------------------------------
@@ -109,6 +117,30 @@ export class StarSearchToolsService {
       }),
     ];
 
-    return this.openAIWrappedService.runToolsStream(this.managerSystemMessage, question, tools);
+    let systemMessage = "";
+
+    if (lastMessage && threadSummary) {
+      systemMessage = `${this.managerSystemMessage}
+
+Last message:
+---
+${lastMessage}
+
+Chat history summary:
+---
+${threadSummary}`;
+    } else {
+      systemMessage = `${this.managerSystemMessage}
+
+Last message:
+---
+No chat history present.
+
+Chat history summary:
+---
+No chat history present`;
+    }
+
+    return this.openAIWrappedService.runToolsStream(systemMessage, question, tools);
   }
 }

@@ -17,6 +17,7 @@ import { DbUserList } from "../user-lists/entities/user-list.entity";
 import { DbInsight } from "../insight/entities/insight.entity";
 import { DbWorkspace } from "../workspace/entities/workspace.entity";
 import { DbWorkspaceMember } from "../workspace/entities/workspace-member.entity";
+import { DbStarSearchUserThread } from "../star-search/entities/user-thread.entity";
 import { DbUser } from "./user.entity";
 import { UserService } from "./services/user.service";
 import { UserController } from "./user.controller";
@@ -35,7 +36,6 @@ import { UserNotificationController } from "./user-notification.controller";
 import { UserCollaborationService } from "./user-collaboration.service";
 import { UserCollaborationController } from "./user-collaboration.controller";
 import { UserEndorsementController } from "./user-endorsement.controller";
-
 import { UserRecommendationController } from "./user-recommendation.controller";
 import { DbUserOrganization } from "./entities/user-organization.entity";
 import { UserFollowingController } from "./user-following.controller";
@@ -63,6 +63,7 @@ import { UserPersonalWorkspaceController } from "./user-personal-workspace.contr
         DbUserList,
         DbWorkspace,
         DbWorkspaceMember,
+        DbStarSearchUserThread,
       ],
       "ApiConnection"
     ),

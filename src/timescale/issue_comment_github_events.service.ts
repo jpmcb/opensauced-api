@@ -95,7 +95,7 @@ export class IssueCommentGithubEventsService {
     const queryBuilder = this.baseQueryBuilder("issue_comment_github_events")
       .addSelect("comment_body", "issue_comment_github_events_comment_body")
       .addSelect("comment_html_url", "issue_comment_github_events_comment_html_url")
-      .where("LOWER(actor_login) = :username", { username })
+      .where("LOWER(actor_login) = :username", { username: username.toLowerCase() })
       .andWhere("issue_comment_action = 'created'")
       .andWhere(`:start_date::TIMESTAMP >= "issue_comment_github_events"."event_time"`, { start_date: startDate })
       .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "issue_comment_github_events"."event_time"`, {

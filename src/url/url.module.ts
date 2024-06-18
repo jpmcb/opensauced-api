@@ -5,5 +5,6 @@ import { UrlShortenerService } from "./url-shortener.service";
 @Module({
   controllers: [UrlShortenerController],
   providers: [UrlShortenerService],
+  exports: [UrlShortenerService],
 })
 export class UrlModule {}

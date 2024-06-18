@@ -38,6 +38,7 @@ import { DbForkGitHubEvents } from "../../timescale/entities/fork_github_events.
 import { ForkGithubEventsService } from "../../timescale/fork_github_events.service";
 import { PushGithubEventsService } from "../../timescale/push_github_events.service";
 import { DbPushGitHubEventsHistogram } from "../../timescale/entities/push_github_events_histogram.entity";
+import { DbStarSearchUserThread } from "../../star-search/entities/user-thread.entity";
 import { UserService } from "./user.service";
 
 type MockRepository<T extends ObjectLiteral = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
@@ -98,6 +99,10 @@ describe("UserService", () => {
         },
         {
           provide: getRepositoryToken(DbUserList, "ApiConnection"),
+          useValue: createMockRepository(),
+        },
+        {
+          provide: getRepositoryToken(DbStarSearchUserThread, "ApiConnection"),
           useValue: createMockRepository(),
         },
         {
@@ -595,6 +600,7 @@ describe("UserService", () => {
       request_collaborations: [],
       insights: [],
       lists: [],
+      starsearch_thread: [],
     } as unknown as DbUser;
     const createQueryBuilderMock = {
       addSelect: jest.fn().mockReturnThis(),
