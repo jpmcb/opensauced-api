@@ -45,6 +45,9 @@
 | [public.workspace_insights](public.workspace_insights.md)                 | 6       |         | BASE TABLE |
 | [public.workspace_contributors](public.workspace_contributors.md)         | 6       |         | BASE TABLE |
 | [public.workspace_user_lists](public.workspace_user_lists.md)             | 6       |         | BASE TABLE |
+| [public.starsearch_threads](public.starsearch_threads.md)                 | 9       |         | BASE TABLE |
+| [public.starsearch_user_threads](public.starsearch_user_threads.md)       | 6       |         | BASE TABLE |
+| [public.starsearch_thread_history](public.starsearch_thread_history.md)   | 13      |         | BASE TABLE |
 
 ## Relations
 
