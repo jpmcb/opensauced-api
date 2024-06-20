@@ -109,6 +109,13 @@ export class DbPullRequestGitHubEvents extends BaseEntity {
   public pr_base_ref?: string;
 
   @ApiModelProperty({
+    description: "Pull request merge commit sha",
+    example: "main",
+  })
+  @Column("text")
+  public pr_merge_commit_sha?: string;
+
+  @ApiModelProperty({
     description: "Pull request author username",
     example: "Th3nn3ss",
   })
