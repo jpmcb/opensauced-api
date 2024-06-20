@@ -77,6 +77,22 @@ export class WorkspaceReposService {
     return new PageDto(entities, pageMetaDto);
   }
 
+  async findAllReposByWorkspaceIdUnguarded(id: string): Promise<DbWorkspaceRepo[]> {
+    const queryBuilder = this.baseQueryBuilder();
+
+    return queryBuilder
+      .withDeleted()
+      .leftJoinAndSelect(
+        "workspace_repos.repo",
+        "workspace_repos_repo",
+        "workspace_repos.repo_id = workspace_repos_repo.id"
+      )
+      .where("workspace_repos.deleted_at IS NULL")
+      .andWhere("workspace_repos.workspace_id = :id", { id })
+      .orderBy("workspace_repos_repo.pushed_at", "DESC")
+      .getMany();
+  }
+
   async findAllRepoPrsByWorkspaceIdForUserId(
     pageOptionsDto: WorkspaceRepoPullRequestPageOptionsDto,
     id: string,

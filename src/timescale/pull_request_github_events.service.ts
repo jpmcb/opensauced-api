@@ -378,6 +378,21 @@ export class PullRequestGithubEventsService {
     return this.execCommonTableExpression(pageOptionsDto, cteBuilder);
   }
 
+  async findAllMergedByRefRepo(repo: string, range: number, ref: string): Promise<DbPullRequestGitHubEvents[]> {
+    const startDate = GetPrevDateISOString(0);
+    const queryBuilder = this.baseQueryBuilder()
+      .where(`LOWER(repo_name) = LOWER(:repo_name)`, { repo_name: repo.toLowerCase() })
+      .andWhere(`:start_date::TIMESTAMP >= event_time`)
+      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= event_time`, {
+        start_date: startDate,
+        range_interval: `${range} days`,
+      })
+      .andWhere("pr_is_merged = TRUE")
+      .andWhere("pr_base_ref = :ref", { ref });
+
+    return queryBuilder.getMany();
+  }
+
   async findAllWithFilters(pageOptionsDto: PullRequestPageOptionsDto): Promise<PageDto<DbPullRequestGitHubEvents>> {
     const startDate = GetPrevDateISOString(pageOptionsDto.prev_days_start_date);
     const range = pageOptionsDto.range!;

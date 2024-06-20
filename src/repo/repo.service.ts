@@ -4,6 +4,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 
 import { ConfigService } from "@nestjs/config";
 import { Octokit } from "@octokit/rest";
+import { DbPushGitHubEvents } from "../timescale/entities/push_github_events.entity";
 import { IssuesGithubEventsService } from "../timescale/issues_github_events.service";
 import { PageMetaDto } from "../common/dtos/page-meta.dto";
 import { PageDto } from "../common/dtos/page.dto";
@@ -28,6 +29,7 @@ import {
 import { DbLotteryFactor } from "./entities/lotto.entity";
 import { calculateLottoFactor } from "./common/lotto";
 import { DbRepoRossIndex } from "./entities/ross.entity";
+import { DbRepoYolo } from "./entities/yolo.entity";
 
 @Injectable()
 export class RepoService {
@@ -271,19 +273,11 @@ export class RepoService {
 
   async fastFuzzyFind(pageOptionsDto: RepoFuzzySearchOptionsDto): Promise<PageDto<DbRepo>> {
     const orderField = pageOptionsDto.orderBy ?? RepoOrderFieldsEnum.pushed_at;
-    const startDate = GetPrevDateISOString(pageOptionsDto.prev_days_start_date);
-    const range = pageOptionsDto.range!;
-
     const queryBuilder = this.baseFilterQueryBuilder()
       .withDeleted()
       .addSelect("repos.deleted_at")
       .where(`full_name ILIKE :fuzzy_search_param`, {
         fuzzy_search_param: `%${pageOptionsDto.fuzzy_repo_name}%`,
-      })
-      .andWhere(`:start_date::TIMESTAMP >= "repos"."updated_at"`, { start_date: startDate })
-      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "repos"."updated_at"`, {
-        start_date: startDate,
-        range_interval: `${range} days`,
       })
       .orderBy(`"repos"."${orderField}"`, OrderDirectionEnum.DESC)
       .offset(pageOptionsDto.skip)
@@ -353,6 +347,83 @@ export class RepoService {
 
     result.ross = rossIndex;
     result.contributors = rossContributors;
+
+    return result;
+  }
+
+  async findYoloPushes(owner: string, name: string, options: RepoRangeOnlyOptionDto): Promise<DbRepoYolo> {
+    const range = options.range!;
+    const repo = await this.findOneByOwnerAndRepo(owner, name, range, true);
+    const defaultRef = `refs/heads/${repo.default_branch}`;
+
+    // create empty result to propagate
+    const result = new DbRepoYolo();
+
+    result.num_yolo_pushes = 0;
+    result.num_yolo_pushed_commits = 0;
+    result.data = [];
+
+    // fetch pushes and pull requests for repo in time range
+    const pushes = await this.pushGithubEventsService.getPushEventsAllForRepos({
+      range,
+      repos: [repo.full_name],
+      ref: defaultRef,
+    });
+    const prs = await this.pullRequestGithubEventsService.findAllMergedByRefRepo(
+      repo.full_name,
+      range,
+      repo.default_branch
+    );
+
+    /*
+     * create a fast access set of shas that are correlated to the merge
+     * commit of a pull request. I.e., we can use this to confirm if the pushed
+     * sha at the tip of the ref head when pushed is correlated to a PR in O(1) time.
+     *
+     * Example:
+     *
+     * {
+     *   abc123,
+     *   xyz789,
+     *   jkl345,
+     * }
+     *
+     * and when inspecting a push event with ref commit of "xyz789",
+     * we can be assured that this push was correlated to a pull request
+     * since it exists in the prShaSet of known merge commits in PRs.
+     */
+
+    const prShaSet = new Set(prs.map((pr) => pr.pr_merge_commit_sha));
+
+    /*
+     * this sha mapping is built up of GitHub push events that are NOT correlated
+     * to a known PR merge sha. I.e., these are the yolo pushes.
+     */
+
+    const shaMap: Record<string, DbPushGitHubEvents> = {};
+
+    pushes.forEach((push) => {
+      /*
+       * filter for yolo pushes to the default branch
+       * and that do not exist in the pr sha set.
+       */
+      if (push.push_ref === defaultRef && !prShaSet.has(push.push_head_sha)) {
+        shaMap[push.push_head_sha] = push;
+      }
+    });
+
+    // convert shaMap to result format
+    Object.values(shaMap).forEach((push) => {
+      result.num_yolo_pushes++;
+      result.num_yolo_pushed_commits += push.push_num_commits ?? 0;
+
+      result.data.push({
+        actor_login: push.actor_login,
+        event_time: push.event_time,
+        sha: push.push_head_sha,
+        push_num_commits: push.push_num_commits ?? 0,
+      });
+    });
 
     return result;
   }

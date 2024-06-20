@@ -21,6 +21,13 @@ export class DbPushGitHubEvents extends BaseEntity {
   @Column("text")
   public actor_login: string;
 
+  @ApiModelProperty({
+    description: "The sha of the head from the push",
+    example: "abc123",
+  })
+  @Column("text")
+  public push_head_sha: string;
+
   @ApiModelPropertyOptional({
     description: "Timestamp representing time of push",
     example: "2022-08-28 22:04:29.000000",

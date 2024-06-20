@@ -20,6 +20,7 @@ import { DbRepoContributor } from "./entities/repo_contributors.entity";
 import { RepoReleaseDto } from "./dtos/repo-release.dto";
 import { DbLotteryFactor } from "./entities/lotto.entity";
 import { DbRepoRossIndex } from "./entities/ross.entity";
+import { DbRepoYolo } from "./entities/yolo.entity";
 
 @Controller("repos")
 @ApiTags("Repository service")
@@ -88,6 +89,22 @@ export class RepoController {
     @Query() rangeOption: RepoRangeOnlyOptionDto
   ): Promise<DbRepoRossIndex> {
     return this.repoService.findRossIndex(owner, repo, rangeOption);
+  }
+
+  @Get("/:owner/:repo/yolo")
+  @ApiOperation({
+    operationId: "getYoloPushes",
+    summary: "Gets repo yolo coders",
+  })
+  @ApiOkResponse({ type: DbRepoYolo })
+  @ApiNotFoundResponse({ description: "Repository not found" })
+  @Header("Cache-Control", "private, max-age=600")
+  async getYoloPushes(
+    @Param("owner") owner: string,
+    @Param("repo") repo: string,
+    @Query() rangeOption: RepoRangeOnlyOptionDto
+  ): Promise<DbRepoYolo> {
+    return this.repoService.findYoloPushes(owner, repo, rangeOption);
   }
 
   @Get("/lotto")

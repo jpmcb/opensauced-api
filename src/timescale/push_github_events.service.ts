@@ -45,6 +45,28 @@ export class PushGithubEventsService {
     return queryBuilder.getMany();
   }
 
+  async getPushEventsAllForRepos({
+    range,
+    repos,
+    ref,
+  }: {
+    range: number;
+    repos: string[];
+    ref?: string;
+  }): Promise<DbPushGitHubEvents[]> {
+    const queryBuilder = this.baseQueryBuilder()
+      .where("event_time > NOW() - :range_interval::INTERVAL", {
+        range_interval: `${range} days`,
+      })
+      .andWhere(`LOWER(repo_name) IN (:...repos)`, { repos: repos.map((repo) => repo.toLowerCase()) });
+
+    if (ref) {
+      queryBuilder.andWhere("push_ref = :ref", { ref });
+    }
+
+    return queryBuilder.getMany();
+  }
+
   async getPushCountForLogin(
     username: string,
     contribType: ContributorStatsTypeEnum,

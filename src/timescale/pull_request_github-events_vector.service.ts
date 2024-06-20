@@ -31,13 +31,13 @@ export class PullRequestGithubEventsVectorService {
     range,
     prevDaysStartDate,
     author,
-    repoName,
+    repoNames,
   }: {
     embedding: number[];
     range: number;
     prevDaysStartDate: number;
     author?: string;
-    repoName?: string;
+    repoNames?: string[];
   }): Promise<DbPullRequestGitHubEvents[]> {
     const startDate = GetPrevDateISOString(prevDaysStartDate);
     const queryBuilder = this.pullRequestGithubEventsRepository
@@ -58,9 +58,9 @@ export class PullRequestGithubEventsVectorService {
       });
     }
 
-    if (repoName) {
-      queryBuilder.andWhere(`LOWER("pull_request_github_events"."repo_name") = LOWER(:repoName)`, {
-        repoName: repoName.toLowerCase(),
+    if (repoNames) {
+      queryBuilder.andWhere(`LOWER("pull_request_github_events"."repo_name") IN(:...repoNames)`, {
+        repoNames: repoNames.map((name) => name.toLowerCase()),
       });
     }
 

@@ -17,6 +17,7 @@ import {
   ApiModelPropertyOptional,
 } from "@nestjs/swagger/dist/decorators/api-model-property.decorator";
 import { ApiHideProperty } from "@nestjs/swagger";
+import { DbStarSearchWorkspaceThread } from "../../star-search/entities/worspace-thread.entity";
 import { DbUser } from "../../user/user.entity";
 import { DbWorkspaceMember } from "./workspace-member.entity";
 import { DbWorkspaceOrg } from "./workspace-org.entity";
@@ -133,6 +134,10 @@ export class DbWorkspace extends BaseEntity {
   @ApiHideProperty()
   @OneToMany(() => DbWorkspaceUserLists, (workspaceUserList) => workspaceUserList.workspace, { onDelete: "CASCADE" })
   public user_lists: DbWorkspaceUserLists[];
+
+  @ApiHideProperty()
+  @OneToMany(() => DbStarSearchWorkspaceThread, (workspaceThread) => workspaceThread.workspace, { onDelete: "CASCADE" })
+  public starsearch_threads: DbStarSearchWorkspaceThread[];
 
   @ApiHideProperty()
   @ManyToOne(() => DbUser, (user) => user.paid_workspaces, { onDelete: "CASCADE" })

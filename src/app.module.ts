@@ -100,6 +100,7 @@ import { DbIssueCommentGitHubEvents } from "./timescale/entities/issue_comment_g
 import { DbStarSearchThread } from "./star-search/entities/thread.entity";
 import { DbStarSearchThreadHistory } from "./star-search/entities/thread-history.entity";
 import { DbStarSearchUserThread } from "./star-search/entities/user-thread.entity";
+import { DbStarSearchWorkspaceThread } from "./star-search/entities/worspace-thread.entity";
 
 @Module({
   imports: [
@@ -186,6 +187,7 @@ import { DbStarSearchUserThread } from "./star-search/entities/user-thread.entit
             DbStarSearchThread,
             DbStarSearchThreadHistory,
             DbStarSearchUserThread,
+            DbStarSearchWorkspaceThread,
           ],
           synchronize: false,
           logger: new DatabaseLoggerMiddleware("OS"),
