@@ -271,19 +271,11 @@ export class RepoService {
 
   async fastFuzzyFind(pageOptionsDto: RepoFuzzySearchOptionsDto): Promise<PageDto<DbRepo>> {
     const orderField = pageOptionsDto.orderBy ?? RepoOrderFieldsEnum.pushed_at;
-    const startDate = GetPrevDateISOString(pageOptionsDto.prev_days_start_date);
-    const range = pageOptionsDto.range!;
-
     const queryBuilder = this.baseFilterQueryBuilder()
       .withDeleted()
       .addSelect("repos.deleted_at")
       .where(`full_name ILIKE :fuzzy_search_param`, {
         fuzzy_search_param: `%${pageOptionsDto.fuzzy_repo_name}%`,
-      })
-      .andWhere(`:start_date::TIMESTAMP >= "repos"."updated_at"`, { start_date: startDate })
-      .andWhere(`:start_date::TIMESTAMP - :range_interval::INTERVAL <= "repos"."updated_at"`, {
-        start_date: startDate,
-        range_interval: `${range} days`,
       })
       .orderBy(`"repos"."${orderField}"`, OrderDirectionEnum.DESC)
       .offset(pageOptionsDto.skip)
