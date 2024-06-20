@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.35.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.34.0...v2.35.0-beta.1) (2024-06-20)
+
+
+### 🍕 Features
+
+* Fuzzy search all repos ([#890](https://github.com/open-sauced/api.opensauced.pizza/issues/890)) ([107f9d3](https://github.com/open-sauced/api.opensauced.pizza/commit/107f9d37f4ed75c9177e4f30deef1393e7d996d8))
+
 ## [2.34.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.33.0...v2.34.0) (2024-06-18)
 
 
