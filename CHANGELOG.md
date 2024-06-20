@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.35.0-beta.3](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.35.0-beta.2...v2.35.0-beta.3) (2024-06-20)
+
+
+### 🍕 Features
+
+* StarSearch for workspaces ([#876](https://github.com/open-sauced/api.opensauced.pizza/issues/876)) ([686e549](https://github.com/open-sauced/api.opensauced.pizza/commit/686e5493b5ea25e7d9ca0d64286be8c8d4616282))
+
 ## [2.35.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.35.0-beta.1...v2.35.0-beta.2) (2024-06-20)
 
 
