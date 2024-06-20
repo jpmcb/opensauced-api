@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.35.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.35.0-beta.1...v2.35.0-beta.2) (2024-06-20)
+
+
+### 🍕 Features
+
+* Implements "v2/repos/owner/name/yolo" endpoint ([#888](https://github.com/open-sauced/api.opensauced.pizza/issues/888)) ([0374345](https://github.com/open-sauced/api.opensauced.pizza/commit/0374345c840a20689c5e9bf12eb3f93e02c690d1))
+
 ## [2.35.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.34.0...v2.35.0-beta.1) (2024-06-20)
 
 
