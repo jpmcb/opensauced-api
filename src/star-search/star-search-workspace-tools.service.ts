@@ -14,7 +14,7 @@ import { ReleaseAgentParams } from "./schemas/releases.schema";
 import { BingSearchAgentParams } from "./schemas/bing.schema";
 
 @Injectable()
-export class StarSearchToolsService {
+export class StarSearchWorkspaceToolsService {
   managerSystemMessage: string;
 
   constructor(
@@ -26,7 +26,7 @@ export class StarSearchToolsService {
     private issuesAgent: IssuesAgent,
     private releaseAgent: ReleaseAgent
   ) {
-    this.managerSystemMessage = this.configService.get("starsearch.workspaceManagerSystemMessage")!;
+    this.managerSystemMessage = this.configService.get("starsearch.managerSystemMessage")!;
   }
 
   /*
@@ -50,10 +50,12 @@ export class StarSearchToolsService {
     question,
     lastMessage,
     threadSummary,
+    dataset,
   }: {
     question: string;
     lastMessage?: string;
     threadSummary?: string;
+    dataset: string[];
   }): ChatCompletionStreamingRunner {
     const tools = [
       /*
@@ -120,7 +122,11 @@ export class StarSearchToolsService {
     let userMessage = "";
 
     if (lastMessage && threadSummary) {
-      userMessage = `Last message:
+      userMessage = `Dataset:
+---
+[${dataset.join(", ")}]
+
+Last message:
 ---
 ${lastMessage}
 
@@ -132,20 +138,22 @@ Prompt:
 ---
 ${question}`;
     } else {
-      userMessage = `Last message:
+      userMessage = `Dataset:
+---
+[${dataset.join(", ")}]
+
+Last message:
 ---
 No chat history present.
 
 Chat history summary:
 ---
-No chat history present
+No chat history present.
 
 Prompt:
 ---
 ${question}`;
     }
-
-    console.log(userMessage);
 
     return this.openAIWrappedService.runToolsStream(this.managerSystemMessage, userMessage, tools);
   }

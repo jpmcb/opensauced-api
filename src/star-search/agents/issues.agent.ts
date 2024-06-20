@@ -4,7 +4,9 @@ import { OpenAIWrappedService } from "../../openai-wrapped/openai-wrapped.servic
 import { ToolFunction } from "../types/toolfunction.type";
 import {
   IssuesAgentParams,
+  SearchAllIssuesInDatasetParams,
   SearchAllIssuesParams,
+  SearchIssuesByAuthorInDatasetParams,
   SearchIssuesByAuthorParams,
   SearchIssuesByRepoNameAndAuthorParams,
   SearchIssuesByRepoNameParams,
@@ -33,6 +35,17 @@ export class IssuesAgent {
     });
   }
 
+  async searchAllIssuesInDataset({ question, dataset }: SearchAllIssuesInDatasetParams) {
+    const queryEmbedding = await this.openAIWrappedService.generateEmbedding(question);
+
+    return this.issuesGithubEventsVectorService.cosineSimilarity({
+      embedding: queryEmbedding,
+      range: 30,
+      prevDaysStartDate: 0,
+      repoNames: dataset,
+    });
+  }
+
   async searchIssuesByRepoName({ question, repoName }: SearchIssuesByRepoNameParams) {
     const queryEmbedding = await this.openAIWrappedService.generateEmbedding(question);
 
@@ -40,7 +53,7 @@ export class IssuesAgent {
       embedding: queryEmbedding,
       range: 30,
       prevDaysStartDate: 0,
-      repoName,
+      repoNames: [repoName],
     });
   }
 
@@ -62,7 +75,19 @@ export class IssuesAgent {
       embedding: queryEmbedding,
       range: 30,
       prevDaysStartDate: 0,
-      repoName,
+      repoNames: [repoName],
+      author,
+    });
+  }
+
+  async searchIssuesByAuthorInDataset({ question, author, dataset }: SearchIssuesByAuthorInDatasetParams) {
+    const queryEmbedding = await this.openAIWrappedService.generateEmbedding(question);
+
+    return this.issuesGithubEventsVectorService.cosineSimilarity({
+      embedding: queryEmbedding,
+      range: 30,
+      prevDaysStartDate: 0,
+      repoNames: dataset,
       author,
     });
   }
@@ -70,9 +95,11 @@ export class IssuesAgent {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private shortCircuitToolsMap = new Map<string, ToolFunction<any>>([
     ["searchAllIssues", this.searchAllIssues.bind(this)],
+    ["searchAllIssuesInDataset", this.searchAllIssuesInDataset.bind(this)],
     ["searchIssuesByRepoName", this.searchIssuesByRepoName.bind(this)],
     ["searchIssuesByAuthor", this.searchIssuesByAuthor.bind(this)],
     ["searchIssuesByRepoNameAndAuthor", this.searchIssuesByRepoNameAndAuthor.bind(this)],
+    ["searchIssuesByAuthorInDataset", this.searchIssuesByAuthorInDataset.bind(this)],
   ]);
 
   async runAgentTools(agentParams: IssuesAgentParams): Promise<string | null | unknown> {
@@ -83,6 +110,14 @@ export class IssuesAgent {
         name: "searchAllIssues",
         description:
           "Searches all GitHub issues and their context. Returns relevant summaries of issues based on the input user question.",
+      }),
+
+      this.openAIWrappedService.makeRunnableToolFunction({
+        function: async (params: SearchAllIssuesInDatasetParams) => this.searchAllIssuesInDataset(params),
+        schema: SearchAllIssuesInDatasetParams,
+        name: "searchAllIssuesInDataset",
+        description:
+          "Searches all GitHub issues and their context within a given dataset. Returns relevant summaries of issues based on the input user question. Repo names within the dataset be of the form: 'organization/name'. Example: facebook/react. A dataset is an array made up of several repo names. Example ['facebook/react','microsoft/vscode'].",
       }),
 
       this.openAIWrappedService.makeRunnableToolFunction({
@@ -107,6 +142,14 @@ export class IssuesAgent {
         name: "searchIssuesByRepoNameAndAuthor",
         description:
           "Searches GitHub issues and their context in a specific repository and by a specific issue author. Returns relevant summaries of issues based on the input user question. The repoName parameter should be of the form: 'organization/name'. Example: facebook/react. The 'author' parameter is the GitHub login of a specific user.",
+      }),
+
+      this.openAIWrappedService.makeRunnableToolFunction({
+        function: async (params: SearchIssuesByAuthorInDatasetParams) => this.searchIssuesByAuthorInDataset(params),
+        schema: SearchIssuesByAuthorInDatasetParams,
+        name: "searchIssuesByAuthorInDataset",
+        description:
+          "Searches GitHub issues and their context by a specific issue author within the given dataset. Returns relevant summaries of issues based on the input user question. Repo names within the dataset be of the form: 'organization/name'. Example: facebook/react. A dataset is an array made up of several repo names. Example ['facebook/react','microsoft/vscode']. The 'author' parameter is the GitHub login of a specific user.",
       }),
     ];
 

@@ -4,7 +4,9 @@ import { OpenAIWrappedService } from "../../openai-wrapped/openai-wrapped.servic
 import { PullRequestGithubEventsVectorService } from "../../timescale/pull_request_github-events_vector.service";
 import {
   PullRequestAgentParams,
+  SearchAllPrsInDatasetParams,
   SearchAllPrsParams,
+  SearchPrsByAuthorInDatasetParams,
   SearchPrsByAuthorParams,
   SearchPrsByRepoNameAndAuthorParams,
   SearchPrsByRepoNameParams,
@@ -33,6 +35,17 @@ export class PullRequestAgent {
     });
   }
 
+  private async searchAllPrsInDataset({ question, dataset }: SearchAllPrsInDatasetParams) {
+    const queryEmbedding = await this.openAIWrappedService.generateEmbedding(question);
+
+    return this.pullRequestGithubEventsVectorService.cosineSimilarity({
+      embedding: queryEmbedding,
+      range: 30,
+      prevDaysStartDate: 0,
+      repoNames: dataset,
+    });
+  }
+
   private async searchPrsByRepoName({ question, repoName, range }: SearchPrsByRepoNameParams) {
     const queryEmbedding = await this.openAIWrappedService.generateEmbedding(question);
 
@@ -40,7 +53,7 @@ export class PullRequestAgent {
       embedding: queryEmbedding,
       range,
       prevDaysStartDate: 0,
-      repoName,
+      repoNames: [repoName],
     });
   }
 
@@ -62,7 +75,19 @@ export class PullRequestAgent {
       embedding: queryEmbedding,
       range: 30,
       prevDaysStartDate: 0,
-      repoName,
+      repoNames: [repoName],
+      author,
+    });
+  }
+
+  private async searchPrsByAuthorInDataset({ question, author, dataset }: SearchPrsByAuthorInDatasetParams) {
+    const queryEmbedding = await this.openAIWrappedService.generateEmbedding(question);
+
+    return this.pullRequestGithubEventsVectorService.cosineSimilarity({
+      embedding: queryEmbedding,
+      range: 30,
+      prevDaysStartDate: 0,
+      repoNames: dataset,
       author,
     });
   }
@@ -70,9 +95,11 @@ export class PullRequestAgent {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private shortCircuitToolsMap = new Map<string, ToolFunction<any>>([
     ["searchAllPrs", this.searchAllPrs.bind(this)],
+    ["searchAllPrsInDataset", this.searchAllPrsInDataset.bind(this)],
     ["searchPrsByRepoName", this.searchPrsByRepoName.bind(this)],
     ["searchPrsByAuthor", this.searchPrsByAuthor.bind(this)],
     ["searchPrsByRepoNameAndAuthor", this.searchPrsByRepoNameAndAuthor.bind(this)],
+    ["SearchPrsByAuthorInDataset", this.searchPrsByAuthorInDataset.bind(this)],
   ]);
 
   async runTools(agentParams: PullRequestAgentParams): Promise<string | null | unknown> {
@@ -88,6 +115,14 @@ export class PullRequestAgent {
         name: "searchAllPrs",
         description:
           "Searches all GitHub pull requests and their context. Returns relevant summaries of pull requests based on the input user question.",
+      }),
+
+      this.openAIWrappedService.makeRunnableToolFunction({
+        function: async (params: SearchAllPrsInDatasetParams) => this.searchAllPrs(params),
+        schema: SearchAllPrsInDatasetParams,
+        name: "searchAllPrsInDataset",
+        description:
+          "Searches all GitHub pull requests and their context within a given dataset. Returns relevant summaries of pull requests based on the input user question. Repo names within the dataset be of the form: 'organization/name'. Example: facebook/react. A dataset is an array made up of several repo names. Example ['facebook/react','microsoft/vscode'].",
       }),
 
       this.openAIWrappedService.makeRunnableToolFunction({
@@ -113,12 +148,20 @@ export class PullRequestAgent {
         description:
           "Searches GitHub pull requests and their context in a specific repository and by a specific PR author. Returns relevant summaries of pull requests based on the input user question. The repoName parameter should be of the form: 'organization/name'. Example: facebook/react. The 'author' parameter is the GitHub login of a specific user.",
       }),
+
+      this.openAIWrappedService.makeRunnableToolFunction({
+        function: async (params: SearchPrsByAuthorInDatasetParams) => this.searchPrsByAuthorInDataset(params),
+        schema: SearchPrsByAuthorInDatasetParams,
+        name: "searchPrsByAuthorIndataset",
+        description:
+          "Searches GitHub pull requests and their context by a specific PR author within a given dataset. Returns relevant summaries of pull requests based on the input user question. Repo names within the dataset be of the form: 'organization/name'. Example: facebook/react. A dataset is an array made up of several repo names. Example ['facebook/react','microsoft/vscode']. The 'author' parameter is the GitHub login of a specific user.",
+      }),
     ];
 
     // directly call the function if the agent can decide based on the prompt
     const shortCircuitDecision = await this.openAIWrappedService.decideShortCircuitTool(
       this.agentSystemMessage,
-      agentParams.prompt,
+      JSON.stringify(agentParams),
       tools
     );
 

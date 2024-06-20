@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { HttpModule } from "@nestjs/axios";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { OpenAIWrappedModule } from "../openai-wrapped/openai-wrapped.module";
@@ -17,15 +17,23 @@ import { DbStarSearchThread } from "./entities/thread.entity";
 import { DbStarSearchUserThread } from "./entities/user-thread.entity";
 import { DbStarSearchThreadHistory } from "./entities/thread-history.entity";
 import { ThreadSummaryAgent } from "./agents/thread-summary.agent";
+import { StarSearchWorkspaceThreadService } from "./star-search-workspace-thread.service";
+import { StarSearchUserThreadService } from "./star-search-user-thread.service";
+import { StarSearchSseService } from "./star-search-sse.service";
+import { DbStarSearchWorkspaceThread } from "./entities/worspace-thread.entity";
+import { StarSearchWorkspaceToolsService } from "./star-search-workspace-tools.service";
 
 @Module({
   imports: [
+    forwardRef(() => RepoModule),
     HttpModule,
     TimescaleModule,
     OpenAIWrappedModule,
-    RepoModule,
     UrlModule,
-    TypeOrmModule.forFeature([DbStarSearchThread, DbStarSearchUserThread, DbStarSearchThreadHistory], "ApiConnection"),
+    TypeOrmModule.forFeature(
+      [DbStarSearchThread, DbStarSearchUserThread, DbStarSearchThreadHistory, DbStarSearchWorkspaceThread],
+      "ApiConnection"
+    ),
   ],
   providers: [
     BingSearchAgent,
@@ -34,10 +42,21 @@ import { ThreadSummaryAgent } from "./agents/thread-summary.agent";
     PullRequestAgent,
     ReleaseAgent,
     ThreadSummaryAgent,
+    StarSearchSseService,
     StarSearchToolsService,
     StarSearchThreadService,
+    StarSearchUserThreadService,
+    StarSearchWorkspaceThreadService,
+    StarSearchWorkspaceToolsService,
   ],
-  exports: [BingSearchAgent, StarSearchToolsService, StarSearchThreadService],
+  exports: [
+    BingSearchAgent,
+    StarSearchToolsService,
+    StarSearchThreadService,
+    StarSearchSseService,
+    StarSearchUserThreadService,
+    StarSearchWorkspaceThreadService,
+  ],
   controllers: [StarSearchController],
 })
 export class StarSearchModule {}

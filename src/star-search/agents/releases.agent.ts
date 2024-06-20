@@ -3,7 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { OpenAIWrappedService } from "../../openai-wrapped/openai-wrapped.service";
 import { ToolFunction } from "../types/toolfunction.type";
 import { ReleaseGithubEventsService } from "../../timescale/release_github_events.service";
-import { ReleaseAgentParams, ReleasesParams } from "../schemas/releases.schema";
+import { ReleaseAgentParams, ReleasesInDatasetParams, ReleasesParams } from "../schemas/releases.schema";
 
 @Injectable()
 export class ReleaseAgent {
@@ -29,13 +29,22 @@ export class ReleaseAgent {
     }
   }
 
+  async getReleasesInDataset({ dataset }: ReleasesInDatasetParams) {
+    const results = await this.releaseGithubEventsService.getReleases({
+      repos: dataset.join(","),
+      range: 30,
+      skip: 0,
+    });
+
+    if (results.length === 0) {
+      return "no releases found";
+    }
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private shortCircuitToolsMap = new Map<string, ToolFunction<any>>([
     ["getReleasesByReponame", this.getReleasesByReponame.bind(this)],
-
-    /*
-     * todo - create additional short-circuit calls that can be made
-     */
+    ["getReleasesInDataset", this.getReleasesInDataset.bind(this)],
   ]);
 
   async runAgentTools(agentParams: ReleaseAgentParams): Promise<string | null | unknown> {
@@ -46,6 +55,14 @@ export class ReleaseAgent {
         name: "getReleasesByReponame",
         description:
           "Gets the latest GitHub releases and their context for a specific repository. The repoName parameter should be of the form: 'organization/name'. Example: facebook/react.",
+      }),
+
+      this.openAIWrappedService.makeRunnableToolFunction({
+        function: async (params: ReleasesInDatasetParams) => this.getReleasesInDataset(params),
+        schema: ReleasesInDatasetParams,
+        name: "getReleasesInDataset",
+        description:
+          "Gets the latest GitHub releases and their context within the given dataset. Repo names within the dataset be of the form: 'organization/name'. Example: facebook/react. A dataset is an array made up of several repo names. Example ['facebook/react','microsoft/vscode']. The 'author' parameter is the GitHub login of a specific user.",
       }),
     ];
 

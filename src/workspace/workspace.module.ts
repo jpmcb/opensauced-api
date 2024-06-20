@@ -11,6 +11,7 @@ import { DbUserList } from "../user-lists/entities/user-list.entity";
 import { DbUserListContributor } from "../user-lists/entities/user-list-contributor.entity";
 import { AuthModule } from "../auth/auth.module";
 import { RepoModule } from "../repo/repo.module";
+import { StarSearchModule } from "../star-search/star-search.module";
 import { WorkspaceService } from "./workspace.service";
 import { WorkspaceController } from "./workspace.controller";
 import { DbWorkspace } from "./entities/workspace.entity";
@@ -35,6 +36,8 @@ import { WorkspaceUserListsController } from "./workspace-user-lists.controller"
 import { WorkspaceUserListsService } from "./workspace-user-lists.service";
 import { DbWorkspaceUserLists } from "./entities/workspace-user-list.entity";
 import { WorkspacePayeeService } from "./workspace-payee.service";
+import { WorkspaceStarSearchController } from "./workspace-starsearch.controller";
+import { WorkspaceStarSearchService } from "./workspace-starsearch.service";
 
 @Module({
   imports: [
@@ -44,6 +47,7 @@ import { WorkspacePayeeService } from "./workspace-payee.service";
     forwardRef(() => TimescaleModule),
     forwardRef(() => UserListModule),
     forwardRef(() => RepoModule),
+    StarSearchModule,
     ApiServicesModule,
     TypeOrmModule.forFeature(
       [
@@ -70,6 +74,7 @@ import { WorkspacePayeeService } from "./workspace-payee.service";
     WorkspaceContributorController,
     WorkspaceInsightsController,
     WorkspaceUserListsController,
+    WorkspaceStarSearchController,
   ],
   providers: [
     WorkspaceService,
@@ -81,6 +86,7 @@ import { WorkspacePayeeService } from "./workspace-payee.service";
     WorkspaceInsightsService,
     WorkspaceUserListsService,
     WorkspacePayeeService,
+    WorkspaceStarSearchService,
   ],
   exports: [
     WorkspaceService,

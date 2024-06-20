@@ -229,7 +229,7 @@ export class OpenAIWrappedService {
 
   async decideShortCircuitTool(
     systemMessageToEvaluate: string,
-    promptToEvaluate: string,
+    agentParamsToEvaluate: string,
     scTools: RunnableToolFunctionWithParse<object>[]
   ): Promise<{ name: string; validatedParams: any } | null> {
     const scToolNames = scTools.map((tool) => tool.function.name);
@@ -246,8 +246,8 @@ export class OpenAIWrappedService {
     const prompt = `System message to evaluate:
 ${systemMessageToEvaluate}
 
-Prompt:
-${promptToEvaluate}
+Agent params and prompt to evaluate:
+${agentParamsToEvaluate}
 
 Available short-circuit tools:
 ${scToolChunks.join("\n")}`;

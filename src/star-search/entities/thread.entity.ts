@@ -13,6 +13,7 @@ import {
 } from "typeorm";
 import { DbStarSearchUserThread } from "./user-thread.entity";
 import { DbStarSearchThreadHistory } from "./thread-history.entity";
+import { DbStarSearchWorkspaceThread } from "./worspace-thread.entity";
 
 @Entity({ name: "starsearch_threads" })
 export class DbStarSearchThread {
@@ -109,6 +110,10 @@ export class DbStarSearchThread {
   @ApiHideProperty()
   @OneToOne(() => DbStarSearchUserThread, (userThread) => userThread.thread, { onDelete: "CASCADE" })
   public user_thread: DbStarSearchUserThread;
+
+  @ApiHideProperty()
+  @OneToOne(() => DbStarSearchWorkspaceThread, (workspaceThread) => workspaceThread.thread, { onDelete: "CASCADE" })
+  public workspace_thread: DbStarSearchWorkspaceThread;
 
   @ApiHideProperty()
   @OneToMany(() => DbStarSearchThreadHistory, (history) => history.thread, { onDelete: "CASCADE" })
