@@ -24,7 +24,7 @@ export class UserPersonalWorkspaceController {
   @ApiOkResponse({ type: DbWorkspace })
   @ApiNotFoundResponse({ description: "workspace not found" })
   async findPersonalWorkspaceByUsername(@UserId() userId: number): Promise<DbWorkspace> {
-    const user = await this.userService.findOneById(userId);
+    const user = await this.userService.tryFindUserOrMakeStub({ userId });
 
     return this.workspaceService.findOneById(user.personal_workspace_id);
   }

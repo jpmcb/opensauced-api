@@ -61,7 +61,7 @@ export class UserNotificationService {
   }
 
   async addUserFollowerNotification(userId: number, followedUserId: number) {
-    const followUser = await this.userService.findOneById(userId);
+    const followUser = await this.userService.tryFindUserOrMakeStub({ userId });
 
     return this.addUserNotification({
       type: UserNotificationTypes.Follow,
@@ -73,7 +73,7 @@ export class UserNotificationService {
   }
 
   async addUserHighlightReactionNotification(userId: number, highlightUserId: number, highlightId: number) {
-    const followUser = await this.userService.findOneById(userId);
+    const followUser = await this.userService.tryFindUserOrMakeStub({ userId });
 
     return this.addUserNotification({
       type: UserNotificationTypes.HighlightReaction,
@@ -85,7 +85,7 @@ export class UserNotificationService {
   }
 
   async addUserHighlightNotification(highlightId: number, userId: number, highlightUserId: number) {
-    const followUser = await this.userService.findOneById(userId);
+    const followUser = await this.userService.tryFindUserOrMakeStub({ userId });
 
     return this.addUserNotification({
       type: UserNotificationTypes.HighlightCreated,

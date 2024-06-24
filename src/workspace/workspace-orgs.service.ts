@@ -85,7 +85,7 @@ export class WorkspaceOrgsService {
     if (existingOrg) {
       await this.workspaceOrgRepository.restore(existingOrg.id);
     } else {
-      const user = await this.userService.findOneById(orgUserId);
+      const user = await this.userService.tryFindUserOrMakeStub({ userId: orgUserId });
 
       if (user.type.toLowerCase() !== "organization") {
         throw new NotFoundException("not an org");
@@ -127,7 +127,7 @@ export class WorkspaceOrgsService {
       if (existingOrg) {
         await this.workspaceOrgRepository.restore(existingOrg.id);
       } else {
-        const user = await this.userService.findOneById(org.id);
+        const user = await this.userService.tryFindUserOrMakeStub({ userId: org.id });
 
         if (user.type.toLowerCase() !== "organization") {
           throw new NotFoundException("not an org");

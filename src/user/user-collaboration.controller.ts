@@ -78,8 +78,8 @@ export class UserCollaborationController {
     @Body() createUserCollaborationDto: CreateUserCollaborationDto,
     @User() user: SupabaseAuthUser
   ): Promise<DbUserCollaboration> {
-    const recipient = await this.userService.findOneByUsername(createUserCollaborationDto.username);
-    const requester = await this.userService.findOneById(user.user_metadata.sub as number);
+    const recipient = await this.userService.tryFindUserOrMakeStub({ username: createUserCollaborationDto.username });
+    const requester = await this.userService.tryFindUserOrMakeStub({ userId: user.user_metadata.sub as number });
 
     if (requester.role < 50) {
       throw new UnauthorizedException("You're not authorized to perform this action");

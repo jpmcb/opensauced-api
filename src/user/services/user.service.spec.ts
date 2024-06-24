@@ -228,7 +228,7 @@ describe("UserService", () => {
     });
   });
 
-  describe("[findOneById]", () => {
+  describe("[tryFindUserOrMakeStub with ID]", () => {
     const user = { id: faker.number.int(), email: faker.internet.email() };
     const createQueryBuilderMock = {
       addSelect: jest.fn().mockReturnThis(),
@@ -246,7 +246,7 @@ describe("UserService", () => {
 
     it("should return a user with the given id", async () => {
       dbUserRepositoryMock.createQueryBuilder?.mockReturnValue(createQueryBuilderMock);
-      const result = await userService.findOneById(user.id);
+      const result = await userService.tryFindUserOrMakeStub({ userId: user.id });
 
       expect(dbUserRepositoryMock.createQueryBuilder).toHaveBeenCalled();
       expect(createQueryBuilderMock.addSelect).toHaveBeenCalled();
@@ -258,15 +258,9 @@ describe("UserService", () => {
       expect(createQueryBuilderMock.getOne).toHaveBeenCalled();
       expect(result).toEqual(user);
     });
-
-    it("should throw an error if the user is not found", async () => {
-      createQueryBuilderMock.getOne = jest.fn().mockResolvedValue(null);
-      dbUserRepositoryMock.createQueryBuilder?.mockReturnValue(createQueryBuilderMock);
-      await expect(userService.findOneById(faker.number.int())).rejects.toThrow(NotFoundException);
-    });
   });
 
-  describe("[findOneByUsername]", () => {
+  describe("[tryFindUserOrMakeStub with username]", () => {
     const username = faker.internet.userName();
     const user = { id: faker.number.int(), username };
     const createQueryBuilderMock = {
@@ -277,7 +271,7 @@ describe("UserService", () => {
 
     it("should return a user with the given username", async () => {
       dbUserRepositoryMock.createQueryBuilder?.mockReturnValue(createQueryBuilderMock);
-      const result = await userService.findOneByUsername(username);
+      const result = await userService.tryFindUserOrMakeStub({ username });
 
       expect(dbUserRepositoryMock.createQueryBuilder).toHaveBeenCalled();
       expect(createQueryBuilderMock.addSelect).toHaveBeenCalledTimes(3);
@@ -286,12 +280,6 @@ describe("UserService", () => {
       });
       expect(createQueryBuilderMock.getOne).toHaveBeenCalled();
       expect(result).toEqual(user);
-    });
-
-    it("should throw an error if the user is not found", async () => {
-      createQueryBuilderMock.getOne = jest.fn().mockResolvedValue(null);
-      dbUserRepositoryMock.createQueryBuilder?.mockReturnValue(createQueryBuilderMock);
-      await expect(userService.findOneByUsername(username)).rejects.toThrow(NotFoundException);
     });
   });
 

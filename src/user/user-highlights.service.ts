@@ -139,7 +139,7 @@ export class UserHighlightsService {
   }
 
   async addFeatured(highlightId: number, userId: number): Promise<DbUserHighlight> {
-    const user = await this.userService.findOneById(userId);
+    const user = await this.userService.tryFindUserOrMakeStub({ userId });
 
     if (user.role < 100) {
       throw new UnauthorizedException("You are not authorized to perform this action");
@@ -158,7 +158,7 @@ export class UserHighlightsService {
   }
 
   async removeFeatured(highlightId: number, userId: number): Promise<DbUserHighlight | null> {
-    const user = await this.userService.findOneById(userId);
+    const user = await this.userService.tryFindUserOrMakeStub({ userId });
 
     if (user.role < 100) {
       throw new UnauthorizedException("You are not authorized to perform this action");

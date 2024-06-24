@@ -153,7 +153,7 @@ export class WorkspaceMembersService {
           await this.workspaceMemberRepository.restore(existingMember.id);
         }
       } else {
-        const user = await this.userService.findOneById(member.id);
+        const user = await this.userService.tryFindUserOrMakeStub({ userId: member.id });
         const newMember = new DbWorkspaceMember();
 
         newMember.workspace = workspace;

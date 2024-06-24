@@ -237,7 +237,7 @@ export class AuthController {
   ): Promise<DbUser> {
     await this.userService.updateInterests(userId, updateUserDto);
 
-    return this.userService.findOneById(userId);
+    return this.userService.tryFindUserOrMakeStub({ userId });
   }
 
   @Patch("/profile/email")
@@ -256,7 +256,7 @@ export class AuthController {
   ): Promise<DbUser> {
     await this.userService.updateEmailPreferences(userId, updateUserDto);
 
-    return this.userService.findOneById(userId);
+    return this.userService.tryFindUserOrMakeStub({ userId });
   }
 
   @Patch("/profile/coupon")
@@ -275,7 +275,7 @@ export class AuthController {
 
     await this.userService.applyCoupon(userId, applyUserCouponDto.couponCode);
 
-    return this.userService.findOneById(userId);
+    return this.userService.tryFindUserOrMakeStub({ userId });
   }
 
   @Patch("/profile/developer-pack")
@@ -326,6 +326,6 @@ export class AuthController {
   async acceptUsageTerms(@UserId() userId: number): Promise<DbUser> {
     await this.userService.acceptTerms(userId);
 
-    return this.userService.findOneById(userId);
+    return this.userService.tryFindUserOrMakeStub({ userId });
   }
 }

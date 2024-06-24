@@ -21,8 +21,7 @@ describe("UserCollaborationController", () => {
   };
 
   const userServiceMock = {
-    findOneByUsername: jest.fn(),
-    findOneById: jest.fn(),
+    tryFindUserOrMakeStub: jest.fn(),
   };
 
   beforeAll(async () => {
@@ -54,8 +53,7 @@ describe("UserCollaborationController", () => {
     userCollaborationServiceMock.updateUserCollaboration.mockClear();
     userCollaborationServiceMock.removeUserCollaboration.mockClear();
 
-    userServiceMock.findOneById.mockClear();
-    userServiceMock.findOneByUsername.mockClear();
+    userServiceMock.tryFindUserOrMakeStub.mockClear();
   });
 
   describe("findAllUserCollaborations", () => {
@@ -91,14 +89,14 @@ describe("UserCollaborationController", () => {
       const requester = { id, role: 60 };
       const newUserCollaboration = { id, user_id: userId, request_user_id: requestUserId, message, status: "pending" };
 
-      userServiceMock.findOneByUsername.mockResolvedValue(recipient);
-      userServiceMock.findOneById.mockResolvedValue(requester);
+      userServiceMock.tryFindUserOrMakeStub.mockResolvedValueOnce(recipient);
+      userServiceMock.tryFindUserOrMakeStub.mockResolvedValueOnce(requester);
       userCollaborationServiceMock.addUserCollaboration.mockResolvedValue(newUserCollaboration);
 
       const result = await controller.addUserCollaboration(createUserCollaborationDto, user);
 
-      expect(userServiceMock.findOneByUsername).toHaveBeenCalledWith(username);
-      expect(userServiceMock.findOneById).toHaveBeenCalledWith(sub);
+      expect(userServiceMock.tryFindUserOrMakeStub).toHaveBeenNthCalledWith(1, { username });
+      expect(userServiceMock.tryFindUserOrMakeStub).toHaveBeenNthCalledWith(2, { userId: sub });
       expect(userCollaborationServiceMock.addUserCollaboration).toHaveBeenCalledWith({
         user_id: recipient.id,
         request_user_id: requester.id,
@@ -115,14 +113,17 @@ describe("UserCollaborationController", () => {
       const requester = { id, role: 40 };
       const user = { id, user_metadata: { sub: 2 } } as unknown as SupabaseAuthUser;
 
-      userServiceMock.findOneByUsername.mockResolvedValue(recipient);
-      userServiceMock.findOneById.mockResolvedValue(requester);
+      userServiceMock.tryFindUserOrMakeStub.mockResolvedValueOnce(recipient);
+      userServiceMock.tryFindUserOrMakeStub.mockResolvedValueOnce(requester);
 
       await expect(controller.addUserCollaboration({ username, message: "Test message" }, user)).rejects.toThrow(
         UnauthorizedException
       );
-      expect(userServiceMock.findOneByUsername).toHaveBeenCalledWith(username);
-      expect(userServiceMock.findOneById).toHaveBeenCalledWith(user.user_metadata.sub);
+
+      expect(userServiceMock.tryFindUserOrMakeStub).toHaveBeenNthCalledWith(1, { username });
+      expect(userServiceMock.tryFindUserOrMakeStub).toHaveBeenNthCalledWith(2, {
+        userId: user.user_metadata.sub as number,
+      });
       expect(userCollaborationServiceMock.addUserCollaboration).not.toHaveBeenCalled();
     });
 
@@ -133,14 +134,17 @@ describe("UserCollaborationController", () => {
       const requester = { id, role: 60 };
       const user = { id, user_metadata: { sub: 2 } } as unknown as SupabaseAuthUser;
 
-      userServiceMock.findOneByUsername.mockResolvedValue(recipient);
-      userServiceMock.findOneById.mockResolvedValue(requester);
+      userServiceMock.tryFindUserOrMakeStub.mockResolvedValueOnce(recipient);
+      userServiceMock.tryFindUserOrMakeStub.mockResolvedValueOnce(requester);
 
       await expect(controller.addUserCollaboration({ username, message: "Test message" }, user)).rejects.toThrow(
         ConflictException
       );
-      expect(userServiceMock.findOneByUsername).toHaveBeenCalledWith(username);
-      expect(userServiceMock.findOneById).toHaveBeenCalledWith(user.user_metadata.sub);
+
+      expect(userServiceMock.tryFindUserOrMakeStub).toHaveBeenNthCalledWith(1, { username });
+      expect(userServiceMock.tryFindUserOrMakeStub).toHaveBeenNthCalledWith(2, {
+        userId: user.user_metadata.sub as number,
+      });
       expect(userCollaborationServiceMock.addUserCollaboration).not.toHaveBeenCalled();
     });
   });

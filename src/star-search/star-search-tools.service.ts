@@ -26,7 +26,7 @@ export class StarSearchToolsService {
     private issuesAgent: IssuesAgent,
     private releaseAgent: ReleaseAgent
   ) {
-    this.managerSystemMessage = this.configService.get("starsearch.workspaceManagerSystemMessage")!;
+    this.managerSystemMessage = this.configService.get("starsearch.managerSystemMessage")!;
   }
 
   /*
@@ -144,8 +144,6 @@ Prompt:
 ---
 ${question}`;
     }
-
-    console.log(userMessage);
 
     return this.openAIWrappedService.runToolsStream(this.managerSystemMessage, userMessage, tools);
   }

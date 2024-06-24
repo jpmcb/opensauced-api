@@ -213,15 +213,10 @@ export class WorkspaceService {
       await Promise.all(repoPromises);
 
       const contribPromises = dto.contributors.map(async (contributor) => {
-        let user;
-
-        if (contributor.id) {
-          user = await this.userService.findOneById(contributor.id);
-        } else if (contributor.login) {
-          user = await this.userService.findOneByUsername(contributor.login);
-        } else {
-          throw new BadRequestException("either user id or login must be provided");
-        }
+        const user = await this.userService.tryFindUserOrMakeStub({
+          userId: contributor.id,
+          username: contributor.login,
+        });
 
         const existingContributor = await this.workspaceContributorRepository.findOne({
           where: {

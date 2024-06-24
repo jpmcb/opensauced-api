@@ -175,7 +175,7 @@ export class UserListService {
       return existingContributor;
     }
 
-    const user = await this.userService.tryFindUserOrMakeStub(userId, username);
+    const user = await this.userService.tryFindUserOrMakeStub({ userId, username });
 
     const newUserListContributor = this.userListContributorRepository.create({
       list_id: listId,

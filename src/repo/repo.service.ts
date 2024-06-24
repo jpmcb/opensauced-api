@@ -575,7 +575,7 @@ export class RepoService {
      * because there is a reference to the "user" (the owner) of a repo
      * in the repos table, we need to ensure we find or create the user
      */
-    const user = await this.userService.tryFindUserOrMakeStub(undefined, parts[0]);
+    const user = await this.userService.tryFindUserOrMakeStub({ username: parts[0] });
 
     /*
      * create a new, minimum, partial repo based on GitHub data (primarily, the ID).

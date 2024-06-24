@@ -97,7 +97,7 @@ export class UserService {
     return new PageDto(entities, pageMetaDto);
   }
 
-  async findOneById(id: number, includeEmail = false): Promise<DbUser> {
+  private async findOneById(id: number, includeEmail = false): Promise<DbUser> {
     const queryBuilder = this.baseQueryBuilder();
 
     queryBuilder
@@ -143,7 +143,7 @@ export class UserService {
     return item;
   }
 
-  async findOneByUsername(username: string, options?: UserDto): Promise<DbUser> {
+  private async findOneByUsername(username: string, options?: UserDto): Promise<DbUser> {
     const maintainerRepoIds = options?.maintainerRepoIds?.split(",");
     const queryBuilder = this.baseQueryBuilder();
 
@@ -303,7 +303,22 @@ export class UserService {
     }
   }
 
-  async tryFindUserOrMakeStub(userId?: number, username?: string): Promise<DbUser> {
+  /*
+   * this function is a special "escape" hatch function that will return the
+   * queried user by ID or username if they exist in our database. If not, we use
+   * github's octokit to go stub them out. This should be used in any paths
+   * where there is a critical possibility of encountering a user that requires
+   * that requires github metadata in our database.
+   */
+  async tryFindUserOrMakeStub({
+    userId,
+    username,
+    dto,
+  }: {
+    userId?: number;
+    username?: string;
+    dto?: UserDto;
+  }): Promise<DbUser> {
     if (!userId && !username) {
       throw new BadRequestException("either user id or username must be provided");
     }
@@ -314,7 +329,7 @@ export class UserService {
       if (userId) {
         user = await this.findOneById(userId);
       } else if (username) {
-        user = await this.findOneByUsername(username);
+        user = await this.findOneByUsername(username, dto);
       }
     } catch (e) {
       // could not find user being added to workspace in our database. Add it.
