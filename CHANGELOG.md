@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.35.0-beta.4](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.35.0-beta.3...v2.35.0-beta.4) (2024-06-25)
+
+
+### 🍕 Features
+
+* Cleanup/remove MIT license ([#915](https://github.com/open-sauced/api.opensauced.pizza/issues/915)) ([00127d1](https://github.com/open-sauced/api.opensauced.pizza/commit/00127d19958c9df5475777850b427e196c78142e))
+
 ## [2.35.0-beta.3](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.35.0-beta.2...v2.35.0-beta.3) (2024-06-20)
 
 
