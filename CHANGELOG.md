@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.35.0-beta.5](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.35.0-beta.4...v2.35.0-beta.5) (2024-06-25)
+
+
+### 🍕 Features
+
+* MVP Open Source Contributor Rating ([#913](https://github.com/open-sauced/api.opensauced.pizza/issues/913)) ([68027ea](https://github.com/open-sauced/api.opensauced.pizza/commit/68027ea73fb0c1c4e6fcfebca6de204fd4fc1545))
+
 ## [2.35.0-beta.4](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.35.0-beta.3...v2.35.0-beta.4) (2024-06-25)
 
 
