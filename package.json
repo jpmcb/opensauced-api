@@ -13,7 +13,6 @@
     "registry": "https://npm.pkg.github.com",
     "access": "restricted"
   },
-  "license": "MIT",
   "homepage": "https://github.com/open-sauced/api.opensauced.pizza#readme",
   "bugs": {
     "url": "https://github.com/open-sauced/api.opensauced.pizza/issues"

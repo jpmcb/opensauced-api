@@ -4,26 +4,10 @@
   <h1>🍕 Open Sauced Insights API 🍕</h1>
   <strong>The path to your next Open Source contribution</strong>
   <br>
-  <br>
-  <a href="https://www.digitalocean.com/?refcode=c65a90d0956d&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge"><img src="https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg" alt="DigitalOcean Referral Badge" /></a>
 </div>
 <br>
-<p align="center">
-  <img src="https://img.shields.io/github/languages/code-size/open-sauced/api.opensauced.pizza" alt="GitHub code size in bytes">
-  <img src="https://img.shields.io/github/commit-activity/w/open-sauced/api.opensauced.pizza" alt="GitHub commit activity">
-  <a href="https://github.com/open-sauced/api.opensauced.pizza/issues">
-    <img src="https://img.shields.io/github/issues/open-sauced/api.opensauced.pizza" alt="GitHub issues">
-  </a>
-  <a href="https://github.com/open-sauced/api.opensauced.pizza/releases">
-    <img src="https://img.shields.io/github/v/release/open-sauced/api.opensauced.pizza.svg?style=flat" alt="GitHub Release">
-  </a>
-  <a href="https://discord.gg/U2peSNf23P">
-    <img src="https://img.shields.io/discord/714698561081704529.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2" alt="Discord">
-  </a>
-  <a href="https://twitter.com/saucedopen">
-    <img src="https://img.shields.io/twitter/follow/saucedopen?label=Follow&style=social" alt="Twitter">
-  </a>
-</p>
+
+---
 
 ## 🚀 Live release environments
 
@@ -227,7 +211,3 @@ This visualization is being updated on release to our default branch by our [rel
 
 [![Visualization of this repository](./public/diagram.svg)
 ](./src)
-
-## ⚖️ LICENSE
-
-MIT © [Open Sauced](LICENSE)
