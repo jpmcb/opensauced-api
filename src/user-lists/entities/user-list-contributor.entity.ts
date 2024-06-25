@@ -85,6 +85,17 @@ export class DbUserListContributor {
   })
   public login?: string;
 
+  @ApiModelProperty({
+    description: "The calculated Open Source Contributor Rating",
+    example: 0.85,
+  })
+  @Column({
+    type: "float",
+    select: false,
+    insert: false,
+  })
+  public oscr: number;
+
   @ApiHideProperty()
   @ManyToOne(() => DbUserList, (userList) => userList.contributors)
   @JoinColumn({

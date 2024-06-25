@@ -54,6 +54,13 @@ export class DbPullRequestGitHubEvents extends BaseEntity {
   public pr_is_merged: boolean;
 
   @ApiModelProperty({
+    description: "The action taken in the PR",
+    example: "opened",
+  })
+  @Column("text")
+  public pr_action: string;
+
+  @ApiModelProperty({
     description: "Pull request mergeable state",
     example: "unknown",
   })
@@ -208,6 +215,13 @@ export class DbPullRequestGitHubEvents extends BaseEntity {
   })
   @Column({ type: "bigint" })
   public pr_commits?: number;
+
+  @ApiModelProperty({
+    description: "The reason a PR is actively locked",
+    type: "text",
+  })
+  @Column({ type: "text" })
+  public pr_active_lock_reason?: string;
 
   @ApiModelProperty({
     description: "AI summary for the PR",

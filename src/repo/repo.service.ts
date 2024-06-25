@@ -116,7 +116,7 @@ export class RepoService {
     const forksHisto = await this.forkGithubEventsService.genForkHistogram({ repo: item.full_name, range });
     const forksVelocity = forksHisto.reduce((acc, curr) => acc + curr.forks_count, 0) / (range || 30);
     const activityRatio = await this.repoDevstatsService.calculateRepoActivityRatio(item.full_name, range);
-    const confidence = await this.repoDevstatsService.calculateContributorConfidence(item.full_name, range);
+    const confidence = await this.repoDevstatsService.calculateContributorConfidenceByRepoName(item.full_name, range);
     const pushDates = await this.pushGithubEventsService.lastPushDatesForRepo(item.full_name);
 
     // get issue stats for each repo found through filtering
@@ -245,7 +245,10 @@ export class RepoService {
       const forksHisto = await this.forkGithubEventsService.genForkHistogram({ repo: entity.full_name, range });
       const forksVelocity = forksHisto.reduce((acc, curr) => acc + curr.forks_count, 0) / range;
       const activityRatio = await this.repoDevstatsService.calculateRepoActivityRatio(entity.full_name, range);
-      const confidence = await this.repoDevstatsService.calculateContributorConfidence(entity.full_name, range);
+      const confidence = await this.repoDevstatsService.calculateContributorConfidenceByRepoName(
+        entity.full_name,
+        range
+      );
       const pushDates = await this.pushGithubEventsService.lastPushDatesForRepo(entity.full_name);
 
       return {

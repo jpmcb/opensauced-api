@@ -264,7 +264,7 @@ export class RepoDevstatsService {
    *   score / (# stargazers + # forkers) within time range
    *     = confidence score as a percentage
    */
-  async calculateContributorConfidence(repoName: string, range: number): Promise<number> {
+  async calculateContributorConfidenceByRepoName(repoName: string, range: number): Promise<number> {
     range = range > 90 ? 90 : range;
 
     const forkerConfidence = await this.calculateForkerConfidence(repoName, range);

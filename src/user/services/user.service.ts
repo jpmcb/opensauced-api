@@ -29,6 +29,7 @@ import { DbUserList } from "../../user-lists/entities/user-list.entity";
 import { DbWorkspace } from "../../workspace/entities/workspace.entity";
 import { DbWorkspaceMember, WorkspaceMemberRoleEnum } from "../../workspace/entities/workspace-member.entity";
 import { UserDto } from "../dtos/user.dto";
+import { ContributorDevstatsService } from "../../timescale/contrib-stats.service";
 
 @Injectable()
 export class UserService {
@@ -53,6 +54,8 @@ export class UserService {
     private workspaceMemberRepository: Repository<DbWorkspaceMember>,
     @Inject(forwardRef(() => PullRequestGithubEventsService))
     private pullRequestGithubEventsService: PullRequestGithubEventsService,
+    @Inject(forwardRef(() => ContributorDevstatsService))
+    private contribDevstatsService: ContributorDevstatsService,
     private configService: ConfigService
   ) {}
 
@@ -144,6 +147,9 @@ export class UserService {
   }
 
   private async findOneByUsername(username: string, options?: UserDto): Promise<DbUser> {
+    // get / update the OSCR for the user before querying user rows
+    await this.findUpdateContributorOSCR(username, 30);
+
     const maintainerRepoIds = options?.maintainerRepoIds?.split(",");
     const queryBuilder = this.baseQueryBuilder();
 
@@ -589,5 +595,48 @@ export class UserService {
     } catch (e) {
       throw new NotFoundException("Unable to delete user");
     }
+  }
+
+  async findUpdateContributorOSCR(username: string, range: number): Promise<number> {
+    const queryBuilder = this.baseQueryBuilder().where("LOWER(login) = :username", {
+      username: username.toLowerCase(),
+    });
+
+    const user: DbUser | null = await queryBuilder.getOne();
+
+    if (!user) {
+      throw new NotFoundException();
+    }
+
+    const now = new Date(
+      Date.UTC(
+        new Date().getUTCFullYear(),
+        new Date().getUTCMonth(),
+        new Date().getUTCDate(),
+        new Date().getUTCHours(),
+        new Date().getUTCMinutes(),
+        new Date().getUTCSeconds()
+      )
+    );
+
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    /*
+     * returns the OSRC early if the last time the devstats was updated was less than 24 hours ago.
+     * dates are expected to be in UTC, without a time zone
+     */
+
+    if (user.devstats_updated_at! > twentyFourHoursAgo) {
+      return user.oscr;
+    }
+
+    const oscr = await this.contribDevstatsService.calculateOpenSourceContributorRating(username, range);
+
+    await this.userRepository.update(user.id, {
+      oscr,
+      devstats_updated_at: now.toUTCString(),
+    });
+
+    return oscr;
   }
 }

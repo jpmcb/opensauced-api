@@ -179,24 +179,6 @@ export class UserListController {
   }
 
   @Deprecated("deprecated: use v2/workspace/{id}/userLists endpoints")
-  @Get("/:id/contributors")
-  @ApiOperation({
-    operationId: "getUserListContributors",
-    summary: "Retrieves contributors for an individual user list",
-  })
-  @ApiPaginatedResponse(DbUserListContributor)
-  @ApiOkResponse({ type: DbUserListContributor })
-  @ApiNotFoundResponse({ description: "Unable to get user list contributors" })
-  @ApiBadRequestResponse({ description: "Invalid request" })
-  @ApiParam({ name: "id", type: "string" })
-  async getUserListContributors(
-    @Query() pageOptionsDto: FilterListContributorsDto,
-    @Param("id", ParseUUIDPipe) id: string
-  ): Promise<PageDto<DbUserListContributor>> {
-    return this.userListService.findContributorsByListId(pageOptionsDto, id);
-  }
-
-  @Deprecated("deprecated: use v2/workspace/{id}/userLists endpoints")
   @Post("/:id/contributors")
   @ApiOperation({
     operationId: "postUserListContributors",
