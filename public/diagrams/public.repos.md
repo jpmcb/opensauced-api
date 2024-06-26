@@ -96,6 +96,7 @@
 | repos_idx_updated_at                   | CREATE INDEX repos_idx_updated_at ON public.repos USING btree (updated_at DESC)                                |
 | repos_idx_full_name_lower              | CREATE INDEX repos_idx_full_name_lower ON public.repos USING btree (lower((full_name)::text))                  |
 | idx_repo_fetch_error                   | CREATE INDEX idx_repo_fetch_error ON public.repos USING btree (fetch_error)                                    |
+| idx_repos_full_name_trgm               | CREATE INDEX idx_repos_full_name_trgm ON public.repos USING gin (full_name gin_trgm_ops)                       |
 
 ## Relations
 

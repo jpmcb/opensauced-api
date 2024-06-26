@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, forwardRef } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, SelectQueryBuilder } from "typeorm";
 import { FilterListContributorsDto } from "../user-lists/dtos/filter-contributors.dto";
@@ -29,7 +29,9 @@ export class PullRequestReviewGithubEventsService {
   constructor(
     @InjectRepository(DbPullRequestReviewGitHubEvents, "TimescaleConnection")
     private pullRequestReviewGithubEventsRepository: Repository<DbPullRequestReviewGitHubEvents>,
+    @Inject(forwardRef(() => RepoService))
     private readonly repoService: RepoService,
+    @Inject(forwardRef(() => UserListService))
     private readonly userListService: UserListService
   ) {}
 

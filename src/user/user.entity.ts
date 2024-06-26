@@ -573,6 +573,25 @@ export class DbUser extends BaseEntity {
   public is_maintainer: boolean;
 
   @ApiModelProperty({
+    description: "The Open Source Contributor Rating",
+    example: 0.78,
+  })
+  @Column({
+    type: "float",
+    default: 0,
+  })
+  public oscr: number;
+
+  @ApiModelPropertyOptional({
+    description: "Timestamp representing user stats last update",
+    example: "2022-08-28 22:04:29.000000",
+  })
+  @Column({
+    type: "timestamp without time zone",
+  })
+  public devstats_updated_at?: Date;
+
+  @ApiModelProperty({
     type: "string",
     example: "uuid-v4",
   })

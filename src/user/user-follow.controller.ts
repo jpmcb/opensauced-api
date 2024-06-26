@@ -33,7 +33,7 @@ export class UserFollowsController {
     @Param("username") username: string,
     @UserId() userId: number
   ): Promise<DbUserToUserFollows> {
-    const user = await this.userService.findOneByUsername(username);
+    const user = await this.userService.tryFindUserOrMakeStub({ username });
 
     return this.userFollowService.findUserFollowerById(userId, user.id);
   }
@@ -51,7 +51,7 @@ export class UserFollowsController {
     @Param("username") username: string,
     @UserId() userId: number
   ): Promise<DbUserToUserFollows> {
-    const user = await this.userService.findOneByUsername(username);
+    const user = await this.userService.tryFindUserOrMakeStub({ username });
 
     return this.userFollowService.addUserFollowerByUserId(userId, user.id);
   }
@@ -109,7 +109,7 @@ export class UserFollowsController {
     @Param("username") username: string,
     @UserId() userId: number
   ): Promise<DbUserToUserFollows> {
-    const user = await this.userService.findOneByUsername(username);
+    const user = await this.userService.tryFindUserOrMakeStub({ username });
 
     return this.userFollowService.removeUserFollowerById(userId, user.id);
   }

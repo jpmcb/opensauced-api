@@ -131,7 +131,7 @@ export class WorkspaceContributorsService {
       throw new BadRequestException("either user id or login must be provided");
     }
 
-    const user = await this.userService.tryFindUserOrMakeStub(contributorId, contributorLogin);
+    const user = await this.userService.tryFindUserOrMakeStub({ userId: contributorId, username: contributorLogin });
 
     const existingContributor = await this.workspaceContributorRepository.findOne({
       where: {
@@ -158,15 +158,7 @@ export class WorkspaceContributorsService {
   }
 
   async deleteOneWorkspaceContributor(id: string, userId: number, contributorId?: number, contributorLogin?: string) {
-    let user;
-
-    if (contributorId) {
-      user = await this.userService.findOneById(contributorId);
-    } else if (contributorLogin) {
-      user = await this.userService.findOneByUsername(contributorLogin);
-    } else {
-      throw new BadRequestException("either user id or login must be provided");
-    }
+    const user = await this.userService.tryFindUserOrMakeStub({ userId: contributorId, username: contributorLogin });
 
     const workspace = await this.workspaceService.findOneById(id);
 
@@ -210,15 +202,10 @@ export class WorkspaceContributorsService {
     }
 
     const promises = dto.contributors.map(async (contributor) => {
-      let user;
-
-      if (contributor.id) {
-        user = await this.userService.findOneById(contributor.id);
-      } else if (contributor.login) {
-        user = await this.userService.findOneByUsername(contributor.login);
-      } else {
-        throw new BadRequestException("either user id or login must be provided");
-      }
+      const user = await this.userService.tryFindUserOrMakeStub({
+        userId: contributor.id,
+        username: contributor.login,
+      });
 
       const existingContributor = await this.workspaceContributorRepository.findOne({
         where: {
@@ -238,15 +225,10 @@ export class WorkspaceContributorsService {
       await Promise.all(promises);
     } catch (error) {
       dto.contributors.forEach(async (contributor) => {
-        let user;
-
-        if (contributor.id) {
-          user = await this.userService.findOneById(contributor.id);
-        } else if (contributor.login) {
-          user = await this.userService.findOneByUsername(contributor.login);
-        } else {
-          throw new BadRequestException("either user id or login must be provided");
-        }
+        const user = await this.userService.tryFindUserOrMakeStub({
+          userId: contributor.id,
+          username: contributor.login,
+        });
 
         // restore the contributors who may have been soft deleted
         const existingContributor = await this.workspaceContributorRepository.findOne({

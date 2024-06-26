@@ -175,7 +175,7 @@ export class UserListService {
       return existingContributor;
     }
 
-    const user = await this.userService.tryFindUserOrMakeStub(userId, username);
+    const user = await this.userService.tryFindUserOrMakeStub({ userId, username });
 
     const newUserListContributor = this.userListContributorRepository.create({
       list_id: listId,
@@ -269,12 +269,17 @@ export class UserListService {
     queryBuilder
       .leftJoin("users", "users", "user_list_contributors.user_id=users.id")
       .addSelect("users.login", "user_list_contributors_login")
+      .addSelect("users.oscr", "user_list_contributors_oscr")
       .where("user_list_contributors.list_id = :listId", { listId });
 
     if (pageOptionsDto.contributor) {
       queryBuilder.andWhere("LOWER(users.login) LIKE :contributor", {
         contributor: `%${pageOptionsDto.contributor.toLowerCase()}%`,
       });
+    }
+
+    if (pageOptionsDto.orderBy && pageOptionsDto.orderDirection) {
+      queryBuilder.orderBy(pageOptionsDto.orderBy, pageOptionsDto.orderDirection);
     }
 
     return this.pagerService.applyPagination<DbUserListContributor>({

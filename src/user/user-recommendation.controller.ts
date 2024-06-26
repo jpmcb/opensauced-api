@@ -26,7 +26,7 @@ export class UserRecommendationController {
   @UseGuards(SupabaseGuard)
   @Header("Cache-Control", "private, max-age=600")
   async findUserRepoRecommendations(@UserId() userId: number) {
-    const user = await this.userService.findOneById(userId);
+    const user = await this.userService.tryFindUserOrMakeStub({ userId });
     const interests = user.interests?.split(",").filter(Boolean) ?? [];
 
     return this.repoService.findRecommendations(interests);

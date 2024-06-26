@@ -108,7 +108,7 @@ export class EndorsementController {
     @Param("username") username: string,
     @Query() pageOptionsDto: PageOptionsDto
   ) {
-    const user = await this.userService.findOneByUsername(username);
+    const user = await this.userService.tryFindUserOrMakeStub({ username });
 
     return this.endorsementService.findAllByCreatorUserId(user.id, pageOptionsDto);
   }
@@ -124,7 +124,7 @@ export class EndorsementController {
     @Param("username") username: string,
     @Query() pageOptionsDto: PageOptionsDto
   ) {
-    const user = await this.userService.findOneByUsername(username);
+    const user = await this.userService.tryFindUserOrMakeStub({ username });
 
     return this.endorsementService.findAllByRecipientUserId(user.id, pageOptionsDto);
   }

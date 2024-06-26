@@ -39,6 +39,16 @@ import { ForkGithubEventsService } from "../../timescale/fork_github_events.serv
 import { PushGithubEventsService } from "../../timescale/push_github_events.service";
 import { DbPushGitHubEventsHistogram } from "../../timescale/entities/push_github_events_histogram.entity";
 import { DbStarSearchUserThread } from "../../star-search/entities/user-thread.entity";
+import { ContributorDevstatsService } from "../../timescale/contrib-stats.service";
+import { PullRequestReviewGithubEventsService } from "../../timescale/pull_request_review_github_events.service";
+import { DbPullRequestReviewGitHubEvents } from "../../timescale/entities/pull_request_review_github_event.entity";
+import { CommitCommentGithubEventsService } from "../../timescale/commit_comment_github_events.service";
+import { PullRequestReviewCommentGithubEventsService } from "../../timescale/pull_request_review_comment_github_events.service";
+import { IssueCommentGithubEventsService } from "../../timescale/issue_comment_github_events.service";
+import { DbIssueCommentGitHubEvents } from "../../timescale/entities/issue_comment_github_events.entity";
+import { DbPullRequestReviewCommentGitHubEventsHistogram } from "../../timescale/entities/pull_request_review_comment_github_events_histogram.entity";
+import { DbCommitCommentGitHubEvents } from "../../timescale/entities/commit_comment_github_events.entity";
+import { DbPullRequestReviewCommentGitHubEvents } from "../../timescale/entities/pull_request_review_comment_github_events.entity";
 import { UserService } from "./user.service";
 
 type MockRepository<T extends ObjectLiteral = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
@@ -54,6 +64,7 @@ const createMockRepository = <T extends ObjectLiteral = any>(): MockRepository<T
 describe("UserService", () => {
   let userService: UserService;
   let prEventService: PullRequestGithubEventsService;
+  let contribDevstatsService: ContributorDevstatsService;
   let dbUserRepositoryMock: MockRepository;
   let dbWorkspaceRepositoryMock: MockRepository;
   let dbUserHighlightReactionRepositoryMock: MockRepository;
@@ -67,12 +78,17 @@ describe("UserService", () => {
         IssuesGithubEventsService,
         PullRequestGithubEventsService,
         PushGithubEventsService,
+        PullRequestReviewGithubEventsService,
+        IssueCommentGithubEventsService,
+        CommitCommentGithubEventsService,
+        PullRequestReviewCommentGithubEventsService,
         RepoDevstatsService,
         RepoService,
         UserListService,
         RepoFilterService,
         PagerService,
         WorkspaceService,
+        ContributorDevstatsService,
         {
           provide: getRepositoryToken(DbUser, "ApiConnection"),
           useValue: createMockRepository(),
@@ -107,6 +123,26 @@ describe("UserService", () => {
         },
         {
           provide: getRepositoryToken(DbPullRequestGitHubEvents, "TimescaleConnection"),
+          useValue: createMockRepository(),
+        },
+        {
+          provide: getRepositoryToken(DbPullRequestReviewGitHubEvents, "TimescaleConnection"),
+          useValue: createMockRepository(),
+        },
+        {
+          provide: getRepositoryToken(DbIssueCommentGitHubEvents, "TimescaleConnection"),
+          useValue: createMockRepository(),
+        },
+        {
+          provide: getRepositoryToken(DbPullRequestReviewCommentGitHubEventsHistogram, "TimescaleConnection"),
+          useValue: createMockRepository(),
+        },
+        {
+          provide: getRepositoryToken(DbCommitCommentGitHubEvents, "TimescaleConnection"),
+          useValue: createMockRepository(),
+        },
+        {
+          provide: getRepositoryToken(DbPullRequestReviewCommentGitHubEvents, "TimescaleConnection"),
           useValue: createMockRepository(),
         },
         {
@@ -181,6 +217,13 @@ describe("UserService", () => {
       return true;
     });
 
+    // mocks out asynchronous contrib devstats service call
+    contribDevstatsService = module.get<ContributorDevstatsService>(ContributorDevstatsService);
+    contribDevstatsService.calculateOpenSourceContributorRating = jest.fn(async () => {
+      await Promise.resolve();
+      return 1;
+    });
+
     dbUserRepositoryMock = module.get<MockRepository>(getRepositoryToken(DbUser, "ApiConnection"));
     dbWorkspaceRepositoryMock = module.get<MockRepository>(getRepositoryToken(DbWorkspace, "ApiConnection"));
     dbUserHighlightReactionRepositoryMock = module.get<MockRepository>(
@@ -228,7 +271,7 @@ describe("UserService", () => {
     });
   });
 
-  describe("[findOneById]", () => {
+  describe("[tryFindUserOrMakeStub with ID]", () => {
     const user = { id: faker.number.int(), email: faker.internet.email() };
     const createQueryBuilderMock = {
       addSelect: jest.fn().mockReturnThis(),
@@ -246,7 +289,7 @@ describe("UserService", () => {
 
     it("should return a user with the given id", async () => {
       dbUserRepositoryMock.createQueryBuilder?.mockReturnValue(createQueryBuilderMock);
-      const result = await userService.findOneById(user.id);
+      const result = await userService.tryFindUserOrMakeStub({ userId: user.id });
 
       expect(dbUserRepositoryMock.createQueryBuilder).toHaveBeenCalled();
       expect(createQueryBuilderMock.addSelect).toHaveBeenCalled();
@@ -258,15 +301,9 @@ describe("UserService", () => {
       expect(createQueryBuilderMock.getOne).toHaveBeenCalled();
       expect(result).toEqual(user);
     });
-
-    it("should throw an error if the user is not found", async () => {
-      createQueryBuilderMock.getOne = jest.fn().mockResolvedValue(null);
-      dbUserRepositoryMock.createQueryBuilder?.mockReturnValue(createQueryBuilderMock);
-      await expect(userService.findOneById(faker.number.int())).rejects.toThrow(NotFoundException);
-    });
   });
 
-  describe("[findOneByUsername]", () => {
+  describe("[tryFindUserOrMakeStub with username]", () => {
     const username = faker.internet.userName();
     const user = { id: faker.number.int(), username };
     const createQueryBuilderMock = {
@@ -277,7 +314,7 @@ describe("UserService", () => {
 
     it("should return a user with the given username", async () => {
       dbUserRepositoryMock.createQueryBuilder?.mockReturnValue(createQueryBuilderMock);
-      const result = await userService.findOneByUsername(username);
+      const result = await userService.tryFindUserOrMakeStub({ username });
 
       expect(dbUserRepositoryMock.createQueryBuilder).toHaveBeenCalled();
       expect(createQueryBuilderMock.addSelect).toHaveBeenCalledTimes(3);
@@ -286,12 +323,6 @@ describe("UserService", () => {
       });
       expect(createQueryBuilderMock.getOne).toHaveBeenCalled();
       expect(result).toEqual(user);
-    });
-
-    it("should throw an error if the user is not found", async () => {
-      createQueryBuilderMock.getOne = jest.fn().mockResolvedValue(null);
-      dbUserRepositoryMock.createQueryBuilder?.mockReturnValue(createQueryBuilderMock);
-      await expect(userService.findOneByUsername(username)).rejects.toThrow(NotFoundException);
     });
   });
 

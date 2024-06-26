@@ -17,7 +17,7 @@ export class UserFollowingController {
   })
   @ApiNotFoundResponse({ description: "User not found" })
   async getFollowingListByUsername(@Param("username") username: string): Promise<DbUserToUserFollows[]> {
-    const user: DbUser = await this.userService.findOneByUsername(username);
+    const user: DbUser = await this.userService.tryFindUserOrMakeStub({ username });
 
     return this.userFollowService.findAllFollowingList(user.id);
   }

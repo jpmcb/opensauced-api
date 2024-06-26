@@ -1,6 +1,11 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
-import { IsInt, Min, IsOptional, Max, IsString, IsArray } from "class-validator";
+import { IsInt, Min, IsOptional, Max, IsString, IsArray, IsEnum } from "class-validator";
+import { OrderDirectionEnum } from "../../common/constants/order-direction.constant";
+
+export enum ListOrderFieldsEnum {
+  oscr = "oscr",
+}
 
 export class FilterListContributorsDto {
   @ApiPropertyOptional({
@@ -58,6 +63,20 @@ export class FilterListContributorsDto {
   @Transform(({ value }) => (Array.isArray(value) ? value : Array(value)) as string[], { toClassOnly: true })
   @IsOptional()
   timezone?: string[];
+
+  @ApiPropertyOptional({
+    enum: ListOrderFieldsEnum,
+    enumName: "ListOrderFieldsEnum",
+    default: ListOrderFieldsEnum.oscr,
+  })
+  @IsEnum(ListOrderFieldsEnum)
+  @IsOptional()
+  readonly orderBy?: ListOrderFieldsEnum = ListOrderFieldsEnum.oscr;
+
+  @ApiPropertyOptional({ enum: OrderDirectionEnum, enumName: "OrderDirectionEnum", default: OrderDirectionEnum.DESC })
+  @IsEnum(OrderDirectionEnum)
+  @IsOptional()
+  readonly orderDirection?: OrderDirectionEnum = OrderDirectionEnum.DESC;
 
   get skip(): number {
     return ((this.page ?? 1) - 1) * (this.limit ?? 10);

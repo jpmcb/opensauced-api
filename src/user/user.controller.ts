@@ -43,7 +43,18 @@ export class UserController {
   @ApiOkResponse({ type: DbUser })
   @ApiNotFoundResponse({ description: "User not found" })
   async findOneUserById(@Param("username") username: string, @Query() userOptions?: UserDto): Promise<DbUser> {
-    return this.userService.findOneByUsername(username, userOptions);
+    return this.userService.tryFindUserOrMakeStub({ username, dto: userOptions });
+  }
+
+  @Get("/:username/devstats-refresh")
+  @ApiOperation({
+    operationId: "refreshOneUserDevstatsByUsername",
+    summary: "Refreshes a user's devstats by :username - primarily used programmatically by the ETL",
+  })
+  @ApiOkResponse({ type: DbUser })
+  @ApiNotFoundResponse({ description: "User not found" })
+  async refreshOneUserDevstatsByUsername(@Param("username") username: string): Promise<DbUser> {
+    return this.userService.refreshOneDevstatsByUsername(username);
   }
 
   @Get("/:username/prs")
@@ -91,7 +102,7 @@ export class UserController {
     @Param("username") username: string,
     @Query() pageOptionsDto: PageOptionsDto
   ): Promise<PageDto<DbUserHighlight>> {
-    const user = await this.userService.findOneByUsername(username);
+    const user = await this.userService.tryFindUserOrMakeStub({ username });
 
     return this.userHighlightsService.findAllByUserId(pageOptionsDto, user.id);
   }
@@ -109,7 +120,7 @@ export class UserController {
     @Param("username") username: string,
     @Query() pageOptionsDto: PageOptionsDto
   ): Promise<PageDto<DbRepoWithStats>> {
-    const user = await this.userService.findOneByUsername(username);
+    const user = await this.userService.tryFindUserOrMakeStub({ username });
 
     return this.repoService.findAll(pageOptionsDto, user.id, ["TopRepos"]);
   }
@@ -127,7 +138,7 @@ export class UserController {
     @Param("username") username: string,
     @Query() pageOptionsDto: PageOptionsDto
   ): Promise<PageDto<DbUserOrganization>> {
-    const user = await this.userService.findOneByUsername(username);
+    const user = await this.userService.tryFindUserOrMakeStub({ username });
 
     return this.userOrganizationService.findAllByUserId(user.id, pageOptionsDto);
   }

@@ -29,6 +29,7 @@ import { DbUserList } from "../../user-lists/entities/user-list.entity";
 import { DbWorkspace } from "../../workspace/entities/workspace.entity";
 import { DbWorkspaceMember, WorkspaceMemberRoleEnum } from "../../workspace/entities/workspace-member.entity";
 import { UserDto } from "../dtos/user.dto";
+import { ContributorDevstatsService } from "../../timescale/contrib-stats.service";
 
 @Injectable()
 export class UserService {
@@ -53,6 +54,8 @@ export class UserService {
     private workspaceMemberRepository: Repository<DbWorkspaceMember>,
     @Inject(forwardRef(() => PullRequestGithubEventsService))
     private pullRequestGithubEventsService: PullRequestGithubEventsService,
+    @Inject(forwardRef(() => ContributorDevstatsService))
+    private contribDevstatsService: ContributorDevstatsService,
     private configService: ConfigService
   ) {}
 
@@ -97,7 +100,7 @@ export class UserService {
     return new PageDto(entities, pageMetaDto);
   }
 
-  async findOneById(id: number, includeEmail = false): Promise<DbUser> {
+  private async findOneById(id: number, includeEmail = false): Promise<DbUser> {
     const queryBuilder = this.baseQueryBuilder();
 
     queryBuilder
@@ -143,7 +146,13 @@ export class UserService {
     return item;
   }
 
-  async findOneByUsername(username: string, options?: UserDto): Promise<DbUser> {
+  async refreshOneDevstatsByUsername(username: string): Promise<DbUser> {
+    await this.findUpdateContributorOSCR(username, 30);
+
+    return this.findOneByUsername(username);
+  }
+
+  private async findOneByUsername(username: string, options?: UserDto): Promise<DbUser> {
     const maintainerRepoIds = options?.maintainerRepoIds?.split(",");
     const queryBuilder = this.baseQueryBuilder();
 
@@ -303,7 +312,22 @@ export class UserService {
     }
   }
 
-  async tryFindUserOrMakeStub(userId?: number, username?: string): Promise<DbUser> {
+  /*
+   * this function is a special "escape" hatch function that will return the
+   * queried user by ID or username if they exist in our database. If not, we use
+   * github's octokit to go stub them out. This should be used in any paths
+   * where there is a critical possibility of encountering a user that requires
+   * that requires github metadata in our database.
+   */
+  async tryFindUserOrMakeStub({
+    userId,
+    username,
+    dto,
+  }: {
+    userId?: number;
+    username?: string;
+    dto?: UserDto;
+  }): Promise<DbUser> {
     if (!userId && !username) {
       throw new BadRequestException("either user id or username must be provided");
     }
@@ -314,7 +338,7 @@ export class UserService {
       if (userId) {
         user = await this.findOneById(userId);
       } else if (username) {
-        user = await this.findOneByUsername(username);
+        user = await this.findOneByUsername(username, dto);
       }
     } catch (e) {
       // could not find user being added to workspace in our database. Add it.
@@ -574,5 +598,48 @@ export class UserService {
     } catch (e) {
       throw new NotFoundException("Unable to delete user");
     }
+  }
+
+  async findUpdateContributorOSCR(username: string, range: number): Promise<number> {
+    const queryBuilder = this.baseQueryBuilder().where("LOWER(login) = :username", {
+      username: username.toLowerCase(),
+    });
+
+    const user: DbUser | null = await queryBuilder.getOne();
+
+    if (!user) {
+      throw new NotFoundException();
+    }
+
+    const now = new Date(
+      Date.UTC(
+        new Date().getUTCFullYear(),
+        new Date().getUTCMonth(),
+        new Date().getUTCDate(),
+        new Date().getUTCHours(),
+        new Date().getUTCMinutes(),
+        new Date().getUTCSeconds()
+      )
+    );
+
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    /*
+     * returns the OSRC early if the last time the devstats was updated was less than 24 hours ago.
+     * dates are expected to be in UTC, without a time zone
+     */
+
+    if (user.devstats_updated_at! > twentyFourHoursAgo) {
+      return user.oscr;
+    }
+
+    const oscr = await this.contribDevstatsService.calculateOpenSourceContributorRating(username, range);
+
+    await this.userRepository.update(user.id, {
+      oscr,
+      devstats_updated_at: now.toUTCString(),
+    });
+
+    return oscr;
   }
 }

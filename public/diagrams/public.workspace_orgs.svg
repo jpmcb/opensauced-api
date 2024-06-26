@@ -200,48 +200,48 @@
 <!-- public.workspaces -->
 <g id="node14" class="node">
 <title>public.workspaces</title>
-<polygon fill="#efefef" stroke="transparent" points="3966,-282.5 3966,-317.5 4239,-317.5 4239,-282.5 3966,-282.5"/>
-<polygon fill="none" stroke="#000000" points="3966,-282.5 3966,-317.5 4239,-317.5 4239,-282.5 3966,-282.5"/>
-<text text-anchor="start" x="3980.3629" y="-295.3" font-family="Arial Bold" font-size="18.00" fill="#000000">public.workspaces</text>
-<text text-anchor="start" x="4127.3833" y="-295.3" font-family="Arial" font-size="14.00" fill="#000000"> </text>
-<text text-anchor="start" x="4131.2739" y="-295.3" font-family="Arial" font-size="14.00" fill="#666666">[BASE TABLE]</text>
-<polygon fill="none" stroke="#000000" points="3966,-252.5 3966,-282.5 4239,-282.5 4239,-252.5 3966,-252.5"/>
-<text text-anchor="start" x="3973" y="-263.9" font-family="Arial" font-size="14.00" fill="#000000">id </text>
-<text text-anchor="start" x="3987.7798" y="-263.9" font-family="Arial" font-size="14.00" fill="#666666">[uuid]</text>
-<polygon fill="none" stroke="#000000" points="3966,-222.5 3966,-252.5 4239,-252.5 4239,-222.5 3966,-222.5"/>
-<text text-anchor="start" x="3973" y="-233.9" font-family="Arial" font-size="14.00" fill="#000000">created_at </text>
-<text text-anchor="start" x="4043.028" y="-233.9" font-family="Arial" font-size="14.00" fill="#666666">[timestamp without time zone]</text>
-<polygon fill="none" stroke="#000000" points="3966,-192.5 3966,-222.5 4239,-222.5 4239,-192.5 3966,-192.5"/>
-<text text-anchor="start" x="3972.9636" y="-203.9" font-family="Arial" font-size="14.00" fill="#000000">updated_at </text>
-<text text-anchor="start" x="4046.8962" y="-203.9" font-family="Arial" font-size="14.00" fill="#666666">[timestamp without time zone]</text>
-<polygon fill="none" stroke="#000000" points="3966,-162.5 3966,-192.5 4239,-192.5 4239,-162.5 3966,-162.5"/>
-<text text-anchor="start" x="3973" y="-173.9" font-family="Arial" font-size="14.00" fill="#000000">deleted_at </text>
-<text text-anchor="start" x="4042.2566" y="-173.9" font-family="Arial" font-size="14.00" fill="#666666">[timestamp without time zone]</text>
-<polygon fill="none" stroke="#000000" points="3966,-132.5 3966,-162.5 4239,-162.5 4239,-132.5 3966,-132.5"/>
-<text text-anchor="start" x="3973" y="-143.9" font-family="Arial" font-size="14.00" fill="#000000">name </text>
-<text text-anchor="start" x="4011.899" y="-143.9" font-family="Arial" font-size="14.00" fill="#666666">[varchar(255)]</text>
-<polygon fill="none" stroke="#000000" points="3966,-102.5 3966,-132.5 4239,-132.5 4239,-102.5 3966,-102.5"/>
-<text text-anchor="start" x="3973" y="-113.9" font-family="Arial" font-size="14.00" fill="#000000">description </text>
-<text text-anchor="start" x="4044.568" y="-113.9" font-family="Arial" font-size="14.00" fill="#666666">[varchar(255)]</text>
-<polygon fill="none" stroke="#000000" points="3966,-72.5 3966,-102.5 4239,-102.5 4239,-72.5 3966,-72.5"/>
-<text text-anchor="start" x="3973" y="-83.9" font-family="Arial" font-size="14.00" fill="#000000">is_public </text>
-<text text-anchor="start" x="4031.3408" y="-83.9" font-family="Arial" font-size="14.00" fill="#666666">[boolean]</text>
-<polygon fill="none" stroke="#000000" points="3966,-42.5 3966,-72.5 4239,-72.5 4239,-42.5 3966,-42.5"/>
-<text text-anchor="start" x="3973" y="-53.9" font-family="Arial" font-size="14.00" fill="#000000">payee_user_id </text>
-<text text-anchor="start" x="4068.7012" y="-53.9" font-family="Arial" font-size="14.00" fill="#666666">[bigint]</text>
+<polygon fill="#efefef" stroke="transparent" points="3985,-282.5 3985,-317.5 4258,-317.5 4258,-282.5 3985,-282.5"/>
+<polygon fill="none" stroke="#000000" points="3985,-282.5 3985,-317.5 4258,-317.5 4258,-282.5 3985,-282.5"/>
+<text text-anchor="start" x="3999.3629" y="-295.3" font-family="Arial Bold" font-size="18.00" fill="#000000">public.workspaces</text>
+<text text-anchor="start" x="4146.3833" y="-295.3" font-family="Arial" font-size="14.00" fill="#000000"> </text>
+<text text-anchor="start" x="4150.2739" y="-295.3" font-family="Arial" font-size="14.00" fill="#666666">[BASE TABLE]</text>
+<polygon fill="none" stroke="#000000" points="3985,-252.5 3985,-282.5 4258,-282.5 4258,-252.5 3985,-252.5"/>
+<text text-anchor="start" x="3992" y="-263.9" font-family="Arial" font-size="14.00" fill="#000000">id </text>
+<text text-anchor="start" x="4006.7798" y="-263.9" font-family="Arial" font-size="14.00" fill="#666666">[uuid]</text>
+<polygon fill="none" stroke="#000000" points="3985,-222.5 3985,-252.5 4258,-252.5 4258,-222.5 3985,-222.5"/>
+<text text-anchor="start" x="3992" y="-233.9" font-family="Arial" font-size="14.00" fill="#000000">created_at </text>
+<text text-anchor="start" x="4062.028" y="-233.9" font-family="Arial" font-size="14.00" fill="#666666">[timestamp without time zone]</text>
+<polygon fill="none" stroke="#000000" points="3985,-192.5 3985,-222.5 4258,-222.5 4258,-192.5 3985,-192.5"/>
+<text text-anchor="start" x="3991.9636" y="-203.9" font-family="Arial" font-size="14.00" fill="#000000">updated_at </text>
+<text text-anchor="start" x="4065.8962" y="-203.9" font-family="Arial" font-size="14.00" fill="#666666">[timestamp without time zone]</text>
+<polygon fill="none" stroke="#000000" points="3985,-162.5 3985,-192.5 4258,-192.5 4258,-162.5 3985,-162.5"/>
+<text text-anchor="start" x="3992" y="-173.9" font-family="Arial" font-size="14.00" fill="#000000">deleted_at </text>
+<text text-anchor="start" x="4061.2566" y="-173.9" font-family="Arial" font-size="14.00" fill="#666666">[timestamp without time zone]</text>
+<polygon fill="none" stroke="#000000" points="3985,-132.5 3985,-162.5 4258,-162.5 4258,-132.5 3985,-132.5"/>
+<text text-anchor="start" x="3992" y="-143.9" font-family="Arial" font-size="14.00" fill="#000000">name </text>
+<text text-anchor="start" x="4030.899" y="-143.9" font-family="Arial" font-size="14.00" fill="#666666">[varchar(255)]</text>
+<polygon fill="none" stroke="#000000" points="3985,-102.5 3985,-132.5 4258,-132.5 4258,-102.5 3985,-102.5"/>
+<text text-anchor="start" x="3992" y="-113.9" font-family="Arial" font-size="14.00" fill="#000000">description </text>
+<text text-anchor="start" x="4063.568" y="-113.9" font-family="Arial" font-size="14.00" fill="#666666">[varchar(255)]</text>
+<polygon fill="none" stroke="#000000" points="3985,-72.5 3985,-102.5 4258,-102.5 4258,-72.5 3985,-72.5"/>
+<text text-anchor="start" x="3992" y="-83.9" font-family="Arial" font-size="14.00" fill="#000000">is_public </text>
+<text text-anchor="start" x="4050.3408" y="-83.9" font-family="Arial" font-size="14.00" fill="#666666">[boolean]</text>
+<polygon fill="none" stroke="#000000" points="3985,-42.5 3985,-72.5 4258,-72.5 4258,-42.5 3985,-42.5"/>
+<text text-anchor="start" x="3992" y="-53.9" font-family="Arial" font-size="14.00" fill="#000000">payee_user_id </text>
+<text text-anchor="start" x="4087.7012" y="-53.9" font-family="Arial" font-size="14.00" fill="#666666">[bigint]</text>
 </g>
 <!-- public.workspace_orgs&#45;&gt;public.workspaces -->
 <g id="edge20" class="edge">
 <title>public.workspace_orgs:workspace_id&#45;&gt;public.workspaces:id</title>
-<path fill="none" stroke="#000000" d="M525.6948,-2722.9206C591.696,-2670.5148 528.1357,-2059.2991 571,-1994 1499.9401,-578.8617 2273.2076,-267.5 3966,-267.5"/>
+<path fill="none" stroke="#000000" d="M525.6948,-2722.9206C591.696,-2670.5148 528.1357,-2059.2991 571,-1994 1504.073,-572.5656 2284.6762,-267.5 3985,-267.5"/>
 <polygon fill="#000000" stroke="#000000" points="525.3811,-2723.0364 514.4414,-2722.2785 520.6905,-2724.7682 516,-2726.5 516,-2726.5 516,-2726.5 520.6905,-2724.7682 517.5586,-2730.7215 525.3811,-2723.0364 525.3811,-2723.0364"/>
 <text text-anchor="start" x="6.6055" y="-2736.5" font-family="Arial" font-size="10.00" fill="#000000">FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON UPDATE CASCADE ON DELETE CASCADE</text>
 </g>
 <!-- public.users&#45;&gt;public.workspaces -->
 <g id="edge19" class="edge">
 <title>public.users:personal_workspace_id&#45;&gt;public.workspaces:id</title>
-<path fill="none" stroke="#000000" d="M4023.3194,-513.3707C4060.935,-504.1408 4034.4017,-440.3513 4013,-397 4001.3521,-373.4061 3977.6479,-384.5939 3966,-361 3947.6044,-323.7379 3924.4444,-267.5 3966,-267.5"/>
-<polygon fill="#000000" stroke="#000000" points="4022.9407,-513.4121 4012.5104,-510.0267 4017.9703,-513.9561 4013,-514.5 4013,-514.5 4013,-514.5 4017.9703,-513.9561 4013.4896,-518.9733 4022.9407,-513.4121 4022.9407,-513.4121"/>
+<path fill="none" stroke="#000000" d="M4023.225,-513.41C4060.0872,-504.4938 4028.6902,-442.7295 4013,-397 4006.4217,-377.8274 3991.5783,-380.1726 3985,-361 3971.5137,-321.6937 3943.4444,-267.5 3985,-267.5"/>
+<polygon fill="#000000" stroke="#000000" points="4022.9437,-513.4399 4012.523,-510.0254 4017.9718,-513.97 4013,-514.5 4013,-514.5 4013,-514.5 4017.9718,-513.97 4013.477,-518.9746 4022.9437,-513.4399 4022.9437,-513.4399"/>
 <text text-anchor="start" x="4020.0465" y="-524.5" font-family="Arial" font-size="10.00" fill="#000000">FOREIGN KEY (personal_workspace_id) REFERENCES workspaces(id)</text>
 </g>
 <!-- public.repos -->
@@ -785,9 +785,9 @@
 <!-- public.workspaces&#45;&gt;public.users -->
 <g id="edge15" class="edge">
 <title>public.workspaces:payee_user_id&#45;&gt;public.users:id</title>
-<path fill="none" stroke="#000000" d="M3955.7641,-57.8763C3835.0648,-67.0837 3907.8624,-243.2367 3966,-361 3977.6479,-384.5939 4001.3521,-373.4061 4013,-397 4049.0903,-470.1045 4094.5278,-1864.5 4013,-1864.5"/>
-<polygon fill="#000000" stroke="#000000" points="3956.0067,-57.8674 3966.1653,-61.997 3961.0034,-57.6837 3966,-57.5 3966,-57.5 3966,-57.5 3961.0034,-57.6837 3965.8347,-53.003 3956.0067,-57.8674 3956.0067,-57.8674"/>
-<text text-anchor="start" x="3592.9315" y="-67.5" font-family="Arial" font-size="10.00" fill="#000000">FOREIGN KEY (payee_user_id) REFERENCES users(id) ON DELETE SET NULL</text>
+<path fill="none" stroke="#000000" d="M3974.7964,-57.8628C3854.883,-66.743 3942.3779,-236.7763 3985,-361 3991.5783,-380.1726 4006.4217,-377.8274 4013,-397 4039.4587,-474.1149 4094.5278,-1864.5 4013,-1864.5"/>
+<polygon fill="#000000" stroke="#000000" points="3975.0063,-57.8554 3985.1599,-61.9972 3980.0032,-57.6777 3985,-57.5 3985,-57.5 3985,-57.5 3980.0032,-57.6777 3984.8401,-53.0028 3975.0063,-57.8554 3975.0063,-57.8554"/>
+<text text-anchor="start" x="3611.9315" y="-67.5" font-family="Arial" font-size="10.00" fill="#000000">FOREIGN KEY (payee_user_id) REFERENCES users(id) ON DELETE SET NULL</text>
 </g>
 <!-- public.workspace_members -->
 <g id="node15" class="node">
@@ -829,7 +829,7 @@
 <!-- public.workspace_members&#45;&gt;public.workspaces -->
 <g id="edge21" class="edge">
 <title>public.workspace_members:workspace_id&#45;&gt;public.workspaces:id</title>
-<path fill="none" stroke="#000000" d="M6034.2103,-2737.7824C5968.3343,-2683.3603 6049.7418,-2048.9054 5992,-1994 5916.1362,-1921.8627 4182.3355,-2031.7112 4108,-1958 4046.3967,-1896.9141 4115.7449,-467.3662 4065,-397 4037.6147,-359.0257 3992.8598,-399.3478 3966,-361 3942.1597,-326.9632 3924.4444,-267.5 3966,-267.5"/>
+<path fill="none" stroke="#000000" d="M6034.2103,-2737.7824C5968.3343,-2683.3603 6049.7418,-2048.9054 5992,-1994 5916.1362,-1921.8627 4182.3355,-2031.7112 4108,-1958 4046.3967,-1896.9141 4113.1042,-469.1972 4065,-397 4043.3809,-364.5529 4006.1703,-393.7417 3985,-361 3962.4365,-326.1037 3943.4444,-267.5 3985,-267.5"/>
 <polygon fill="#000000" stroke="#000000" points="6034.6514,-2737.9498 6042.4024,-2745.7069 6039.3257,-2739.7249 6044,-2741.5 6044,-2741.5 6044,-2741.5 6039.3257,-2739.7249 6045.5976,-2737.2931 6034.6514,-2737.9498 6034.6514,-2737.9498"/>
 <text text-anchor="start" x="5534.6055" y="-2751.5" font-family="Arial" font-size="10.00" fill="#000000">FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON UPDATE CASCADE ON DELETE CASCADE</text>
 </g>
@@ -870,7 +870,7 @@
 <!-- public.workspace_contributors&#45;&gt;public.workspaces -->
 <g id="edge24" class="edge">
 <title>public.workspace_contributors:workspace_id&#45;&gt;public.workspaces:id</title>
-<path fill="none" stroke="#000000" d="M6473.3948,-2722.8561C6408.6813,-2669.5129 6486.7596,-2047.6398 6430,-1994 6337.564,-1906.6447 4230.2216,-2048.6359 4141,-1958 4110.5811,-1927.0989 4116.182,-432.5563 4141,-397 4167.5581,-358.9506 4212.4419,-399.0494 4239,-361 4262.7846,-326.9242 4280.5556,-267.5 4239,-267.5"/>
+<path fill="none" stroke="#000000" d="M6473.3948,-2722.8561C6408.6813,-2669.5129 6486.7596,-2047.6398 6430,-1994 6337.564,-1906.6447 4230.2216,-2048.6359 4141,-1958 4110.5811,-1927.0989 4115.2391,-431.8792 4141,-397 4173.3226,-353.2365 4225.6774,-404.7635 4258,-361 4282.6882,-327.5731 4299.5556,-267.5 4258,-267.5"/>
 <polygon fill="#000000" stroke="#000000" points="6473.6502,-2722.9529 6481.4038,-2730.7074 6478.3251,-2724.7264 6483,-2726.5 6483,-2726.5 6483,-2726.5 6478.3251,-2724.7264 6484.5962,-2722.2926 6473.6502,-2722.9529 6473.6502,-2722.9529"/>
 <text text-anchor="start" x="6489.6055" y="-2736.5" font-family="Arial" font-size="10.00" fill="#000000">FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON UPDATE CASCADE ON DELETE CASCADE</text>
 </g>
@@ -938,8 +938,8 @@
 <!-- public.workspace_repos&#45;&gt;public.workspaces -->
 <g id="edge22" class="edge">
 <title>public.workspace_repos:workspace_id&#45;&gt;public.workspaces:id</title>
-<path fill="none" stroke="#000000" d="M4182.9542,-1173.6691C4006.7914,-1142.8935 4437.2671,-267.5 4239,-267.5"/>
-<polygon fill="#000000" stroke="#000000" points="4183.034,-1173.6756 4192.629,-1178.9847 4188.017,-1174.0878 4193,-1174.5 4193,-1174.5 4193,-1174.5 4188.017,-1174.0878 4193.371,-1170.0153 4183.034,-1173.6756 4183.034,-1173.6756"/>
+<path fill="none" stroke="#000000" d="M4182.9587,-1173.6691C4007.2135,-1142.8935 4456.5204,-267.5 4258,-267.5"/>
+<polygon fill="#000000" stroke="#000000" points="4183.0341,-1173.6752 4192.6289,-1178.9847 4188.017,-1174.0876 4193,-1174.5 4193,-1174.5 4193,-1174.5 4188.017,-1174.0876 4193.3711,-1170.0153 4183.0341,-1173.6752 4183.0341,-1173.6752"/>
 <text text-anchor="start" x="3812.6055" y="-1158.5" font-family="Arial" font-size="10.00" fill="#000000">FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON UPDATE CASCADE ON DELETE CASCADE</text>
 </g>
 <!-- public.workspace_insights -->
@@ -972,8 +972,8 @@
 <!-- public.workspace_insights&#45;&gt;public.workspaces -->
 <g id="edge23" class="edge">
 <title>public.workspace_insights:workspace_id&#45;&gt;public.workspaces:id</title>
-<path fill="none" stroke="#000000" d="M4591.1909,-1171.0242C4521.1594,-1117.5684 4597.3069,-464.5317 4549,-397 4462.1283,-275.5559 4388.3163,-267.5 4239,-267.5"/>
-<polygon fill="#000000" stroke="#000000" points="4591.5743,-1171.16 4599.497,-1178.7416 4596.2871,-1172.83 4601,-1174.5 4601,-1174.5 4601,-1174.5 4596.2871,-1172.83 4602.503,-1170.2584 4591.5743,-1171.16 4591.5743,-1171.16"/>
+<path fill="none" stroke="#000000" d="M4591.187,-1171.027C4521.0955,-1117.6136 4596.5273,-465.0827 4549,-397 4467.9691,-280.9235 4399.5618,-267.5 4258,-267.5"/>
+<polygon fill="#000000" stroke="#000000" points="4591.573,-1171.1635 4599.4986,-1178.7422 4596.2865,-1172.8318 4601,-1174.5 4601,-1174.5 4601,-1174.5 4596.2865,-1172.8318 4602.5014,-1170.2578 4591.573,-1171.1635 4591.573,-1171.1635"/>
 <text text-anchor="start" x="4349.6055" y="-1158.5" font-family="Arial" font-size="10.00" fill="#000000">FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON UPDATE CASCADE ON DELETE CASCADE</text>
 </g>
 <!-- public.workspace_user_lists -->
@@ -1006,9 +1006,43 @@
 <!-- public.workspace_user_lists&#45;&gt;public.workspaces -->
 <g id="edge25" class="edge">
 <title>public.workspace_user_lists:workspace_id&#45;&gt;public.workspaces:id</title>
-<path fill="none" stroke="#000000" d="M5016.2215,-1170.9951C4946.6627,-1117.095 5028.506,-458.7606 4973,-397 4862.2857,-273.8101 4404.6303,-267.5 4239,-267.5"/>
-<polygon fill="#000000" stroke="#000000" points="5016.5864,-1171.1258 5024.4816,-1178.7361 5021.2932,-1172.8129 5026,-1174.5 5026,-1174.5 5026,-1174.5 5021.2932,-1172.8129 5027.5184,-1170.2639 5016.5864,-1171.1258 5016.5864,-1171.1258"/>
+<path fill="none" stroke="#000000" d="M5016.2208,-1170.9957C4946.6512,-1117.1053 5028.3656,-458.8865 4973,-397 4865.3371,-276.6566 4419.474,-267.5 4258,-267.5"/>
+<polygon fill="#000000" stroke="#000000" points="5016.5862,-1171.1266 5024.482,-1178.7362 5021.2931,-1172.8133 5026,-1174.5 5026,-1174.5 5026,-1174.5 5021.2931,-1172.8133 5027.518,-1170.2638 5016.5862,-1171.1266 5016.5862,-1171.1266"/>
 <text text-anchor="start" x="5032.6055" y="-1184.5" font-family="Arial" font-size="10.00" fill="#000000">FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON UPDATE CASCADE ON DELETE CASCADE</text>
+</g>
+<!-- public.starsearch_workspace_threads -->
+<g id="node21" class="node">
+<title>public.starsearch_workspace_threads</title>
+<polygon fill="#efefef" stroke="transparent" points="5465,-1249.5 5465,-1284.5 5878,-1284.5 5878,-1249.5 5465,-1249.5"/>
+<polygon fill="none" stroke="#000000" points="5465,-1249.5 5465,-1284.5 5878,-1284.5 5878,-1249.5 5465,-1249.5"/>
+<text text-anchor="start" x="5471.8414" y="-1262.3" font-family="Arial Bold" font-size="18.00" fill="#000000">public.starsearch_workspace_threads</text>
+<text text-anchor="start" x="5773.9048" y="-1262.3" font-family="Arial" font-size="14.00" fill="#000000"> </text>
+<text text-anchor="start" x="5777.7954" y="-1262.3" font-family="Arial" font-size="14.00" fill="#666666">[BASE TABLE]</text>
+<polygon fill="none" stroke="#000000" points="5465,-1219.5 5465,-1249.5 5878,-1249.5 5878,-1219.5 5465,-1219.5"/>
+<text text-anchor="start" x="5472" y="-1230.9" font-family="Arial" font-size="14.00" fill="#000000">id </text>
+<text text-anchor="start" x="5486.7798" y="-1230.9" font-family="Arial" font-size="14.00" fill="#666666">[uuid]</text>
+<polygon fill="none" stroke="#000000" points="5465,-1189.5 5465,-1219.5 5878,-1219.5 5878,-1189.5 5465,-1189.5"/>
+<text text-anchor="start" x="5472" y="-1200.9" font-family="Arial" font-size="14.00" fill="#000000">created_at </text>
+<text text-anchor="start" x="5542.028" y="-1200.9" font-family="Arial" font-size="14.00" fill="#666666">[timestamp without time zone]</text>
+<polygon fill="none" stroke="#000000" points="5465,-1159.5 5465,-1189.5 5878,-1189.5 5878,-1159.5 5465,-1159.5"/>
+<text text-anchor="start" x="5472" y="-1170.9" font-family="Arial" font-size="14.00" fill="#000000">updated_at </text>
+<text text-anchor="start" x="5545.9326" y="-1170.9" font-family="Arial" font-size="14.00" fill="#666666">[timestamp without time zone]</text>
+<polygon fill="none" stroke="#000000" points="5465,-1129.5 5465,-1159.5 5878,-1159.5 5878,-1129.5 5465,-1129.5"/>
+<text text-anchor="start" x="5472" y="-1140.9" font-family="Arial" font-size="14.00" fill="#000000">deleted_at </text>
+<text text-anchor="start" x="5541.2566" y="-1140.9" font-family="Arial" font-size="14.00" fill="#666666">[timestamp without time zone]</text>
+<polygon fill="none" stroke="#000000" points="5465,-1099.5 5465,-1129.5 5878,-1129.5 5878,-1099.5 5465,-1099.5"/>
+<text text-anchor="start" x="5472" y="-1110.9" font-family="Arial" font-size="14.00" fill="#000000">starsearch_thread_id </text>
+<text text-anchor="start" x="5607.3688" y="-1110.9" font-family="Arial" font-size="14.00" fill="#666666">[uuid]</text>
+<polygon fill="none" stroke="#000000" points="5465,-1069.5 5465,-1099.5 5878,-1099.5 5878,-1069.5 5465,-1069.5"/>
+<text text-anchor="start" x="5472" y="-1080.9" font-family="Arial" font-size="14.00" fill="#000000">workspace_id </text>
+<text text-anchor="start" x="5561.46" y="-1080.9" font-family="Arial" font-size="14.00" fill="#666666">[uuid]</text>
+</g>
+<!-- public.starsearch_workspace_threads&#45;&gt;public.workspaces -->
+<g id="edge26" class="edge">
+<title>public.starsearch_workspace_threads:workspace_id&#45;&gt;public.workspaces:id</title>
+<path fill="none" stroke="#000000" d="M5455.5848,-1080.7814C5395.1174,-1028.8512 5463.7921,-449.6629 5413,-397 5323.3519,-304.05 4387.1375,-267.5 4258,-267.5"/>
+<polygon fill="#000000" stroke="#000000" points="5455.6991,-1080.8265 5463.3469,-1088.6854 5460.3496,-1082.6632 5465,-1084.5 5465,-1084.5 5465,-1084.5 5460.3496,-1082.6632 5466.6531,-1080.3146 5455.6991,-1080.8265 5455.6991,-1080.8265"/>
+<text text-anchor="start" x="5471.6055" y="-1094.5" font-family="Arial" font-size="10.00" fill="#000000">FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON UPDATE CASCADE ON DELETE CASCADE</text>
 </g>
 </g>
 </svg>
