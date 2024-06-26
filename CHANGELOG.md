@@ -5,10 +5,12 @@
 
 > All notable changes to this project will be documented in this file
 
-## [2.35.0-beta.5](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.35.0-beta.4...v2.35.0-beta.5) (2024-06-25)
+
+## [2.35.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.34.0...v2.35.0) (2024-06-20)
 
 
 ### 🍕 Features
+
 
 * MVP Open Source Contributor Rating ([#913](https://github.com/open-sauced/api.opensauced.pizza/issues/913)) ([68027ea](https://github.com/open-sauced/api.opensauced.pizza/commit/68027ea73fb0c1c4e6fcfebca6de204fd4fc1545))
 
@@ -18,6 +20,9 @@
 ### 🍕 Features
 
 * Cleanup/remove MIT license ([#915](https://github.com/open-sauced/api.opensauced.pizza/issues/915)) ([00127d1](https://github.com/open-sauced/api.opensauced.pizza/commit/00127d19958c9df5475777850b427e196c78142e))
+* Fuzzy search all repos ([#890](https://github.com/open-sauced/api.opensauced.pizza/issues/890)) ([107f9d3](https://github.com/open-sauced/api.opensauced.pizza/commit/107f9d37f4ed75c9177e4f30deef1393e7d996d8))
+* Implements "v2/repos/owner/name/yolo" endpoint ([#888](https://github.com/open-sauced/api.opensauced.pizza/issues/888)) ([0374345](https://github.com/open-sauced/api.opensauced.pizza/commit/0374345c840a20689c5e9bf12eb3f93e02c690d1))
+* StarSearch for workspaces ([#876](https://github.com/open-sauced/api.opensauced.pizza/issues/876)) ([686e549](https://github.com/open-sauced/api.opensauced.pizza/commit/686e5493b5ea25e7d9ca0d64286be8c8d4616282))
 
 ## [2.35.0-beta.3](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.35.0-beta.2...v2.35.0-beta.3) (2024-06-20)
 
