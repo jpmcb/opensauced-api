@@ -46,6 +46,17 @@ export class UserController {
     return this.userService.tryFindUserOrMakeStub({ username, dto: userOptions });
   }
 
+  @Get("/:username/devstats-refresh")
+  @ApiOperation({
+    operationId: "refreshOneUserDevstatsByUsername",
+    summary: "Refreshes a user's devstats by :username - primarily used programmatically by the ETL",
+  })
+  @ApiOkResponse({ type: DbUser })
+  @ApiNotFoundResponse({ description: "User not found" })
+  async refreshOneUserDevstatsByUsername(@Param("username") username: string): Promise<DbUser> {
+    return this.userService.refreshOneDevstatsByUsername(username);
+  }
+
   @Get("/:username/prs")
   @ApiOperation({
     operationId: "findContributorPullRequestGitHubEvents",

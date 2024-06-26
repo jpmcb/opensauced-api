@@ -146,10 +146,13 @@ export class UserService {
     return item;
   }
 
-  private async findOneByUsername(username: string, options?: UserDto): Promise<DbUser> {
-    // get / update the OSCR for the user before querying user rows
+  async refreshOneDevstatsByUsername(username: string): Promise<DbUser> {
     await this.findUpdateContributorOSCR(username, 30);
 
+    return this.findOneByUsername(username);
+  }
+
+  private async findOneByUsername(username: string, options?: UserDto): Promise<DbUser> {
     const maintainerRepoIds = options?.maintainerRepoIds?.split(",");
     const queryBuilder = this.baseQueryBuilder();
 
