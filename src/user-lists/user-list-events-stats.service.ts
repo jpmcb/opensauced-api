@@ -91,15 +91,15 @@ export class UserListEventsStatsService {
         break;
 
       case ContributorStatsTypeEnum.active:
-        this.applyActiveContributorsFilter(userListQueryBuilder, now, range);
+        this.applyActiveContributorsFilter({ queryBuilder: userListQueryBuilder, users, repos, startDate: now, range });
         break;
 
       case ContributorStatsTypeEnum.new:
-        this.applyNewContributorsFilter(userListQueryBuilder, now, range);
+        this.applyNewContributorsFilter({ queryBuilder: userListQueryBuilder, users, repos, startDate: now, range });
         break;
 
       case ContributorStatsTypeEnum.alumni: {
-        this.applyAlumniContributorsFilter(userListQueryBuilder, now, range);
+        this.applyAlumniContributorsFilter({ queryBuilder: userListQueryBuilder, users, repos, startDate: now, range });
         break;
       }
 
@@ -257,6 +257,8 @@ export class UserListEventsStatsService {
     const range = options.range!;
     const repos = options.repos ? options.repos.toLowerCase().split(",") : undefined;
 
+    const aggregatedStats: Record<string, DbContributorCategoryTimeframe> = {};
+
     const allUsers = await this.findContributorsByType(listId, range, ContributorStatsTypeEnum.all, repos);
 
     if (allUsers.length === 0) {
@@ -268,501 +270,118 @@ export class UserListEventsStatsService {
     const alumniUsers = await this.findContributorsByType(listId, range, ContributorStatsTypeEnum.alumni, repos);
 
     /*
-     * it's possible that one of the filtered lists will have no returned users:
-     * to guard against doing a blank WHERE IN() statment (which is not valid),
-     * we add an empty username which selects for no users.
+     * for each category of contributor, we aggregate their contributions into buckets
+     * using the "findAllContributionsByTimeframe" meta function. This returns a "bucket"
+     * member that can be used to generate the record of all/active/alum/new contributors.
      */
 
-    activeUsers.push("");
-    newUsers.push("");
-    alumniUsers.push("");
-
-    /*
-     * in order to get a sub-table that "time_bucket" can accumulate data from,
-     * these large union queries denote a "contributor_category" for each of the user types
-     * across many different event tables.
-     *
-     * there are 2 different queries, one that captures "where repo_names = repos"
-     * and the other without. With large, raw queries, TypeORM does not have a great
-     * mechanism to parameterize an empty repos list.
-     */
-
-    const cteQueryNoRepos = `
-      SELECT event_time, 'all_users' as contributor_category
-      FROM push_github_events
-      WHERE LOWER(actor_login) IN (:...all_users)
-      AND push_ref IN('refs/heads/main', 'refs/heads/master')
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'active_users' as contributor_category
-      FROM push_github_events
-      WHERE LOWER(actor_login) IN (:...active_users)
-      AND push_ref IN('refs/heads/main', 'refs/heads/master')
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'new_users' as contributor_category
-      FROM push_github_events
-      WHERE LOWER(actor_login) IN (:...new_users)
-      AND push_ref IN('refs/heads/main', 'refs/heads/master')
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'alumni_users' as contributor_category
-      FROM push_github_events
-      WHERE LOWER(actor_login) IN (:...alumni_users)
-      AND push_ref IN('refs/heads/main', 'refs/heads/master')
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'all_users' as contributor_category
-      FROM pull_request_github_events
-      WHERE LOWER(actor_login) IN (:...all_users)
-      AND pr_action='opened'
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'active_users' as contributor_category
-      FROM pull_request_github_events
-      WHERE LOWER(actor_login) IN (:...active_users)
-      AND pr_action='opened'
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'new_users' as contributor_category
-      FROM pull_request_github_events
-      WHERE LOWER(actor_login) IN (:...new_users)
-      AND pr_action='opened'
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'alumni_users' as contributor_category
-      FROM pull_request_github_events
-      WHERE LOWER(actor_login) IN (:...alumni_users)
-      AND pr_action='opened'
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'all_users' as contributor_category
-      FROM pull_request_review_github_events
-      WHERE LOWER(actor_login) IN (:...all_users)
-      AND pr_review_action='created'
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'active_users' as contributor_category
-      FROM pull_request_review_github_events
-      WHERE LOWER(actor_login) IN (:...active_users)
-      AND pr_review_action='created'
-      AND now() - :range_interval::INTERVAL <= event_time
+    await Promise.all(
+      allUsers.map(async (user) => {
+        const allUsersStats = await this.contributorDevstatsService.findAllContributionsByTimeframe(options, [user]);
+
+        allUsersStats.forEach((stat) => {
+          const eventTime = new Date(stat.bucket);
+          const bucket = new Date(
+            eventTime.getUTCFullYear(),
+            eventTime.getUTCMonth(),
+            eventTime.getUTCDate()
+          ).toISOString();
+
+          if (!(bucket in aggregatedStats)) {
+            aggregatedStats[bucket] = new DbContributorCategoryTimeframe();
+            aggregatedStats[bucket].bucket = bucket;
+            aggregatedStats[bucket].all = 0;
+            aggregatedStats[bucket].active = 0;
+            aggregatedStats[bucket].new = 0;
+            aggregatedStats[bucket].alumni = 0;
+          }
+
+          aggregatedStats[bucket].all += 1;
+        });
+      })
+    );
+
+    await Promise.all(
+      activeUsers.map(async (user) => {
+        const activeUsersStats = await this.contributorDevstatsService.findAllContributionsByTimeframe(options, [user]);
+
+        activeUsersStats.forEach((stat) => {
+          const eventTime = new Date(stat.bucket);
+          const bucket = new Date(
+            eventTime.getUTCFullYear(),
+            eventTime.getUTCMonth(),
+            eventTime.getUTCDate()
+          ).toISOString();
+
+          if (!(bucket in aggregatedStats)) {
+            aggregatedStats[bucket] = new DbContributorCategoryTimeframe();
+            aggregatedStats[bucket].bucket = bucket;
+            aggregatedStats[bucket].all = 0;
+            aggregatedStats[bucket].active = 0;
+            aggregatedStats[bucket].new = 0;
+            aggregatedStats[bucket].alumni = 0;
+          }
+
+          aggregatedStats[bucket].active += 1;
+        });
+      })
+    );
+
+    await Promise.all(
+      newUsers.map(async (user) => {
+        const newUsersStats = await this.contributorDevstatsService.findAllContributionsByTimeframe(options, [user]);
+
+        newUsersStats.forEach((stat) => {
+          const eventTime = new Date(stat.bucket);
+          const bucket = new Date(
+            eventTime.getUTCFullYear(),
+            eventTime.getUTCMonth(),
+            eventTime.getUTCDate()
+          ).toISOString();
+
+          if (!(bucket in aggregatedStats)) {
+            aggregatedStats[bucket] = new DbContributorCategoryTimeframe();
+            aggregatedStats[bucket].bucket = bucket;
+            aggregatedStats[bucket].all = 0;
+            aggregatedStats[bucket].active = 0;
+            aggregatedStats[bucket].new = 0;
+            aggregatedStats[bucket].alumni = 0;
+          }
+
+          aggregatedStats[bucket].new += 1;
+        });
+      })
+    );
+
+    await Promise.all(
+      alumniUsers.map(async (user) => {
+        const alumniUsersStats = await this.contributorDevstatsService.findAllContributionsByTimeframe(options, [user]);
+
+        alumniUsersStats.forEach((stat) => {
+          const eventTime = new Date(stat.bucket);
+          const bucket = new Date(
+            eventTime.getUTCFullYear(),
+            eventTime.getUTCMonth(),
+            eventTime.getUTCDate()
+          ).toISOString();
+
+          if (!(bucket in aggregatedStats)) {
+            aggregatedStats[bucket] = new DbContributorCategoryTimeframe();
+            aggregatedStats[bucket].bucket = bucket;
+            aggregatedStats[bucket].all = 0;
+            aggregatedStats[bucket].active = 0;
+            aggregatedStats[bucket].new = 0;
+            aggregatedStats[bucket].alumni = 0;
+          }
+
+          aggregatedStats[bucket].alumni += 1;
+        });
+      })
+    );
 
-      UNION ALL
-
-      SELECT event_time, 'new_users' as contributor_category
-      FROM pull_request_review_github_events
-      WHERE LOWER(actor_login) IN (:...new_users)
-      AND pr_review_action='created'
-      AND now() - :range_interval::INTERVAL <= event_time
+    const results = Object.values(aggregatedStats);
 
-      UNION ALL
-
-      SELECT event_time, 'alumni_users' as contributor_category
-      FROM pull_request_review_github_events
-      WHERE LOWER(actor_login) IN (:...alumni_users)
-      AND pr_review_action='created'
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'all_users' as contributor_category
-      FROM issues_github_events
-      WHERE LOWER(actor_login) IN (:...all_users)
-      AND issue_action='opened'
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'active_users' as contributor_category
-      FROM issues_github_events
-      WHERE LOWER(actor_login) IN (:...active_users)
-      AND issue_action='opened'
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'new_users' as contributor_category
-      FROM issues_github_events
-      WHERE LOWER(actor_login) IN (:...new_users)
-      AND issue_action='opened'
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'alumni_users' as contributor_category
-      FROM issues_github_events
-      WHERE LOWER(actor_login) IN (:...alumni_users)
-      AND issue_action='opened'
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'all_users' as contributor_category
-      FROM commit_comment_github_events
-      WHERE LOWER(actor_login) IN (:...all_users)
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'active_users' as contributor_category
-      FROM commit_comment_github_events
-      WHERE LOWER(actor_login) IN (:...active_users)
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'new_users' as contributor_category
-      FROM commit_comment_github_events
-      WHERE LOWER(actor_login) IN (:...new_users)
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'alumni_users' as contributor_category
-      FROM commit_comment_github_events
-      WHERE LOWER(actor_login) IN (:...alumni_users)
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'all_users' as contributor_category
-      FROM issue_comment_github_events
-      WHERE LOWER(actor_login) IN (:...all_users)
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'active_users' as contributor_category
-      FROM issue_comment_github_events
-      WHERE LOWER(actor_login) IN (:...active_users)
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'new_users' as contributor_category
-      FROM issue_comment_github_events
-      WHERE LOWER(actor_login) IN (:...new_users)
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'alumni_users' as contributor_category
-      FROM issue_comment_github_events
-      WHERE LOWER(actor_login) IN (:...alumni_users)
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'all_users' as contributor_category
-      FROM pull_request_review_comment_github_events
-      WHERE LOWER(actor_login) IN (:...all_users)
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'active_users' as contributor_category
-      FROM pull_request_review_comment_github_events
-      WHERE LOWER(actor_login) IN (:...active_users)
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'new_users' as contributor_category
-      FROM pull_request_review_comment_github_events
-      WHERE LOWER(actor_login) IN (:...new_users)
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'alumni_users' as contributor_category
-      FROM pull_request_review_comment_github_events
-      WHERE LOWER(actor_login) IN (:...alumni_users)
-      AND now() - :range_interval::INTERVAL <= event_time`;
-
-    const cteQueryWithRepos = `
-      SELECT event_time, 'all_users' as contributor_category
-      FROM push_github_events
-      WHERE LOWER(actor_login) IN (:...all_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND push_ref IN('refs/heads/main', 'refs/heads/master')
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'active_users' as contributor_category
-      FROM push_github_events
-      WHERE LOWER(actor_login) IN (:...active_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND push_ref IN('refs/heads/main', 'refs/heads/master')
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'new_users' as contributor_category
-      FROM push_github_events
-      WHERE LOWER(actor_login) IN (:...new_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND push_ref IN('refs/heads/main', 'refs/heads/master')
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'alumni_users' as contributor_category
-      FROM push_github_events
-      WHERE LOWER(actor_login) IN (:...alumni_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND push_ref IN('refs/heads/main', 'refs/heads/master')
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'all_users' as contributor_category
-      FROM pull_request_github_events
-      WHERE LOWER(actor_login) IN (:...all_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND pr_action='opened'
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'active_users' as contributor_category
-      FROM pull_request_github_events
-      WHERE LOWER(actor_login) IN (:...active_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND pr_action='opened'
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'new_users' as contributor_category
-      FROM pull_request_github_events
-      WHERE LOWER(actor_login) IN (:...new_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND pr_action='opened'
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'alumni_users' as contributor_category
-      FROM pull_request_github_events
-      WHERE LOWER(actor_login) IN (:...alumni_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND pr_action='opened'
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'all_users' as contributor_category
-      FROM pull_request_review_github_events
-      WHERE LOWER(actor_login) IN (:...all_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND pr_review_action='created'
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'active_users' as contributor_category
-      FROM pull_request_review_github_events
-      WHERE LOWER(actor_login) IN (:...active_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND pr_review_action='created'
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'new_users' as contributor_category
-      FROM pull_request_review_github_events
-      WHERE LOWER(actor_login) IN (:...new_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND pr_review_action='created'
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'alumni_users' as contributor_category
-      FROM pull_request_review_github_events
-      WHERE LOWER(actor_login) IN (:...alumni_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND pr_review_action='created'
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'all_users' as contributor_category
-      FROM issues_github_events
-      WHERE LOWER(actor_login) IN (:...all_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND issue_action='opened'
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'active_users' as contributor_category
-      FROM issues_github_events
-      WHERE LOWER(actor_login) IN (:...active_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND issue_action='opened'
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'new_users' as contributor_category
-      FROM issues_github_events
-      WHERE LOWER(actor_login) IN (:...new_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND issue_action='opened'
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'alumni_users' as contributor_category
-      FROM issues_github_events
-      WHERE LOWER(actor_login) IN (:...alumni_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND issue_action='opened'
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'all_users' as contributor_category
-      FROM commit_comment_github_events
-      WHERE LOWER(actor_login) IN (:...all_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'active_users' as contributor_category
-      FROM commit_comment_github_events
-      WHERE LOWER(actor_login) IN (:...active_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'new_users' as contributor_category
-      FROM commit_comment_github_events
-      WHERE LOWER(actor_login) IN (:...new_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'alumni_users' as contributor_category
-      FROM commit_comment_github_events
-      WHERE LOWER(actor_login) IN (:...alumni_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'all_users' as contributor_category
-      FROM issue_comment_github_events
-      WHERE LOWER(actor_login) IN (:...all_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'active_users' as contributor_category
-      FROM issue_comment_github_events
-      WHERE LOWER(actor_login) IN (:...active_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'new_users' as contributor_category
-      FROM issue_comment_github_events
-      WHERE LOWER(actor_login) IN (:...new_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'alumni_users' as contributor_category
-      FROM issue_comment_github_events
-      WHERE LOWER(actor_login) IN (:...alumni_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'all_users' as contributor_category
-      FROM pull_request_review_comment_github_events
-      WHERE LOWER(actor_login) IN (:...all_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'active_users' as contributor_category
-      FROM pull_request_review_comment_github_events
-      WHERE LOWER(actor_login) IN (:...active_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'new_users' as contributor_category
-      FROM pull_request_review_comment_github_events
-      WHERE LOWER(actor_login) IN (:...new_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND now() - :range_interval::INTERVAL <= event_time
-
-      UNION ALL
-
-      SELECT event_time, 'alumni_users' as contributor_category
-      FROM pull_request_review_comment_github_events
-      WHERE LOWER(actor_login) IN (:...alumni_users)
-      AND LOWER(repo_name) IN (:...repos)
-      AND now() - :range_interval::INTERVAL <= event_time`;
-
-    const entityQb = this.pullRequestGithubEventsRepository.manager.createQueryBuilder();
-
-    if (repos && repos.length > 0) {
-      entityQb.addCommonTableExpression(cteQueryWithRepos, "CTE").setParameters({ repos });
-    } else {
-      entityQb.addCommonTableExpression(cteQueryNoRepos, "CTE");
-    }
-
-    entityQb
-      .setParameters({ all_users: allUsers })
-      .setParameters({ active_users: activeUsers })
-      .setParameters({ new_users: newUsers })
-      .setParameters({ alumni_users: alumniUsers })
-      .setParameters({ range_interval: `${range} days` })
-      .select(`time_bucket('1 day', event_time)`, "bucket")
-      .addSelect("COUNT(case when contributor_category = 'all_users' then 1 end)", "all")
-      .addSelect("COUNT(case when contributor_category = 'active_users' then 1 end)", "active")
-      .addSelect("COUNT(case when contributor_category = 'new_users' then 1 end)", "new")
-      .addSelect("COUNT(case when contributor_category = 'alumni_users' then 1 end)", "alumni")
-      .from("CTE", "CTE")
-      .groupBy("bucket")
-      .orderBy("bucket", "DESC");
-
-    const entities: DbContributorCategoryTimeframe[] = await entityQb.getRawMany();
-
-    return entities;
+    return results.sort((a, b) => new Date(b.bucket).getTime() - new Date(a.bucket).getTime());
   }
 
   /*
@@ -782,19 +401,35 @@ export class UserListEventsStatsService {
    *
    */
 
-  private leftJoinCurrentMonthPrs(
-    queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>,
-    startDate: string,
-    range = 30
-  ): SelectQueryBuilder<DbPullRequestGitHubEvents> {
+  private leftJoinCurrentMonthPrs({
+    queryBuilder,
+    users,
+    repos,
+    startDate,
+    range = 30,
+  }: {
+    queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>;
+    users: string[];
+    repos?: string[];
+    startDate: string;
+    range: number;
+  }): SelectQueryBuilder<DbPullRequestGitHubEvents> {
     queryBuilder.leftJoin(
       (qb: SelectQueryBuilder<DbPullRequestGitHubEvents>) => {
         qb.select("DISTINCT LOWER(actor_login)", "actor_login")
           .from("pull_request_github_events", "pull_request_github_events")
-          .where("event_time BETWEEN :start_date::TIMESTAMP - :range_interval::INTERVAL AND :start_date::TIMESTAMP", {
-            start_date: startDate,
-            range_interval: `${range} days`,
-          });
+          .where("LOWER(actor_login) IN (:...users)", { users })
+          .andWhere(
+            "event_time BETWEEN :start_date::TIMESTAMP - :range_interval::INTERVAL AND :start_date::TIMESTAMP",
+            {
+              start_date: startDate,
+              range_interval: `${range} days`,
+            }
+          );
+
+        if (repos && repos.length > 0) {
+          qb.andWhere("LOWER(repo_name) IN (:...repos)", { repos });
+        }
 
         return qb;
       },
@@ -805,16 +440,25 @@ export class UserListEventsStatsService {
     return queryBuilder;
   }
 
-  private leftJoinPreviousMonthPrs(
-    queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>,
-    startDate: string,
-    range = 30
-  ): SelectQueryBuilder<DbPullRequestGitHubEvents> {
+  private leftJoinPreviousMonthPrs({
+    queryBuilder,
+    users,
+    repos,
+    startDate,
+    range = 30,
+  }: {
+    queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>;
+    users: string[];
+    repos?: string[];
+    startDate: string;
+    range: number;
+  }): SelectQueryBuilder<DbPullRequestGitHubEvents> {
     queryBuilder.leftJoin(
       (qb: SelectQueryBuilder<DbPullRequestGitHubEvents>) => {
         qb.select("DISTINCT LOWER(actor_login)", "actor_login")
           .from("pull_request_github_events", "pull_request_github_events")
-          .where(
+          .where("LOWER(actor_login) IN (:...users)", { users })
+          .andWhere(
             "event_time BETWEEN :start_date::TIMESTAMP - :double_range_interval::INTERVAL AND :start_date::TIMESTAMP - :range_interval::INTERVAL",
             {
               start_date: startDate,
@@ -822,6 +466,10 @@ export class UserListEventsStatsService {
               double_range_interval: `${range + range} days`,
             }
           );
+
+        if (repos && repos.length > 0) {
+          qb.andWhere("LOWER(repo_name) IN (:...repos)", { repos });
+        }
 
         return qb;
       },
@@ -832,13 +480,21 @@ export class UserListEventsStatsService {
     return queryBuilder;
   }
 
-  private applyActiveContributorsFilter(
-    queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>,
-    startDate: string,
-    range = 30
-  ): SelectQueryBuilder<DbPullRequestGitHubEvents> {
-    this.leftJoinCurrentMonthPrs(queryBuilder, startDate, range);
-    this.leftJoinPreviousMonthPrs(queryBuilder, startDate, range);
+  private applyActiveContributorsFilter({
+    queryBuilder,
+    users,
+    repos,
+    startDate,
+    range,
+  }: {
+    queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>;
+    users: string[];
+    repos?: string[];
+    startDate: string;
+    range: number;
+  }): SelectQueryBuilder<DbPullRequestGitHubEvents> {
+    this.leftJoinCurrentMonthPrs({ queryBuilder, users, repos, startDate, range });
+    this.leftJoinPreviousMonthPrs({ queryBuilder, users, repos, startDate, range });
 
     queryBuilder
       .andWhere(`"previous_month_prs"."actor_login" IS NOT NULL`)
@@ -847,13 +503,21 @@ export class UserListEventsStatsService {
     return queryBuilder;
   }
 
-  private applyNewContributorsFilter(
-    queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>,
-    startDate: string,
-    range = 30
-  ): SelectQueryBuilder<DbPullRequestGitHubEvents> {
-    this.leftJoinCurrentMonthPrs(queryBuilder, startDate, range);
-    this.leftJoinPreviousMonthPrs(queryBuilder, startDate, range);
+  private applyNewContributorsFilter({
+    queryBuilder,
+    users,
+    repos,
+    startDate,
+    range,
+  }: {
+    queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>;
+    users: string[];
+    repos?: string[];
+    startDate: string;
+    range: number;
+  }): SelectQueryBuilder<DbPullRequestGitHubEvents> {
+    this.leftJoinCurrentMonthPrs({ queryBuilder, users, repos, startDate, range });
+    this.leftJoinPreviousMonthPrs({ queryBuilder, users, repos, startDate, range });
 
     queryBuilder
       .andWhere(`"previous_month_prs"."actor_login" IS NULL`)
@@ -862,13 +526,21 @@ export class UserListEventsStatsService {
     return queryBuilder;
   }
 
-  private applyAlumniContributorsFilter(
-    queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>,
-    startDate: string,
-    range = 30
-  ): SelectQueryBuilder<DbPullRequestGitHubEvents> {
-    this.leftJoinCurrentMonthPrs(queryBuilder, startDate, range);
-    this.leftJoinPreviousMonthPrs(queryBuilder, startDate, range);
+  private applyAlumniContributorsFilter({
+    queryBuilder,
+    users,
+    repos,
+    startDate,
+    range,
+  }: {
+    queryBuilder: SelectQueryBuilder<DbPullRequestGitHubEvents>;
+    users: string[];
+    repos?: string[];
+    startDate: string;
+    range: number;
+  }): SelectQueryBuilder<DbPullRequestGitHubEvents> {
+    this.leftJoinCurrentMonthPrs({ queryBuilder, users, repos, startDate, range });
+    this.leftJoinPreviousMonthPrs({ queryBuilder, users, repos, startDate, range });
 
     queryBuilder
       .andWhere(`"previous_month_prs"."actor_login" IS NOT NULL`)

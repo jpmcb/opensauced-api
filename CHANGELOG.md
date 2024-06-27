@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+### [2.36.1-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.36.0...v2.36.1-beta.1) (2024-06-27)
+
+
+### 🐛 Bug Fixes
+
+* Make contribution evolution by type work ([#920](https://github.com/open-sauced/api.opensauced.pizza/issues/920)) ([9e6c2a7](https://github.com/open-sauced/api.opensauced.pizza/commit/9e6c2a73d0b5fef87481c5bb1e6110d8fa8d68b8))
+
 ## [2.36.0](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.35.0...v2.36.0) (2024-06-26)
 
 

@@ -4,8 +4,8 @@ import { Column, Entity } from "typeorm";
 @Entity({ name: "user_list_contributors" })
 export class DbContributorCategoryTimeframe {
   @ApiModelProperty({
-    description: "The ISO timestamp for the start of the time frame",
-    example: "2023-08-26T23:55:49.204Z",
+    description: "The ISO timestamp for the given time bucket",
+    example: "2024-01-08T00:00:00.000Z",
     type: "string",
   })
   @Column({
@@ -13,19 +13,7 @@ export class DbContributorCategoryTimeframe {
     select: false,
     insert: false,
   })
-  time_start: string;
-
-  @ApiModelProperty({
-    description: "The ISO timestamp for the end of the time frame",
-    example: "2023-08-26T23:55:49.204Z",
-    type: "string",
-  })
-  @Column({
-    type: "string",
-    select: false,
-    insert: false,
-  })
-  time_end: string;
+  bucket: string;
 
   @ApiModelProperty({
     description: "Number of all contributors (active, new, and alumni)",
