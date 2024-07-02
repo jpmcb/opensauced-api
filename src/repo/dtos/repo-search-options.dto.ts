@@ -47,6 +47,16 @@ export class RepoRangeOnlyOptionDto {
   readonly range?: number = 30;
 }
 
+export class YoloWithRangeDto extends RepoRangeOnlyOptionDto {
+  @ApiPropertyOptional({
+    description: "Whether to include bot yolo commits or not",
+    default: false,
+  })
+  @Type(() => Boolean)
+  @IsOptional()
+  readonly include_bots?: boolean = false;
+}
+
 export class RepoRangeOptionsDto {
   @ApiProperty()
   @IsString()

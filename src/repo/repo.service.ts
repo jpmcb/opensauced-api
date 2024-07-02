@@ -25,6 +25,7 @@ import {
   RepoRangeOnlyOptionDto,
   RepoRangeOptionsDto,
   RepoSearchOptionsDto,
+  YoloWithRangeDto,
 } from "./dtos/repo-search-options.dto";
 import { DbLotteryFactor } from "./entities/lotto.entity";
 import { calculateLottoFactor } from "./common/lotto";
@@ -354,7 +355,7 @@ export class RepoService {
     return result;
   }
 
-  async findYoloPushes(owner: string, name: string, options: RepoRangeOnlyOptionDto): Promise<DbRepoYolo> {
+  async findYoloPushes(owner: string, name: string, options: YoloWithRangeDto): Promise<DbRepoYolo> {
     const range = options.range!;
     const repo = await this.findOneByOwnerAndRepo(owner, name, range, true);
     const defaultRef = `refs/heads/${repo.default_branch}`;
@@ -417,6 +418,11 @@ export class RepoService {
 
     // convert shaMap to result format
     Object.values(shaMap).forEach((push) => {
+      // throw out the bot pushes if flag set
+      if (!options.include_bots && push.actor_login.endsWith("[bot]")) {
+        return;
+      }
+
       result.num_yolo_pushes++;
       result.num_yolo_pushed_commits += push.push_num_commits ?? 0;
 
