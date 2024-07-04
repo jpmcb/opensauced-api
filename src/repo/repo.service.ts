@@ -419,7 +419,7 @@ export class RepoService {
     // convert shaMap to result format
     Object.values(shaMap).forEach((push) => {
       // throw out the bot pushes if flag set
-      if (!options.include_bots && push.actor_login.endsWith("[bot]")) {
+      if (options.include_bots === "false" && push.actor_login.endsWith("[bot]")) {
         return;
       }
 

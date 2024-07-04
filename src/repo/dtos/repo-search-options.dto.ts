@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsEnum, IsIn, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
+import { IsBooleanString, IsEnum, IsIn, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
 import { Type } from "class-transformer";
 import { InsightFilterFieldsEnum } from "../../insight/dtos/insight-options.dto";
 
@@ -50,11 +50,11 @@ export class RepoRangeOnlyOptionDto {
 export class YoloWithRangeDto extends RepoRangeOnlyOptionDto {
   @ApiPropertyOptional({
     description: "Whether to include bot yolo commits or not",
-    default: false,
+    default: "false",
   })
-  @Type(() => Boolean)
+  @IsBooleanString()
   @IsOptional()
-  readonly include_bots?: boolean = false;
+  readonly include_bots?: string = "false";
 }
 
 export class RepoRangeOptionsDto {
