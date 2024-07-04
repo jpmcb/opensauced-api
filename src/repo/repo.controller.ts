@@ -15,6 +15,7 @@ import {
   RepoRangeOnlyOptionDto,
   RepoRangeOptionsDto,
   RepoSearchOptionsDto,
+  YoloWithRangeDto,
 } from "./dtos/repo-search-options.dto";
 import { DbRepoContributor } from "./entities/repo_contributors.entity";
 import { RepoReleaseDto } from "./dtos/repo-release.dto";
@@ -102,7 +103,7 @@ export class RepoController {
   async getYoloPushes(
     @Param("owner") owner: string,
     @Param("repo") repo: string,
-    @Query() rangeOption: RepoRangeOnlyOptionDto
+    @Query() rangeOption: YoloWithRangeDto
   ): Promise<DbRepoYolo> {
     return this.repoService.findYoloPushes(owner, repo, rangeOption);
   }
