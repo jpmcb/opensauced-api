@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.37.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.37.0-beta.1...v2.37.0-beta.2) (2024-07-04)
+
+
+### 🐛 Bug Fixes
+
+* now include_bots value is respected instead of always being true ([#935](https://github.com/open-sauced/api.opensauced.pizza/issues/935)) ([7d6bde1](https://github.com/open-sauced/api.opensauced.pizza/commit/7d6bde1d9f79a5e299c17cef45b24d45ecead7a5))
+
 ## [2.37.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.36.1...v2.37.0-beta.1) (2024-07-02)
 
 
