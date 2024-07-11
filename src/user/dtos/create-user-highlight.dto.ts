@@ -44,7 +44,7 @@ export class CreateUserHighlightDto {
     example: "pull_request",
   })
   @IsString()
-  @IsIn(["pull_request", "blog_post", "issue", "milestone"])
+  @IsIn(["pull_request", "blog_post", "issue", "milestone", "release"])
   public type = "pull_request";
 
   @ApiProperty({
