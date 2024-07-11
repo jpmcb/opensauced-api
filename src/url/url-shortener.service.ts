@@ -1,12 +1,12 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { Dub } from "dub";
 
 @Injectable()
 export class UrlShortenerService {
-  private readonly dubApiHost = this.configService.get<string>("dub.apiHost")!;
   private readonly dubApiKey = this.configService.get<string>("dub.apiKey")!;
-  private readonly dubWorkspaceId = this.configService.get<string>("dub.dubWorkspaceId")!;
   private readonly domain = this.configService.get<string>("dub.domain")!;
+  private readonly dubService = new Dub({ token: this.dubApiKey });
 
   constructor(private configService: ConfigService) {}
 
@@ -22,25 +22,12 @@ export class UrlShortenerService {
         throw new BadRequestException("Invalid URL");
       }
 
-      const response = await fetch(
-        `${this.dubApiHost}/links?workspaceId=${this.dubWorkspaceId}&search=${encodeURIComponent(url)}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${this.dubApiKey}`,
-          },
-        }
-      );
+      const response = await this.dubService.links.upsert({
+        domain: this.domain,
+        url,
+      });
 
-      if (response.ok) {
-        const results = (await response.json()) as { shortLink: string }[];
-
-        if (results.length > 0) {
-          return { shortUrl: results[0].shortLink };
-        }
-
-        return this.createShortLink(url);
-      }
+      return { shortUrl: response.shortLink };
     } catch (e: unknown) {
       if (e instanceof Error) {
         throw new BadRequestException(`Unable to shorten URL ${e.message}`);
@@ -50,21 +37,22 @@ export class UrlShortenerService {
 
   async createShortLink(url: string) {
     const customKey = this.getCustomKey(url);
-    const response = await fetch(`${this.dubApiHost}/links?workspaceId=${this.dubWorkspaceId}`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${this.dubApiKey}`,
-      },
-      body: JSON.stringify({ url, domain: this.domain, key: customKey }),
-    });
 
-    if (response.ok) {
-      const data = (await response.json()) as { shortLink: string };
+    try {
+      const response = await this.dubService.links.create({
+        key: customKey,
+        domain: this.domain,
+        url,
+      });
 
-      return { shortUrl: data.shortLink };
+      return { shortUrl: response.shortLink };
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new BadRequestException(`Unable to shorten URL ${e.message}`);
+      }
+
+      throw new BadRequestException("Unable to shorten URL");
     }
-
-    throw new BadRequestException("Unable to shorten URL");
   }
 
   getCustomKey(url: string) {
