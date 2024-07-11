@@ -5,6 +5,14 @@
 
 > All notable changes to this project will be documented in this file
 
+### [2.37.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.37.0...v2.37.1) (2024-07-11)
+
+
+### 🐛 Bug Fixes
+
+* add release as highlight type ([#941](https://github.com/open-sauced/api.opensauced.pizza/issues/941)) ([fce04b3](https://github.com/open-sauced/api.opensauced.pizza/commit/fce04b3e78005d7fe49d81fd419e1e3b7d6af4fe))
+* switch over to Dub SDK for shortening URLs ([#943](https://github.com/open-sauced/api.opensauced.pizza/issues/943)) ([62b0fb4](https://github.com/open-sauced/api.opensauced.pizza/commit/62b0fb40c81f6b5de4a92feb13aeafce7ba82927))
+
 ### [2.37.1-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.37.1-beta.1...v2.37.1-beta.2) (2024-07-11)
 
 
