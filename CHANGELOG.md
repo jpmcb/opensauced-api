@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+### [2.37.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.37.1...v2.37.2) (2024-07-16)
+
+
+### 🐛 Bug Fixes
+
+* ensure all workspace repository insight repositories are saved ([#951](https://github.com/open-sauced/api.opensauced.pizza/issues/951)) ([1eb250c](https://github.com/open-sauced/api.opensauced.pizza/commit/1eb250cf7c3a2a3a0b8862dc49091992ff68dd4d))
+
 ### [2.37.2-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.37.1...v2.37.2-beta.1) (2024-07-16)
 
 
