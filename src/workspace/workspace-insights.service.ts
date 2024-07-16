@@ -134,9 +134,11 @@ export class WorkspaceInsightsService {
       is_public: dto.is_public,
     });
 
-    dto.repos.forEach(async (repo) => {
+    const createdInsightRepos = dto.repos.map(async (repo) => {
       await this.insightRepoService.addInsightRepo(newInsight.id, repo);
     });
+
+    await Promise.all(createdInsightRepos);
 
     return this.findOneByInsightId(newInsight.id);
   }
