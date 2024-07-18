@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.38.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.37.2...v2.38.0-beta.1) (2024-07-18)
+
+
+### 🍕 Features
+
+* Initial commit for OSSF scorecard ([#958](https://github.com/open-sauced/api.opensauced.pizza/issues/958)) ([f4879b6](https://github.com/open-sauced/api.opensauced.pizza/commit/f4879b6111ba4cfdc40e2cb8a277761947b164bb))
+
 ### [2.37.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.37.1...v2.37.2) (2024-07-16)
 
 
