@@ -5,6 +5,13 @@
 
 > All notable changes to this project will be documented in this file
 
+## [2.38.0-beta.2](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.38.0-beta.1...v2.38.0-beta.2) (2024-07-19)
+
+
+### 🍕 Features
+
+* Uses promise-pool for Workspace repo heavy queries ([#961](https://github.com/open-sauced/api.opensauced.pizza/issues/961)) ([c67cc5c](https://github.com/open-sauced/api.opensauced.pizza/commit/c67cc5c335ca4013e78d19a5e111f26ab72bdd69))
+
 ## [2.38.0-beta.1](https://github.com/open-sauced/api.opensauced.pizza/compare/v2.37.2...v2.38.0-beta.1) (2024-07-18)
 
 
