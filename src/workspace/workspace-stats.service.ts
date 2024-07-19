@@ -1,7 +1,9 @@
+import { cpus } from "node:os";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { Repository, SelectQueryBuilder } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 
+import PromisePool from "@supercharge/promise-pool/dist";
 import { orderDbContributorStats } from "../timescale/common/most-active-contributors";
 import { sanitizeRepos } from "../timescale/common/repos";
 import { RepoDevstatsService } from "../timescale/repo-devstats.service";
@@ -64,8 +66,6 @@ export class WorkspaceStatsService {
       throw new NotFoundException();
     }
 
-    const result = new DbWorkspaceStats();
-
     // get the repos
     const queryBuilder = this.baseQueryBuilder();
 
@@ -87,55 +87,78 @@ export class WorkspaceStatsService {
 
     const entities = await queryBuilder.getMany();
 
-    const promises = entities.map(async (entity) => {
-      // get PR stats for each repo found through filtering
-      const prStats = await this.pullRequestGithubEventsService.findPrStatsByRepo(
-        entity.repo.full_name,
-        range,
-        prevDaysStartDate
-      );
+    const { results } = await PromisePool.withConcurrency(Math.max(2, cpus().length))
+      .for(entities)
+      .handleError((error) => {
+        throw error;
+      })
+      .process(async (entity) => {
+        const localResult = new DbWorkspaceStats();
 
-      result.pull_requests.opened += prStats.open_prs;
-      result.pull_requests.merged += prStats.accepted_prs;
-      result.pull_requests.velocity += prStats.pr_velocity;
+        // get PR stats for each repo found through filtering
+        const prStats = await this.pullRequestGithubEventsService.findPrStatsByRepo(
+          entity.repo.full_name,
+          range,
+          prevDaysStartDate
+        );
 
-      // get issue stats for each repo found through filtering
-      const issuesStats = await this.issueGithubEventsService.findIssueStatsByRepo(
-        entity.repo.full_name,
-        range,
-        prevDaysStartDate
-      );
+        localResult.pull_requests.opened += prStats.open_prs;
+        localResult.pull_requests.merged += prStats.accepted_prs;
+        localResult.pull_requests.velocity += prStats.pr_velocity;
 
-      result.issues.opened += issuesStats.opened_issues;
-      result.issues.closed += issuesStats.closed_issues;
-      result.issues.velocity += issuesStats.issue_velocity;
+        // get issue stats for each repo found through filtering
+        const issuesStats = await this.issueGithubEventsService.findIssueStatsByRepo(
+          entity.repo.full_name,
+          range,
+          prevDaysStartDate
+        );
 
-      // get the repo's activity ratio
-      const activityRatio = await this.repoDevstatsService.calculateRepoActivityRatio(entity.repo.full_name, range);
+        localResult.issues.opened += issuesStats.opened_issues;
+        localResult.issues.closed += issuesStats.closed_issues;
+        localResult.issues.velocity += issuesStats.issue_velocity;
 
-      result.repos.activity_ratio += activityRatio;
+        // get the repo's activity ratio
+        const activityRatio = await this.repoDevstatsService.calculateRepoActivityRatio(entity.repo.full_name, range);
 
-      // get forks within time range
-      const forks = await this.forkGithubEventsService.genForkHistogram({ range, repo: entity.repo.full_name });
+        localResult.repos.activity_ratio += activityRatio;
 
-      forks.forEach((bucket) => (result.repos.forks += bucket.forks_count));
+        // get forks within time range
+        const forks = await this.forkGithubEventsService.genForkHistogram({ range, repo: entity.repo.full_name });
 
-      // get stars (watch events) within time range
-      const stars = await this.watchGithubEventsService.genStarsHistogram({ range, repo: entity.repo.full_name });
+        forks.forEach((bucket) => (localResult.repos.forks += bucket.forks_count));
 
-      stars.forEach((bucket) => (result.repos.stars += bucket.star_count));
-    });
+        // get stars (watch events) within time range
+        const stars = await this.watchGithubEventsService.genStarsHistogram({ range, repo: entity.repo.full_name });
 
-    await Promise.all(promises);
+        stars.forEach((bucket) => (localResult.repos.stars += bucket.star_count));
 
-    result.pull_requests.velocity /= entities.length;
-    result.issues.velocity /= entities.length;
-    result.repos.activity_ratio /= entities.length;
+        return localResult;
+      });
+
+    const finalResult = results.reduce((acc, curr) => {
+      acc.pull_requests.opened += curr.pull_requests.opened;
+      acc.pull_requests.merged += curr.pull_requests.merged;
+      acc.pull_requests.velocity += curr.pull_requests.velocity;
+
+      acc.issues.opened += curr.issues.opened;
+      acc.issues.closed += curr.issues.closed;
+      acc.issues.velocity += curr.issues.velocity;
+
+      acc.repos.activity_ratio += curr.repos.activity_ratio;
+      acc.repos.forks += curr.repos.forks;
+      acc.repos.stars += curr.repos.stars;
+
+      return acc;
+    }, new DbWorkspaceStats());
+
+    finalResult.pull_requests.velocity /= entities.length;
+    finalResult.issues.velocity /= entities.length;
+    finalResult.repos.activity_ratio /= entities.length;
 
     // activity ratio is currently the only stat that is used to inform health
-    result.repos.health = result.repos.activity_ratio;
+    finalResult.repos.health = finalResult.repos.activity_ratio;
 
-    return result;
+    return finalResult;
   }
 
   async findRossByWorkspaceIdForUserId(

@@ -1,9 +1,11 @@
+import { cpus } from "os";
 import { BadRequestException, Inject, Injectable, NotFoundException, forwardRef } from "@nestjs/common";
 import { ObjectLiteral, Repository, SelectQueryBuilder } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 
 import { ConfigService } from "@nestjs/config";
 import { Octokit } from "@octokit/rest";
+import PromisePool from "@supercharge/promise-pool/dist";
 import { DbPushGitHubEvents } from "../timescale/entities/push_github_events.entity";
 import { IssuesGithubEventsService } from "../timescale/issues_github_events.service";
 import { PageMetaDto } from "../common/dtos/page-meta.dto";
@@ -236,43 +238,46 @@ export class RepoService {
     const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
 
     // get PR stats for each repo found through filtering
-    const promises = entities.map(async (entity) => {
-      const prStats = await this.pullRequestGithubEventsService.findPrStatsByRepo(
-        entity.full_name,
-        range,
-        prevDaysStartDate
-      );
+    const { results } = await PromisePool.withConcurrency(Math.max(2, cpus().length))
+      .for(entities)
+      .handleError((error) => {
+        throw error;
+      })
+      .process(async (entity) => {
+        const prStats = await this.pullRequestGithubEventsService.findPrStatsByRepo(
+          entity.full_name,
+          range,
+          prevDaysStartDate
+        );
 
-      const forksHisto = await this.forkGithubEventsService.genForkHistogram({ repo: entity.full_name, range });
-      const forksVelocity = forksHisto.reduce((acc, curr) => acc + curr.forks_count, 0) / range;
-      const activityRatio = await this.repoDevstatsService.calculateRepoActivityRatio(entity.full_name, range);
-      const confidence = await this.repoDevstatsService.calculateContributorConfidenceByRepoName(
-        entity.full_name,
-        range
-      );
-      const pushDates = await this.pushGithubEventsService.lastPushDatesForRepo(entity.full_name);
+        const forksHisto = await this.forkGithubEventsService.genForkHistogram({ repo: entity.full_name, range });
+        const forksVelocity = forksHisto.reduce((acc, curr) => acc + curr.forks_count, 0) / range;
+        const activityRatio = await this.repoDevstatsService.calculateRepoActivityRatio(entity.full_name, range);
+        const confidence = await this.repoDevstatsService.calculateContributorConfidenceByRepoName(
+          entity.full_name,
+          range
+        );
+        const pushDates = await this.pushGithubEventsService.lastPushDatesForRepo(entity.full_name);
 
-      return {
-        ...entity,
-        pr_active_count: prStats.active_prs,
-        open_prs_count: prStats.open_prs,
-        merged_prs_count: prStats.accepted_prs,
-        spam_prs_count: prStats.spam_prs,
-        draft_prs_count: prStats.draft_prs,
-        closed_prs_count: prStats.closed_prs,
-        pr_velocity_count: prStats.pr_velocity,
-        fork_velocity: forksVelocity,
-        activity_ratio: activityRatio,
-        contributor_confidence: confidence,
-        health: activityRatio,
-        last_pushed_at: pushDates.push_date,
-        last_main_pushed_at: pushDates.main_push_date,
-      } as DbRepoWithStats;
-    });
+        return {
+          ...entity,
+          pr_active_count: prStats.active_prs,
+          open_prs_count: prStats.open_prs,
+          merged_prs_count: prStats.accepted_prs,
+          spam_prs_count: prStats.spam_prs,
+          draft_prs_count: prStats.draft_prs,
+          closed_prs_count: prStats.closed_prs,
+          pr_velocity_count: prStats.pr_velocity,
+          fork_velocity: forksVelocity,
+          activity_ratio: activityRatio,
+          contributor_confidence: confidence,
+          health: activityRatio,
+          last_pushed_at: pushDates.push_date,
+          last_main_pushed_at: pushDates.main_push_date,
+        } as DbRepoWithStats;
+      });
 
-    const updatedEntities = await Promise.all(promises);
-
-    return new PageDto(updatedEntities, pageMetaDto);
+    return new PageDto(results, pageMetaDto);
   }
 
   async fastFuzzyFind(pageOptionsDto: RepoFuzzySearchOptionsDto): Promise<PageDto<DbRepo>> {

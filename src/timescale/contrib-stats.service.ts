@@ -1,3 +1,4 @@
+import { cpus } from "os";
 import { Inject, Injectable, forwardRef } from "@nestjs/common";
 import { Repository, SelectQueryBuilder } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -54,7 +55,7 @@ export class ContributorDevstatsService {
     pageOptionsDto: MostActiveContributorsDto,
     users: string[]
   ): Promise<DbContributorStat[]> {
-    const { results, errors } = await PromisePool.withConcurrency(5)
+    const { results, errors } = await PromisePool.withConcurrency(Math.max(2, cpus().length))
       .for(users)
       .process(async (user) => this.findContributorStats(pageOptionsDto, user));
 
@@ -98,7 +99,7 @@ export class ContributorDevstatsService {
         ),
     ];
 
-    const { results } = await PromisePool.withConcurrency(5)
+    const { results } = await PromisePool.withConcurrency(Math.max(2, cpus().length))
       .for(statsFunctions)
       .useCorrespondingResults()
       .process(async (func) => func());
@@ -192,7 +193,7 @@ export class ContributorDevstatsService {
             this.pullRequestReviewCommentGithubEventsService.getPullReqReviewCommentEventsForLogin(user, range, repos),
         ];
 
-        const { results, errors } = await PromisePool.withConcurrency(5)
+        const { results, errors } = await PromisePool.withConcurrency(Math.max(2, cpus().length))
           .for(statsFunctions)
           .useCorrespondingResults()
           .process(async (func) => func());
@@ -341,8 +342,8 @@ export class ContributorDevstatsService {
             this.pullRequestReviewCommentGithubEventsService.getPullReqReviewCommentEventsForLogin(user, range, repos),
         ];
 
-        const { results, errors } = await PromisePool.for(statsFunctions)
-          .withConcurrency(5)
+        const { results, errors } = await PromisePool.withConcurrency(Math.max(2, cpus().length))
+          .for(statsFunctions)
           .useCorrespondingResults()
           .process(async (func) => func());
 
