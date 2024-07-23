@@ -30,6 +30,7 @@ import { DbWorkspace } from "../../workspace/entities/workspace.entity";
 import { DbWorkspaceMember, WorkspaceMemberRoleEnum } from "../../workspace/entities/workspace-member.entity";
 import { UserDto } from "../dtos/user.dto";
 import { ContributorDevstatsService } from "../../timescale/contrib-stats.service";
+import { RepoContributorsDto } from "../../repo/dtos/repo-contributors.dto";
 
 @Injectable()
 export class UserService {
@@ -57,7 +58,7 @@ export class UserService {
     @Inject(forwardRef(() => ContributorDevstatsService))
     private contribDevstatsService: ContributorDevstatsService,
     private configService: ConfigService
-  ) {}
+  ) { }
 
   baseQueryBuilder(): SelectQueryBuilder<DbUser> {
     const builder = this.userRepository.createQueryBuilder("users");
@@ -245,6 +246,19 @@ export class UserService {
     const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
 
     return new PageDto(entities, pageMetaDto);
+  }
+
+  async filterGivenContributors(contributors: string[], options: RepoContributorsDto): Promise<DbUser[]> {
+    const queryBuilder = this.baseQueryBuilder();
+
+    queryBuilder
+      .where(`LOWER(users.login) IN (:...users)`, { users: contributors })
+      .andWhere("users.type = 'User'")
+      .orderBy(options.filter!, options.orderDirection)
+      .offset(options.skip)
+      .limit(options.limit);
+
+    return queryBuilder.getMany();
   }
 
   async checkAddUser(user: User): Promise<DbUser> {

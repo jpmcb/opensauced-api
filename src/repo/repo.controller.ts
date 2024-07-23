@@ -5,8 +5,6 @@ import { ReleaseGithubEventsService } from "../timescale/release_github_events.s
 import { ReleasesDto } from "../histogram/dtos/releases.dto";
 import { PageDto } from "../common/dtos/page.dto";
 import { ApiPaginatedResponse } from "../common/decorators/api-paginated-response.decorator";
-import { PageOptionsDto } from "../common/dtos/page-options.dto";
-import { RepoDevstatsService } from "../timescale/repo-devstats.service";
 import { DbRepo, DbRepoWithStats } from "./entities/repo.entity";
 import { RepoService } from "./repo.service";
 import { RepoPageOptionsDto } from "./dtos/repo-page-options.dto";
@@ -22,15 +20,15 @@ import { RepoReleaseDto } from "./dtos/repo-release.dto";
 import { DbLotteryFactor } from "./entities/lotto.entity";
 import { DbRepoRossIndex } from "./entities/ross.entity";
 import { DbRepoYolo } from "./entities/yolo.entity";
+import { RepoContributorsDto } from "./dtos/repo-contributors.dto";
 
 @Controller("repos")
 @ApiTags("Repository service")
 export class RepoController {
   constructor(
     private readonly repoService: RepoService,
-    private readonly repoDevstatsService: RepoDevstatsService,
     private readonly releaseGitHubEventsService: ReleaseGithubEventsService
-  ) {}
+  ) { }
 
   @Get("/:id")
   @ApiOperation({
@@ -132,9 +130,9 @@ export class RepoController {
   async findContributorsByOwnerAndRepo(
     @Param("owner") owner: string,
     @Param("repo") repo: string,
-    @Query() pageOptionsDto: PageOptionsDto
+    @Query() pageOptionsDto: RepoContributorsDto
   ): Promise<PageDto<DbRepoContributor>> {
-    return this.repoDevstatsService.findRepoContributorStats(owner, repo, pageOptionsDto);
+    return this.repoService.findAllContributors(owner, repo, pageOptionsDto);
   }
 
   @Get("/:owner/:repo/releases")

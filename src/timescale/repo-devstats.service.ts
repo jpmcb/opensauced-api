@@ -1,11 +1,9 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import * as math from "mathjs";
 import { PageOptionsDto } from "../common/dtos/page-options.dto";
 import { avgRepoActivityRatioSample } from "../common/calculations/avg-repo-activity-ratio-sample";
-import { PageDto } from "../common/dtos/page.dto";
-import { PageMetaDto } from "../common/dtos/page-meta.dto";
 import { DbRepoContributor } from "../repo/entities/repo_contributors.entity";
 import { DbPullRequestGitHubEvents } from "./entities/pull_request_github_event.entity";
 import { DbIssuesGitHubEvents } from "./entities/issues_github_event.entity";
@@ -273,16 +271,7 @@ export class RepoDevstatsService {
     return (forkerConfidence + starGazerConfidence) / 2;
   }
 
-  /*
-   * this method is very similar to finding user list contributor stats but instead
-   * filters on owner/repo for a given github repo name. It also derives the
-   * users from distinct pull request contributors to that given repo in the given date range
-   */
-  async findRepoContributorStats(
-    owner: string,
-    repo: string,
-    pageOptionsDto: PageOptionsDto
-  ): Promise<PageDto<DbRepoContributor>> {
+  async findRepoContributors(owner: string, repo: string, pageOptionsDto: PageOptionsDto): Promise<string[]> {
     if (!owner) {
       throw new BadRequestException("owner must be a valid github owner");
     }
@@ -297,7 +286,6 @@ export class RepoDevstatsService {
     if (range === 180 || range === 360) {
       throw new BadRequestException("ranges of 180 and 360 days not supported");
     }
-
     const usersQuery = this.pullRequestGithubEventsRepository.manager
       .createQueryBuilder()
       .select("DISTINCT LOWER(actor_login) as login")
@@ -309,30 +297,53 @@ export class RepoDevstatsService {
     const allUsers = await usersQuery.getRawMany<{ login: string }>();
 
     if (allUsers.length === 0) {
-      return new PageDto(new Array<DbRepoContributor>(), new PageMetaDto({ itemCount: 0, pageOptionsDto }));
+      return new Array<string>();
     }
 
     const users = allUsers.map((user) => (user.login ? user.login.toLowerCase() : "")).filter((user) => user !== "");
 
     if (users.length === 0) {
-      return new PageDto(new Array<DbRepoContributor>(), new PageMetaDto({ itemCount: 0, pageOptionsDto }));
+      return new Array<string>();
     }
 
-    const usersCte = this.pullRequestGithubEventsRepository.manager
+    return users;
+  }
+
+  /*
+   * this method is very similar to finding user list contributor stats but instead
+   * filters on owner/repo for a given github repo name. It also derives the
+   * users from distinct pull request contributors to that given repo in the given date range
+   */
+  async findRepoContributorStats(
+    owner: string,
+    repo: string,
+    contributor: string,
+    pageOptionsDto: PageOptionsDto
+  ): Promise<DbRepoContributor> {
+    if (!owner) {
+      throw new BadRequestException("owner must be a valid github owner");
+    }
+
+    if (!repo) {
+      throw new BadRequestException("repo must be a valid github repo");
+    }
+
+    const repoName = `${owner}/${repo}`.toLowerCase();
+    const range = pageOptionsDto.range!;
+
+    const userCte = this.pullRequestGithubEventsRepository.manager.connection
       .createQueryBuilder()
-      .select("DISTINCT LOWER(actor_login) as login")
+      .select("LOWER(:contributor) as login")
       .from("pull_request_github_events", "pull_request_github_events")
-      .where("LOWER(actor_login) IN (:...users)", { users })
-      .andWhere("LOWER(repo_name) = LOWER(:repoName)", { repoName })
-      .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
-      .groupBy("login");
+      .limit(1)
+      .setParameter("contributor", contributor);
 
     const commitsCte = this.pullRequestGithubEventsRepository.manager
       .createQueryBuilder()
       .select("LOWER(actor_login)", "actor_login")
       .addSelect("COALESCE(sum(push_num_commits), 0) AS commits")
       .from("push_github_events", "push_github_events")
-      .where("LOWER(actor_login) IN (:...users)", { users })
+      .where("LOWER(actor_login) = :contributor", { contributor })
       .andWhere("push_ref IN ('refs/heads/main', 'refs/heads/master')")
       .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .andWhere("LOWER(repo_name) = LOWER(:repoName)", { repoName })
@@ -343,7 +354,7 @@ export class RepoDevstatsService {
       .select("LOWER(actor_login)", "actor_login")
       .addSelect("COALESCE(COUNT(*), 0) AS prs_created")
       .from("pull_request_github_events", "pull_request_github_events")
-      .where("LOWER(actor_login) IN (:...users)", { users })
+      .where("LOWER(actor_login) = :contributor", { contributor })
       .andWhere("pr_action = 'opened'")
       .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .andWhere("LOWER(repo_name) = LOWER(:repoName)", { repoName })
@@ -354,7 +365,7 @@ export class RepoDevstatsService {
       .select("LOWER(actor_login)", "actor_login")
       .addSelect("COALESCE(COUNT(*), 0) AS prs_reviewed")
       .from("pull_request_review_github_events", "pull_request_review_github_events")
-      .where("LOWER(actor_login) IN (:...users)", { users })
+      .where("LOWER(actor_login) = :contributor", { contributor })
       .andWhere("pr_review_action = 'created'")
       .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .andWhere("LOWER(repo_name) = LOWER(:repoName)", { repoName })
@@ -365,7 +376,7 @@ export class RepoDevstatsService {
       .select("LOWER(actor_login)", "actor_login")
       .addSelect("COALESCE(COUNT(*), 0) AS issues_created")
       .from("issues_github_events", "issues_github_events")
-      .where("LOWER(actor_login) IN (:...users)", { users })
+      .where("LOWER(actor_login) = :contributor", { contributor })
       .andWhere("issue_action = 'opened'")
       .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .andWhere("LOWER(repo_name) = LOWER(:repoName)", { repoName })
@@ -376,7 +387,7 @@ export class RepoDevstatsService {
       .select("LOWER(actor_login)", "actor_login")
       .addSelect("COALESCE(COUNT(*), 0) AS commit_comments")
       .from("commit_comment_github_events", "commit_comment_github_events")
-      .where("LOWER(actor_login) IN (:...users)", { users })
+      .where("LOWER(actor_login) = :contributor", { contributor })
       .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .andWhere("LOWER(repo_name) = LOWER(:repoName)", { repoName })
       .groupBy("LOWER(actor_login)");
@@ -386,7 +397,7 @@ export class RepoDevstatsService {
       .select("LOWER(actor_login)", "actor_login")
       .addSelect("COALESCE(COUNT(*), 0) AS issue_comments")
       .from("issue_comment_github_events", "issue_comment_github_events")
-      .where("LOWER(actor_login) IN (:...users)", { users })
+      .where("LOWER(actor_login) = :contributor", { contributor })
       .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .andWhere("LOWER(repo_name) = LOWER(:repoName)", { repoName })
       .groupBy("LOWER(actor_login)");
@@ -396,15 +407,15 @@ export class RepoDevstatsService {
       .select("LOWER(actor_login)", "actor_login")
       .addSelect("COALESCE(COUNT(*), 0) AS pr_review_comments")
       .from("pull_request_review_comment_github_events", "pull_request_review_comment_github_events")
-      .where("LOWER(actor_login) IN (:...users)", { users })
+      .where("LOWER(actor_login) = :contributor", { contributor })
       .andWhere("now() - :range_interval::INTERVAL <= event_time", { range_interval: `${range} days` })
       .andWhere("LOWER(repo_name) = LOWER(:repoName)", { repoName })
       .groupBy("LOWER(actor_login)");
 
     const entityQb = this.pullRequestGithubEventsRepository.manager
       .createQueryBuilder()
-      .addCommonTableExpression(usersCte, "users")
-      .setParameters(usersCte.getParameters())
+      .addCommonTableExpression(userCte, "user_stub")
+      .setParameters(userCte.getParameters())
       .addCommonTableExpression(commitsCte, "commits_agg")
       .setParameters(commitsCte.getParameters())
       .addCommonTableExpression(prsCreatedCte, "prs_created_agg")
@@ -419,7 +430,6 @@ export class RepoDevstatsService {
       .setParameters(issueCommentsCte.getParameters())
       .addCommonTableExpression(prReviewCommentsCte, "pr_review_comments_agg")
       .setParameters(prReviewCommentsCte.getParameters())
-      .select("users.login")
       .addSelect("COALESCE(commits_agg.commits, 0)::INTEGER AS commits")
       .addSelect("COALESCE(prs_created_agg.prs_created, 0)::INTEGER AS prs_created")
       .addSelect("COALESCE(prs_reviewed_agg.prs_reviewed, 0)::INTEGER AS prs_reviewed")
@@ -434,26 +444,21 @@ export class RepoDevstatsService {
           COALESCE(commit_comments, 0)::INTEGER AS total_contributions
       `
       )
-      .from("users", "users")
-      .leftJoin("commits_agg", "commits_agg", "users.login = commits_agg.actor_login")
-      .leftJoin("prs_created_agg", "prs_created_agg", "users.login = prs_created_agg.actor_login")
-      .leftJoin("prs_reviewed_agg", "prs_reviewed_agg", "users.login = prs_reviewed_agg.actor_login")
-      .leftJoin("issues_created_agg", "issues_created_agg", "users.login = issues_created_agg.actor_login")
-      .leftJoin("commit_comments_agg", "commit_comments_agg", "users.login = commit_comments_agg.actor_login")
+      .from("user_stub", "user_stub")
+      .leftJoin("commits_agg", "commits_agg", "user_stub.login = commits_agg.actor_login")
+      .leftJoin("prs_created_agg", "prs_created_agg", "user_stub.login = prs_created_agg.actor_login")
+      .leftJoin("prs_reviewed_agg", "prs_reviewed_agg", "user_stub.login = prs_reviewed_agg.actor_login")
+      .leftJoin("issues_created_agg", "issues_created_agg", "user_stub.login = issues_created_agg.actor_login")
+      .leftJoin("commit_comments_agg", "commit_comments_agg", "user_stub.login = commit_comments_agg.actor_login")
       .leftJoin("issue_comments_agg", "issue_comments_agg", "commits_agg.actor_login = issue_comments_agg.actor_login")
-      .leftJoin("pr_review_comments_agg", "pr_review_comments_agg", "users.login = pr_review_comments_agg.actor_login");
+      .leftJoin("pr_review_comments_agg", "pr_review_comments_agg", "user_stub.login = pr_review_comments_agg.actor_login");
 
-    const cteCounter = entityQb.clone().select("COUNT(*) as count");
+    const entity: DbRepoContributor | undefined = await entityQb.getRawOne();
 
-    const cteCounterResult = await cteCounter.getRawOne<{ count: number }>();
-    const itemCount = parseInt(`${cteCounterResult?.count ?? "0"}`, 10);
+    if (!entity) {
+      throw new NotFoundException("could not of derive repo contributor devstats");
+    }
 
-    entityQb.offset(pageOptionsDto.skip).limit(pageOptionsDto.limit);
-
-    const entities: DbRepoContributor[] = await entityQb.getRawMany();
-
-    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
-
-    return new PageDto(entities, pageMetaDto);
+    return entity;
   }
 }

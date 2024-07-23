@@ -33,6 +33,8 @@ import { DbLotteryFactor } from "./entities/lotto.entity";
 import { calculateLottoFactor } from "./common/lotto";
 import { DbRepoRossIndex } from "./entities/ross.entity";
 import { DbRepoYolo } from "./entities/yolo.entity";
+import { RepoContributorsDto } from "./dtos/repo-contributors.dto";
+import { DbRepoContributor } from "./entities/repo_contributors.entity";
 
 @Injectable()
 export class RepoService {
@@ -49,7 +51,7 @@ export class RepoService {
     private repoDevstatsService: RepoDevstatsService,
     private configService: ConfigService,
     private userService: UserService
-  ) {}
+  ) { }
 
   subQueryCount<T extends ObjectLiteral>(
     subQuery: SelectQueryBuilder<T>,
@@ -440,6 +442,46 @@ export class RepoService {
     });
 
     return result;
+  }
+
+  async findAllContributors(
+    owner: string,
+    name: string,
+    options: RepoContributorsDto
+  ): Promise<PageDto<DbRepoContributor>> {
+    const allContributors = await this.repoDevstatsService.findRepoContributors(owner, name, options);
+
+    // get paged contributors to actually process - sort based on provided filter
+    const filteredUsers = await this.userService.filterGivenContributors(allContributors, options);
+
+    const { results } = await PromisePool.withConcurrency(Math.max(2, cpus().length))
+      .for(filteredUsers)
+      .useCorrespondingResults()
+      .handleError((error) => {
+        throw error;
+      })
+      .process(async (contributor) => {
+        const contributorStat = await this.repoDevstatsService.findRepoContributorStats(
+          owner,
+          name,
+          contributor.login,
+          options
+        );
+
+        contributorStat.id = contributor.id;
+        contributorStat.login = contributor.login;
+        contributorStat.avatar_url = contributor.avatar_url;
+        contributorStat.oscr = contributor.oscr;
+
+        contributorStat.company = contributor.company ?? "";
+        contributorStat.location = contributor.location ?? "";
+
+        return contributorStat;
+      });
+
+    const pageMetaDto = new PageMetaDto({ itemCount: allContributors.length, pageOptionsDto: options });
+
+    return new PageDto(results, pageMetaDto);
   }
 
   async findAllWithFilters(pageOptionsDto: RepoSearchOptionsDto): Promise<PageDto<DbRepoWithStats>> {
